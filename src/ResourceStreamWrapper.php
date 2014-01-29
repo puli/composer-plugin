@@ -19,7 +19,7 @@ class ResourceStreamWrapper
     public static function register(ResourceRepositoryInterface $repository)
     {
     }
-    
+
     private function __construct()
     {
     }
