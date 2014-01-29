@@ -1,0 +1,19 @@
+{
+    "name": "webmozart/composer-resource-plugin",
+    "type": "composer-plugin",
+    "description": "A resource management plugin for Composer",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bernhard Schussek",
+            "email": "bschussek@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "composer-plugin-api": "1.0.0"
+    },
+    "require-dev": {
+        "composer/composer": "~1.0"
+    }
+}
