@@ -9,18 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\ResourcePlugin;
+namespace Webmozart\Composer\ResourcePlugin\Repository;
 
 /**
+ * @since  %%NextVersion%%
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceStreamWrapper
+class ResourceNotFoundException extends \Exception
 {
-    public static function register(ResourceLocatorInterface $repository)
-    {
-    }
-
-    private function __construct()
-    {
-    }
 }

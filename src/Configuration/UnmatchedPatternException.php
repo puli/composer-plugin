@@ -9,21 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\ResourcePlugin;
+namespace Webmozart\Composer\ResourcePlugin\Configuration;
 
 /**
  * @since  %%NextVersion%%
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-interface ResourceRepositoryInterface
+class UnmatchedPatternException extends \Exception
 {
-    public function getPath($resourcePath);
-
-    public function getPaths($resourcePath);
-
-    public function getPublicPath($resourcePath);
-
-    public function listDirectory($resourcePath);
-
-    public function globPaths($glob);
 }

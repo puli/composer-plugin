@@ -9,18 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\ResourcePlugin;
+namespace Webmozart\Composer\ResourcePlugin\Repository;
 
 /**
+ * @since  %%NextVersion%%
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceStreamWrapper
+interface ResourceRepositoryInterface
 {
-    public static function register(ResourceLocatorInterface $repository)
-    {
-    }
+    public function getResource($repositoryPath);
 
-    private function __construct()
-    {
-    }
+    public function getResources($pattern);
+
+    public function getTaggedResources($tag);
 }

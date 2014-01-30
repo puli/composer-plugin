@@ -9,18 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\ResourcePlugin;
+namespace Webmozart\Composer\ResourcePlugin\Dumper;
+
+use Webmozart\Composer\ResourcePlugin\Configuration\RepositoryConfiguration;
 
 /**
+ * @since  %%NextVersion%%
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceStreamWrapper
+interface RepositoryDumperInterface
 {
-    public static function register(ResourceLocatorInterface $repository)
-    {
-    }
-
-    private function __construct()
-    {
-    }
+    public function dump(RepositoryConfiguration $config, $targetPath);
 }

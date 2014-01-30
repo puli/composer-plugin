@@ -9,18 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\ResourcePlugin;
+namespace Webmozart\Composer\ResourcePlugin\Resource;
 
 /**
+ * @since  %%NextVersion%%
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceStreamWrapper
+interface ResourceInterface
 {
-    public static function register(ResourceLocatorInterface $repository)
-    {
-    }
-
-    private function __construct()
-    {
-    }
+    public function getRepositoryPath();
 }
