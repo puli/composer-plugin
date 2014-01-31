@@ -24,7 +24,7 @@ class PhpRepositoryDumper implements RepositoryDumperInterface
         $root = $config->getRootDirectory();
         $rootLength = strlen($root);
 
-        foreach ($config->getExportedDirectories() as $dirRepositoryPath => $dirPaths) {
+        foreach ($config->getDirectories() as $dirRepositoryPath => $dirPaths) {
             foreach ($dirPaths as $dirPath) {
                 $iterator = new \RecursiveIteratorIterator(
                     new \RecursiveDirectoryIterator(
@@ -64,7 +64,7 @@ class PhpRepositoryDumper implements RepositoryDumperInterface
             }
         }
 
-        foreach ($config->getExportedFiles() as $dirRepositoryPath => $filePaths) {
+        foreach ($config->getFiles() as $dirRepositoryPath => $filePaths) {
             foreach ($filePaths as $filePath) {
                 if (!isset($paths[$dirRepositoryPath])) {
                     $paths[$dirRepositoryPath] = array();
@@ -94,7 +94,7 @@ class PhpRepositoryDumper implements RepositoryDumperInterface
         );
 
         file_put_contents($targetPath.'/resources_paths.php', "<?php\n\nreturn ".var_export($paths, true).";");
-        file_put_contents($targetPath.'/resources_tags.php', "<?php\n\nreturn ".var_export($config->getTaggedPaths(), true).";");
+        file_put_contents($targetPath.'/resources_tags.php', "<?php\n\nreturn ".var_export($config->getTags(), true).";");
         file_put_contents($targetPath.'/resources_config.php', "<?php\n\nreturn ".var_export($dumpedConfig, true).";");
     }
 }

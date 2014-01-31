@@ -16,29 +16,36 @@ namespace Webmozart\Composer\ResourcePlugin\Configuration;
  */
 class RepositoryConfiguration
 {
-    private $exportedFiles = array();
+    private $files = array();
 
-    private $exportedDirs = array();
+    private $directories = array();
 
     private $tags = array();
 
-    private $pathMap = array();
+    private $knownPaths = array();
 
     private $rootDirectory;
 
-    public function setRootDirectory($rootDirectory)
+    public function __construct($rootDirectory = null)
     {
-        $this->rootDirectory = $rootDirectory;
+        if (!is_dir($rootDirectory)) {
+            throw new \InvalidArgumentException(sprintf(
+                'The directory "%s" does not exist.',
+                $rootDirectory
+            ));
+        }
+
+        $this->rootDirectory = $rootDirectory ? rtrim($rootDirectory, '/').'/' : '';
     }
 
     public function getRootDirectory()
     {
-        return $this->rootDirectory;
+        return rtrim($this->rootDirectory, '/');
     }
 
-    public function export($pattern, $repositoryPath)
+    public function addResources($pattern, $repositoryPath)
     {
-        $paths = glob($pattern);
+        $paths = glob($this->rootDirectory.$pattern);
 
         if (0 === count($paths)) {
             throw new UnmatchedPatternException(sprintf(
@@ -47,10 +54,12 @@ class RepositoryConfiguration
             ));
         }
 
+        $rootLength = strlen($this->rootDirectory);
+
         // If exactly one directory is matched, let the repository path point
         // to that directory
         if (1 === count($paths) && is_dir($paths[0])) {
-            $this->exportDirectory(rtrim($paths[0], '/'), $repositoryPath);
+            $this->addDirectory(rtrim(substr($paths[0], $rootLength), '/'), $repositoryPath);
 
             return;
         }
@@ -60,26 +69,26 @@ class RepositoryConfiguration
             $nestedRepositoryPath = $repositoryPath.'/'.basename($path);
 
             if (is_dir($path)) {
-                $this->exportDirectory(rtrim($path, '/'), $nestedRepositoryPath);
+                $this->addDirectory(rtrim(substr($path, $rootLength), '/'), $nestedRepositoryPath);
             } else {
-                $this->exportFile($path, $nestedRepositoryPath);
+                $this->addFile(substr($path, $rootLength), $nestedRepositoryPath);
             }
         }
     }
 
-    public function getExportedFiles()
+    public function getFiles()
     {
-        return $this->exportedFiles;
+        return $this->files;
     }
 
-    public function getExportedDirectories()
+    public function getDirectories()
     {
-        return $this->exportedDirs;
+        return $this->directories;
     }
 
-    public function tag($pattern, $tag)
+    public function addTag($pattern, $tag)
     {
-        $paths = glob($pattern);
+        $paths = glob($this->rootDirectory.$pattern);
 
         if (0 === count($paths)) {
             throw new UnmatchedPatternException(sprintf(
@@ -92,15 +101,17 @@ class RepositoryConfiguration
             $this->tags[$tag] = array();
         }
 
+        $rootLength = strlen($this->rootDirectory);
+
         foreach ($paths as $path) {
-            $path = rtrim($path, '/');
+            $path = rtrim(substr($path, $rootLength), '/');
 
             // Check whether the path was exported directly
-            $isExported = isset($this->pathMap[$path]);
+            $isExported = isset($this->knownPaths[$path]);
 
             // Else check whether one of its parent directories was exported
             if (!$isExported) {
-                foreach ($this->exportedDirs as $dirPaths) {
+                foreach ($this->directories as $dirPaths) {
                     foreach ($dirPaths as $dirPath) {
                         if (0 === strpos($path, $dirPath.'/')) {
                             $isExported = true;
@@ -123,28 +134,28 @@ class RepositoryConfiguration
         }
     }
 
-    public function getTaggedPaths()
+    public function getTags()
     {
         return $this->tags;
     }
 
-    private function exportFile($path, $repositoryPath)
+    private function addFile($path, $repositoryPath)
     {
-        if (!isset($this->exportedFiles[$repositoryPath])) {
-            $this->exportedFiles[$repositoryPath][] = array();
+        if (!isset($this->files[$repositoryPath])) {
+            $this->files[$repositoryPath][] = array();
         }
 
-        $this->exportedFiles[$repositoryPath][] = $path;
-        $this->pathMap[$path] = true;
+        $this->files[$repositoryPath][] = $path;
+        $this->knownPaths[$path] = true;
     }
 
-    private function exportDirectory($path, $repositoryPath)
+    private function addDirectory($path, $repositoryPath)
     {
-        if (!isset($this->exportedDirs[$repositoryPath])) {
-            $this->exportedDirs[$repositoryPath] = array();
+        if (!isset($this->directories[$repositoryPath])) {
+            $this->directories[$repositoryPath] = array();
         }
 
-        $this->exportedDirs[$repositoryPath][] = $path;
-        $this->pathMap[$path] = true;
+        $this->directories[$repositoryPath][] = $path;
+        $this->knownPaths[$path] = true;
     }
 }
