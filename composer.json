@@ -20,5 +20,8 @@
         "psr-4": {
             "Webmozart\\Composer\\PuliPlugin\\": "src/"
         }
+    },
+    "extra": {
+        "class": "Webmozart\\Composer\\PuliPlugin\\PuliPlugin"
     }
 }
