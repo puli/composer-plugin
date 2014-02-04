@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\ResourcePlugin;
+namespace Webmozart\Composer\PuliPlugin;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
@@ -20,7 +20,7 @@ use Composer\Plugin\PluginInterface;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourcePlugin implements PluginInterface
+class PuliPlugin implements PluginInterface
 {
     /**
      * Apply plugin modifications to composer

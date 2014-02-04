@@ -3,23 +3,59 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "80c07aa3b62d9e698149250bd89028ff",
+    "hash": "a10873d9ea061146dea5c4c45f3b4a2b",
     "packages": [
-
+        {
+            "name": "webmozart/puli",
+            "version": "1.0.0-alpha1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webmozart/puli.git",
+                "reference": "d86d161fb22478dd125ece76236744d68903371d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webmozart/puli/zipball/d86d161fb22478dd125ece76236744d68903371d",
+                "reference": "d86d161fb22478dd125ece76236744d68903371d",
+                "shasum": ""
+            },
+            "require-dev": {
+                "symfony/filesystem": "~2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webmozart\\Puli\\": "src/",
+                    "Webmozart\\Puli\\Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bernhard Schussek",
+                    "email": "bschussek@gmail.com"
+                }
+            ],
+            "description": "Puli manages the file resources of your project.",
+            "time": "2014-02-04 14:06:00"
+        }
     ],
     "packages-dev": [
         {
             "name": "composer/composer",
-            "version": "dev-master",
+            "version": "1.0.0-alpha8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "0238aaf5ac565a5b896caa79e9ca7e71d2312343"
+                "reference": "1eb1df44a97fb2daca1bb8b007f3bee012f0aa46"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/0238aaf5ac565a5b896caa79e9ca7e71d2312343",
-                "reference": "0238aaf5ac565a5b896caa79e9ca7e71d2312343",
+                "url": "https://api.github.com/repos/composer/composer/zipball/1eb1df44a97fb2daca1bb8b007f3bee012f0aa46",
+                "reference": "1eb1df44a97fb2daca1bb8b007f3bee012f0aa46",
                 "shasum": ""
             },
             "require": {
@@ -75,7 +111,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2014-01-29 09:12:19"
+            "time": "2014-01-06 18:39:59"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -181,17 +217,17 @@
         },
         {
             "name": "symfony/console",
-            "version": "dev-master",
+            "version": "v2.4.1",
             "target-dir": "Symfony/Component/Console",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Console.git",
-                "reference": "47e82eadf64a81e0a778c7249c7292987f1bfcff"
+                "reference": "4c1ed2ff514bd85ee186eebb010ccbdeeab05af7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Console/zipball/47e82eadf64a81e0a778c7249c7292987f1bfcff",
-                "reference": "47e82eadf64a81e0a778c7249c7292987f1bfcff",
+                "url": "https://api.github.com/repos/symfony/Console/zipball/4c1ed2ff514bd85ee186eebb010ccbdeeab05af7",
+                "reference": "4c1ed2ff514bd85ee186eebb010ccbdeeab05af7",
                 "shasum": ""
             },
             "require": {
@@ -206,7 +242,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.5-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -230,21 +266,21 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "http://symfony.com",
-            "time": "2014-01-24 14:36:35"
+            "time": "2014-01-01 08:14:50"
         },
         {
             "name": "symfony/finder",
-            "version": "dev-master",
+            "version": "v2.4.1",
             "target-dir": "Symfony/Component/Finder",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Finder.git",
-                "reference": "9a267caac6298b91efc7f0bc8522fd80f48fee98"
+                "reference": "6904345cf2b3bbab1f6d6e4ce1724cb99df9f00a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Finder/zipball/9a267caac6298b91efc7f0bc8522fd80f48fee98",
-                "reference": "9a267caac6298b91efc7f0bc8522fd80f48fee98",
+                "url": "https://api.github.com/repos/symfony/Finder/zipball/6904345cf2b3bbab1f6d6e4ce1724cb99df9f00a",
+                "reference": "6904345cf2b3bbab1f6d6e4ce1724cb99df9f00a",
                 "shasum": ""
             },
             "require": {
@@ -253,7 +289,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.5-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -277,21 +313,21 @@
             ],
             "description": "Symfony Finder Component",
             "homepage": "http://symfony.com",
-            "time": "2014-01-07 13:29:57"
+            "time": "2014-01-01 08:14:50"
         },
         {
             "name": "symfony/process",
-            "version": "dev-master",
+            "version": "v2.4.1",
             "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process.git",
-                "reference": "d4b086ca4d6e192d8c2c64fe011159c8bc4c9daa"
+                "reference": "58fdccb311e44f28866f976c2d7b3227e9f713db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Process/zipball/d4b086ca4d6e192d8c2c64fe011159c8bc4c9daa",
-                "reference": "d4b086ca4d6e192d8c2c64fe011159c8bc4c9daa",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/58fdccb311e44f28866f976c2d7b3227e9f713db",
+                "reference": "58fdccb311e44f28866f976c2d7b3227e9f713db",
                 "shasum": ""
             },
             "require": {
@@ -300,7 +336,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.5-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -324,16 +360,17 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
-            "time": "2014-01-07 13:29:57"
+            "time": "2014-01-05 02:10:50"
         }
     ],
     "aliases": [
 
     ],
-    "minimum-stability": "dev",
-    "stability-flags": [
-
-    ],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "webmozart/puli": 15,
+        "composer/composer": 15
+    },
     "platform": [
 
     ],
