@@ -88,7 +88,7 @@ features. For example, assume that all XLIFF translation files in the
 "acme/blog" package should be registered with the `\Acme\Translator` class.
 You can tag resources by adding them to the "tag" key in composer.json:
 
-```php
+```json
 {
     "name": "acme/blog",
     "extra": {
