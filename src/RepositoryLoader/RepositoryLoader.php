@@ -277,7 +277,7 @@ class RepositoryLoader
 
         foreach ($exports as $repositoryPath => $relativePaths) {
             foreach ((array)$relativePaths as $relativePath) {
-                if (0 !== strpos($repositoryPath, '/'.$packageName)) {
+                if ('__root__' !== $packageName && 0 !== strpos($repositoryPath, '/'.$packageName)) {
                     throw new ResourceDefinitionException(sprintf(
                         'Resources exported by the "%s" plugin must have the '.
                         'prefix "/%s". This is not the case for the resource '.

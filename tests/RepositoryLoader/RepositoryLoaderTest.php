@@ -155,6 +155,40 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
         $this->loader->loadPackage($package, self::PACKAGE_ROOT);
     }
 
+    /**
+     * @expectedException \Webmozart\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     */
+    public function testExportExpectsPackageNamePrefixForRoot()
+    {
+        $package = $this->createRootPackage(array(
+            'name' => 'acme/package',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/foo/bar' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package, self::PACKAGE_ROOT);
+    }
+
+    public function testExportDoesNotExpectPrefixIfRootPackageNameNotSet()
+    {
+        $package = $this->createRootPackage(array(
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/foo/bar' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package, self::PACKAGE_ROOT);
+    }
+
     public function testOverrideExistingPackage()
     {
         $this->repo->expects($this->at(0))
@@ -990,7 +1024,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
 
         $package->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue(isset($config['name']) ? $config['name'] : ''));
+            ->will($this->returnValue(isset($config['name']) ? $config['name'] : '__root__'));
 
         $package->expects($this->any())
             ->method('getExtra')
