@@ -133,7 +133,7 @@ which packages should override a path in the repository:
 
 ```json
 {
-    "vendor/application",
+    "name": "vendor/application",
     "require": {
         "acme/blog": "*",
         "acme/blog-extension": "*"
