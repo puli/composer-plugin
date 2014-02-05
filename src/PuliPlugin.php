@@ -80,6 +80,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $loader->validateOverrides();
         $loader->applyOverrides();
+        $loader->applyTags();
 
         $filesystem->ensureDirectoryExists($vendorPath.'/composer');
 
