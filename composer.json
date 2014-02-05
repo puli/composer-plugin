@@ -1,7 +1,7 @@
 {
     "name": "webmozart/composer-puli-plugin",
     "type": "composer-plugin",
-    "description": "Manages the resources of your Composer packages using Puli.",
+    "description": "A resource management plugin for Composer based on the Puli library.",
     "license": "MIT",
     "authors": [
         {
