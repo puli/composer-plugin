@@ -30,6 +30,10 @@ use Webmozart\Puli\Repository\ResourceRepository;
  */
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
 {
+    const VERSION = '@package_version@';
+
+    const RELEASE_DATE = '@release_date@';
+
     /**
      * {@inheritdoc}
      */
