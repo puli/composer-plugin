@@ -8,20 +8,24 @@ plugin generates a resource locator for you which lets you access the resources
 of those packages:
 
 ```php
-use Webmozart\Puli\StreamWrapper\ResourceStreamWrapper;
-
 $locator = require __DIR__.'/vendor/resource-locator.php';
 
 echo $locator->get('/acme/blog/css/style.css')->getPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
+```
 
-// Register a stream wrapper to use the locator with PHP's file functions
+You can also register a stream wrapper to use the locator with PHP's file
+functions:
+
+```php
+use Webmozart\Puli\StreamWrapper\ResourceStreamWrapper;
+
 ResourceStreamWrapper::register('resource', $locator);
 
 echo file_get_contents('resource:///acme/blog/css/style.css');
 ```
 
-This document teaches you how to use the plugin in practice.
+This document teaches you how to use the Puli plugin for Composer in practice.
 
 Installation
 ------------
