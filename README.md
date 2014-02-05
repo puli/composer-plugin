@@ -80,6 +80,71 @@ echo $locator->get('/acme/blog/css/style.css')->getPath();
 Check the [Puli documentation] if you want to learn more about the API of the
 resource locator.
 
+Tagging Resources
+-----------------
+
+You can tag mapped resources in order to indicate that they support specific
+features. For example, assume that all XLIFF translation files in the
+"acme/blog" package should be registered with the `\Acme\Translator` class.
+You can tag resources by adding them to the "tag" key in composer.json:
+
+```php
+{
+    "name": "acme/blog",
+    "extra": {
+        "resources": {
+            "export": {
+                "/acme/blog": "resources",
+            },
+            "tag": {
+                "/acme/blog/translations/*.xlf": "acme/translator/xlf"
+            }
+        }
+    }
+}
+```
+
+The tagged resources can be retrieved with the `getByTag()` method of the
+resource locator:
+
+```php
+foreach ($locator->getByTag('acme/translator/xlf') as $resource) {
+    echo $resource->getPath();
+}
+```
+
+If you are the developer of the `\Acme\Translator` class, you can implement
+[`ResourceDiscoveringInterface`] to let it discover its resources by itself:
+
+```php
+namespace Acme;
+
+use Webmozart\Puli\ResourceDiscoveringInterface;
+
+class Translator implements ResourceDiscoveringInterface
+{
+    // ...
+
+    public function discoverResources(ResourceLocatorInterface $locator)
+    {
+        foreach ($locator->getByTag('acme/translator/xlf') as $resource) {
+            // register $resource->getPath()...
+        }
+    }
+}
+```
+
+When you create the translator, call `discoverResources()` and pass the locator:
+
+```php
+$translator = new Translator('en');
+$translator->discoverResources($locator);
+```
+
+If you use a Dependency Injection Container, you can let the container call
+this method automatically on services that implement
+[`ResourceDiscoveringInterface`].
+
 Overriding Resources
 --------------------
 
@@ -176,3 +241,4 @@ print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
 [Puli library]: https://github.com/webmozart/puli
 [Puli documentation]: https://github.com/webmozart/puli/blob/master/README.md
 [`OverrideConflictException`]: src/RepositoryLoader/OverrideConflictException.php
+[`ResourceDiscoveringInterface`]: https://github.com/webmozart/puli/blob/master/src/ResourceDiscoveringInterface.php

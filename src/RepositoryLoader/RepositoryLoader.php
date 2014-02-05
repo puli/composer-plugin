@@ -53,6 +53,11 @@ class RepositoryLoader
      */
     private $conflictingPaths = array();
 
+    /**
+     * @var array[]
+     */
+    private $tags;
+
     public function __construct(ResourceRepositoryInterface $repository)
     {
         $this->repository = $repository;
@@ -103,6 +108,18 @@ class RepositoryLoader
             }
 
             $this->processOverrideOrder($config['override-order']);
+        }
+
+        if (isset($config['tag'])) {
+            if (!is_array($config['tag'])) {
+                throw new ResourceDefinitionException(sprintf(
+                    'The "tag" key in the composer.json of the "%s" '.
+                    'package should contain an array.',
+                    $packageName
+                ));
+            }
+
+            $this->processTags($config['tag']);
         }
     }
 
@@ -262,6 +279,15 @@ class RepositoryLoader
         }
     }
 
+    public function applyTags()
+    {
+        foreach ($this->tags as $repositoryPath => $tags) {
+            foreach ($tags as $tag => $_) {
+                $this->repository->tag($repositoryPath, $tag);
+            }
+        }
+    }
+
     /**
      * @param array $exports
      * @param       $packageName
@@ -332,6 +358,20 @@ class RepositoryLoader
             }
 
             $this->overrideOrder[$repositoryPath] = $packageOrder;
+        }
+    }
+
+    private function processTags(array $tags)
+    {
+        foreach ($tags as $repositoryPath => $pathTags) {
+            if (!isset($this->tags[$repositoryPath])) {
+                $this->tags[$repositoryPath] = array();
+            }
+
+            foreach ((array) $pathTags as $tag) {
+                // Store tags as keys to prevent duplicates
+                $this->tags[$repositoryPath][$tag] = true;
+            }
         }
     }
 

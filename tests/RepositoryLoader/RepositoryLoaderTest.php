@@ -961,6 +961,224 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
         $this->loader->applyOverrides();
     }
 
+    public function testTag()
+    {
+        $this->repo->expects($this->at(0))
+            ->method('add')
+            ->with('/acme/package', self::PACKAGE_ROOT.'/resources');
+
+        $this->repo->expects($this->at(1))
+            ->method('tag')
+            ->with('/acme/package', 'acme/tag');
+
+        $package = $this->createPackage(array(
+            'name' => 'acme/package',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package' => 'resources',
+                    ),
+                    'tag' => array(
+                        '/acme/package' => 'acme/tag',
+                    )
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package, self::PACKAGE_ROOT);
+        $this->loader->applyTags();
+    }
+
+    public function testTagExistingResources()
+    {
+        $this->repo->expects($this->at(0))
+            ->method('add')
+            ->with('/acme/package-2', self::OTHER_PACKAGE_ROOT.'/resources');
+
+        $this->repo->expects($this->at(1))
+            ->method('tag')
+            ->with('/acme/package-2', 'acme/tag');
+
+        $package1 = $this->createPackage(array(
+            'name' => 'acme/package-1',
+            'extra' => array(
+                'resources' => array(
+                    'tag' => array(
+                        '/acme/package-2' => 'acme/tag',
+                    ),
+                ),
+            ),
+        ));
+
+        $package2 = $this->createPackage(array(
+            'name' => 'acme/package-2',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package-2' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package2, self::OTHER_PACKAGE_ROOT);
+        $this->loader->loadPackage($package1, self::PACKAGE_ROOT);
+        $this->loader->applyTags();
+    }
+
+    public function testTagFutureResources()
+    {
+        $this->repo->expects($this->at(0))
+            ->method('add')
+            ->with('/acme/package-2', self::OTHER_PACKAGE_ROOT.'/resources');
+
+        $this->repo->expects($this->at(1))
+            ->method('tag')
+            ->with('/acme/package-2', 'acme/tag');
+
+        $package1 = $this->createPackage(array(
+            'name' => 'acme/package-1',
+            'extra' => array(
+                'resources' => array(
+                    'tag' => array(
+                        '/acme/package-2' => 'acme/tag',
+                    ),
+                ),
+            ),
+        ));
+
+        $package2 = $this->createPackage(array(
+            'name' => 'acme/package-2',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package-2' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package1, self::PACKAGE_ROOT);
+        $this->loader->loadPackage($package2, self::OTHER_PACKAGE_ROOT);
+        $this->loader->applyTags();
+    }
+
+    public function testTagTwice()
+    {
+        $this->repo->expects($this->at(0))
+            ->method('add')
+            ->with('/acme/package-2', self::OTHER_PACKAGE_ROOT.'/resources');
+
+        $this->repo->expects($this->at(1))
+            ->method('tag')
+            ->with('/acme/package-2', 'acme/tag-1');
+
+        $this->repo->expects($this->at(2))
+            ->method('tag')
+            ->with('/acme/package-2', 'acme/tag-2');
+
+        $package1 = $this->createPackage(array(
+            'name' => 'acme/package-1',
+            'extra' => array(
+                'resources' => array(
+                    'tag' => array(
+                        '/acme/package-2' => 'acme/tag-2',
+                    ),
+                ),
+            ),
+        ));
+
+        $package2 = $this->createPackage(array(
+            'name' => 'acme/package-2',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package-2' => 'resources',
+                    ),
+                    'tag' => array(
+                        '/acme/package-2' => 'acme/tag-1',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package2, self::OTHER_PACKAGE_ROOT);
+        $this->loader->loadPackage($package1, self::PACKAGE_ROOT);
+        $this->loader->applyTags();
+    }
+
+    public function testTagTwiceSameTag()
+    {
+        $this->repo->expects($this->once())
+            ->method('add')
+            ->with('/acme/package-2', self::OTHER_PACKAGE_ROOT.'/resources');
+
+        $this->repo->expects($this->once())
+            ->method('tag')
+            ->with('/acme/package-2', 'acme/tag');
+
+        $package1 = $this->createPackage(array(
+            'name' => 'acme/package-1',
+            'extra' => array(
+                'resources' => array(
+                    'tag' => array(
+                        '/acme/package-2' => 'acme/tag',
+                    ),
+                ),
+            ),
+        ));
+
+        $package2 = $this->createPackage(array(
+            'name' => 'acme/package-2',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package-2' => 'resources',
+                    ),
+                    'tag' => array(
+                        '/acme/package-2' => 'acme/tag',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package2, self::OTHER_PACKAGE_ROOT);
+        $this->loader->loadPackage($package1, self::PACKAGE_ROOT);
+        $this->loader->applyTags();
+    }
+
+    public function testMultipleTags()
+    {
+        $this->repo->expects($this->at(0))
+            ->method('add')
+            ->with('/acme/package-1', self::PACKAGE_ROOT.'/resources');
+
+        $this->repo->expects($this->at(1))
+            ->method('tag')
+            ->with('/acme/package-1', 'acme/tag-1');
+
+        $this->repo->expects($this->at(2))
+            ->method('tag')
+            ->with('/acme/package-1', 'acme/tag-2');
+
+        $package = $this->createPackage(array(
+            'name' => 'acme/package-1',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package-1' => 'resources',
+                    ),
+                    'tag' => array(
+                        '/acme/package-1' => array('acme/tag-1', 'acme/tag-2'),
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package, self::PACKAGE_ROOT);
+        $this->loader->applyTags();
+    }
+
     /**
      * @expectedException \Webmozart\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
      */
@@ -1005,6 +1223,23 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
             'extra' => array(
                 'resources' => array(
                     'override-order' => 'foobar',
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package, '/');
+    }
+
+    /**
+     * @expectedException \Webmozart\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     */
+    public function testTagsMustBeArray()
+    {
+        $package = $this->createRootPackage(array(
+            'name' => 'acme/package',
+            'extra' => array(
+                'resources' => array(
+                    'tag' => 'foobar',
                 ),
             ),
         ));
