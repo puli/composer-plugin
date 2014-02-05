@@ -34,6 +34,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     const RELEASE_DATE = '@release_date@';
 
+    private $firstRun = true;
+
     /**
      * {@inheritdoc}
      */
@@ -58,6 +60,13 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     public function dumpResourceLocator(CommandEvent $event)
     {
+        // This method is called twice. Run it only once.
+        if (!$this->firstRun) {
+            return;
+        }
+
+        $this->firstRun = false;
+
         $config = $event->getComposer()->getConfig();
         $installationManager = $event->getComposer()->getInstallationManager();
         $repositoryManager = $event->getComposer()->getRepositoryManager();
@@ -67,6 +76,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $filesystem->ensureDirectoryExists($config->get('vendor-dir'));
         $basePath = $filesystem->normalizePath(realpath(getcwd()));
         $vendorPath = $filesystem->normalizePath(realpath($config->get('vendor-dir')));
+
+        $event->getIO()->write('<info>Generating resource locator</info>');
 
         $repository = new ResourceRepository();
         $loader = new RepositoryLoader($repository);
