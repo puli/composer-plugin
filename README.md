@@ -3,7 +3,25 @@ Composer Puli Plugin
 
 This plugin integrates the [Puli library] into Composer. With this plugin,
 managing and accessing the files (*resources*) of your Composer packages
-becomes a breeze.
+becomes a breeze. Whenever you install or update your Composer packages, the
+plugin generates a resource locator for you which lets you access the resources
+of those packages:
+
+```php
+use Webmozart\Puli\StreamWrapper\ResourceStreamWrapper;
+
+$locator = require __DIR__.'/vendor/resource-locator.php';
+
+echo $locator->get('/acme/blog/css/style.css')->getPath();
+// => /path/to/project/vendor/acme/blog/assets/css/style.css
+
+// Register a stream wrapper to use the locator with PHP's file functions
+ResourceStreamWrapper::register('resource', $locator);
+
+echo file_get_contents('resource:///acme/blog/css/style.css');
+```
+
+This document teaches you how to use the plugin in practice.
 
 Installation
 ------------
