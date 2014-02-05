@@ -2,7 +2,7 @@ Composer Puli Plugin
 ====================
 
 This plugin integrates the [Puli library] into Composer. With this plugin,
-managing and accessing the files (*resources*) of your Composer packages
+finding the absolute paths of the files (*resources*) in your Composer packages
 becomes a breeze. Whenever you install or update your Composer packages, the
 plugin generates a resource locator for you which lets you access the resources
 of those packages:
