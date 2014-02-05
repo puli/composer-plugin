@@ -35,7 +35,7 @@ You can install the plugin by adding it to your composer.json:
 ```json
 {
     "require": {
-        "webmozart/composer-puli-plugin": "dev-master"
+        "webmozart/composer-puli-plugin": "~1.0@alpha"
     },
     "minimum-stability": "alpha"
 }

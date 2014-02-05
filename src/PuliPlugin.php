@@ -30,9 +30,9 @@ use Webmozart\Puli\Repository\ResourceRepository;
  */
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
 {
-    const VERSION = '@package_version@';
+    const VERSION = '1.0.0-alpha1';
 
-    const RELEASE_DATE = '@release_date@';
+    const RELEASE_DATE = '2014-02-05';
 
     private $firstRun = true;
 
