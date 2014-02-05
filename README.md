@@ -104,7 +104,11 @@ You can tag resources by adding them to the "tag" key in composer.json:
 }
 ```
 
-The tagged resources can be retrieved with the `getByTag()` method of the
+The left side of the array is a path or a glob that selects one or more
+resources. The right side contains one or more tag that should be added to the
+selected resources.
+
+The tagged resources can then be retrieved with the `getByTag()` method of the
 resource locator:
 
 ```php
