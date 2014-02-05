@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Composer Puli Plugin package.
+ * This file is part of the Composer Puli Plugin.
  *
  * (c) Bernhard Schussek <bschussek@gmail.com>
  *
@@ -18,10 +18,14 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
+use Webmozart\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
+use Webmozart\Puli\LocatorDumper\PhpResourceLocatorDumper;
+use Webmozart\Puli\Repository\ResourceRepository;
 
 /**
  * A plugin for managing resources of Composer dependencies.
  *
+ * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
@@ -60,18 +64,23 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $basePath = $filesystem->normalizePath(realpath(getcwd()));
         $vendorPath = $filesystem->normalizePath(realpath($config->get('vendor-dir')));
 
-        $locatorDumper = new ComposerLocatorDumper($basePath, $vendorPath);
+        $repository = new ResourceRepository();
+        $loader = new RepositoryLoader($repository);
 
-        $locatorDumper->addResources($event->getComposer()->getPackage(), $basePath);
+        $loader->loadPackage($event->getComposer()->getPackage(), $basePath);
 
         foreach ($packages as $package) {
             /** @var \Composer\Package\PackageInterface $package */
-            $locatorDumper->addResources($package, $installationManager->getInstallPath($package));
+            $loader->loadPackage($package, $installationManager->getInstallPath($package));
         }
+
+        $loader->validateOverrides();
+        $loader->applyOverrides();
 
         $filesystem->ensureDirectoryExists($vendorPath.'/composer');
 
-        $locatorDumper->dumpLocator($vendorPath.'/composer');
+        $dumper = new PhpResourceLocatorDumper();
+        $dumper->dumpLocator($repository, $vendorPath.'/composer');
 
         $locatorCode = <<<LOCATOR
 <?php
