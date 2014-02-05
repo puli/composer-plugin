@@ -11,29 +11,29 @@
 
 namespace Webmozart\Composer\PuliPlugin\Tests\Util;
 
-use Webmozart\Composer\PuliPlugin\Util\BasePathCalculator;
+use Webmozart\Composer\PuliPlugin\Util\PathMatcher;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
+class PathMatcherTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var BasePathCalculator
+     * @var PathMatcher
      */
     private $calculator;
 
     protected function setUp()
     {
-        $this->calculator = new BasePathCalculator();
+        $this->calculator = new PathMatcher();
     }
 
     public function testEqual()
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path',
                 '/base/path'
             )
@@ -44,7 +44,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'C:/base/path'
             )
@@ -55,7 +55,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path',
                 'C:\\base\\path'
             )
@@ -66,7 +66,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'C:\\base\\path'
             )
@@ -77,7 +77,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path/',
                 '/base/path'
             )
@@ -88,7 +88,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/',
                 'C:/base/path'
             )
@@ -99,7 +99,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path\\',
                 'C:\\base\\path'
             )
@@ -110,7 +110,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/',
                 'C:\\base\\path'
             )
@@ -121,7 +121,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path',
                 '/base/path/'
             )
@@ -132,7 +132,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'C:/base/path/'
             )
@@ -143,7 +143,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path',
                 'C:\\base\\path\\'
             )
@@ -154,7 +154,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'C:\\base\\path\\'
             )
@@ -165,7 +165,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path/sub',
                 '/base/path'
             )
@@ -176,7 +176,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/sub',
                 'C:/base/path'
             )
@@ -187,7 +187,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path\\sub',
                 'C:\\base\\path'
             )
@@ -198,7 +198,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/sub',
                 'C:\\base\\path'
             )
@@ -209,7 +209,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path',
                 '/base/path/sub'
             )
@@ -220,7 +220,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'C:/base/path/sub'
             )
@@ -231,7 +231,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path',
                 'C:\\base\\path\\sub'
             )
@@ -242,7 +242,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'C:\\base\\path\\sub'
             )
@@ -253,7 +253,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path/sub',
                 '/base/path/sub-but-different'
             )
@@ -264,7 +264,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/sub',
                 'C:/base/path/sub-but-different'
             )
@@ -275,7 +275,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path\\sub',
                 'C:\\base\\path\\sub-but-different'
             )
@@ -286,7 +286,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/sub',
                 'C:\\base\\path\\sub-but-different'
             )
@@ -297,7 +297,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path/sub-but-different',
                 '/base/path/sub'
             )
@@ -308,7 +308,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/sub-but-different',
                 'C:/base/path/sub'
             )
@@ -319,7 +319,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path\\sub-but-different',
                 'C:\\base\\path\\sub'
             )
@@ -330,7 +330,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/sub-but-different',
                 'C:\\base\\path\\sub'
             )
@@ -341,7 +341,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path/first',
                 '/base/path/second'
             )
@@ -352,7 +352,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/first',
                 'C:/base/path/second'
             )
@@ -363,7 +363,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path\\first',
                 'C:\\base\\path\\second'
             )
@@ -374,7 +374,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:/base/path',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path/first',
                 'C:\\base\\path\\second'
             )
@@ -385,7 +385,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             '/',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/first',
                 '/second'
             )
@@ -396,7 +396,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/first',
                 'C:/second'
             )
@@ -407,7 +407,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\first',
                 'C:\\second'
             )
@@ -418,7 +418,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertSame(
             'C:',
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/first',
                 'C:\\second'
             )
@@ -428,7 +428,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testNoCommonBasePathFirstWindowsStyle()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 '/base/path'
             )
@@ -438,7 +438,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testNoCommonBasePathFirstWindowsStyleBackSlashes()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path',
                 '/base/path'
             )
@@ -448,7 +448,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testNoCommonBasePathSecondWindowsStyle()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path',
                 'C:/base/path'
             )
@@ -458,7 +458,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testNoCommonBasePathSecondWindowsStyleBackSlashes()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 '/base/path',
                 'C:\\base\\path'
             )
@@ -468,7 +468,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testDifferentPartitionsWindowsStyle()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'D:/base/path'
             )
@@ -478,7 +478,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testDifferentPartitionsWindowsStyleBackSlashes()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:\\base\\path',
                 'D:\\base\\path'
             )
@@ -488,7 +488,7 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
     public function testDifferentPartitionsWindowsStyleMixedSlashes()
     {
         $this->assertNull(
-            $this->calculator->calculateCommonBasePath(
+            $this->calculator->getCommonBasePath(
                 'C:/base/path',
                 'D:\\base\\path'
             )
