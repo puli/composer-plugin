@@ -139,7 +139,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Webmozart\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
      */
-    public function testExportExpectsPackageNamePrefix()
+    public function testExportExpectsPackageNameAsBasePath()
     {
         $package = $this->createPackage(array(
             'name' => 'acme/package',
@@ -158,7 +158,26 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Webmozart\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
      */
-    public function testExportExpectsPackageNamePrefixForRoot()
+    public function testExportDoesNotAcceptStringPrefixes()
+    {
+        $package = $this->createPackage(array(
+            'name' => 'acme/package',
+            'extra' => array(
+                'resources' => array(
+                    'export' => array(
+                        '/acme/package-but-is-it-though' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->loader->loadPackage($package, self::PACKAGE_ROOT);
+    }
+
+    /**
+     * @expectedException \Webmozart\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     */
+    public function testExportExpectsPackageNameAsBasePathForRoot()
     {
         $package = $this->createRootPackage(array(
             'name' => 'acme/package',
@@ -174,7 +193,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
         $this->loader->loadPackage($package, self::PACKAGE_ROOT);
     }
 
-    public function testExportDoesNotExpectPrefixIfRootPackageNameNotSet()
+    public function testExportDoesNotExpectPackageNameAsBasePathIfNameNotSetForRoot()
     {
         $package = $this->createRootPackage(array(
             'extra' => array(
