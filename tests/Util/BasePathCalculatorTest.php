@@ -249,6 +249,94 @@ class BasePathCalculatorTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testFirstIsPrefix()
+    {
+        $this->assertSame(
+            '/base/path',
+            $this->calculator->calculateCommonBasePath(
+                '/base/path/sub',
+                '/base/path/sub-but-different'
+            )
+        );
+    }
+
+    public function testFirstIsPrefixWindowsStyle()
+    {
+        $this->assertSame(
+            'C:/base/path',
+            $this->calculator->calculateCommonBasePath(
+                'C:/base/path/sub',
+                'C:/base/path/sub-but-different'
+            )
+        );
+    }
+
+    public function testFirstIsPrefixWindowsStyleBackSlashes()
+    {
+        $this->assertSame(
+            'C:/base/path',
+            $this->calculator->calculateCommonBasePath(
+                'C:\\base\\path\\sub',
+                'C:\\base\\path\\sub-but-different'
+            )
+        );
+    }
+
+    public function testFirstIsPrefixWindowsStyleMixedSlashes()
+    {
+        $this->assertSame(
+            'C:/base/path',
+            $this->calculator->calculateCommonBasePath(
+                'C:/base/path/sub',
+                'C:\\base\\path\\sub-but-different'
+            )
+        );
+    }
+
+    public function testSecondIsPrefix()
+    {
+        $this->assertSame(
+            '/base/path',
+            $this->calculator->calculateCommonBasePath(
+                '/base/path/sub-but-different',
+                '/base/path/sub'
+            )
+        );
+    }
+
+    public function testSecondIsPrefixWindowsStyle()
+    {
+        $this->assertSame(
+            'C:/base/path',
+            $this->calculator->calculateCommonBasePath(
+                'C:/base/path/sub-but-different',
+                'C:/base/path/sub'
+            )
+        );
+    }
+
+    public function testSecondIsPrefixWindowsStyleBackSlashes()
+    {
+        $this->assertSame(
+            'C:/base/path',
+            $this->calculator->calculateCommonBasePath(
+                'C:\\base\\path\\sub-but-different',
+                'C:\\base\\path\\sub'
+            )
+        );
+    }
+
+    public function testSecondIsPrefixWindowsStyleMixedSlashes()
+    {
+        $this->assertSame(
+            'C:/base/path',
+            $this->calculator->calculateCommonBasePath(
+                'C:/base/path/sub-but-different',
+                'C:\\base\\path\\sub'
+            )
+        );
+    }
+
     public function testCommonBasePath()
     {
         $this->assertSame(

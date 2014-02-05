@@ -28,7 +28,12 @@ class BasePathCalculator
         // Once we reach the root directory, dirname($path) === $path, so we
         // need to abort the loop
         while ($previousBasePath !== $basePath) {
-            if (0 === strpos($path2, $basePath)) {
+            // Append slashes to prevent false positives when two paths have
+            // a common prefix, for example /base/foo and /base/foobar.
+            // Don't append a slash for the root "/", because then that root
+            // won't be discovered as common prefix ("//" is not a prefix of
+            // "/foobar/").
+            if (0 === strpos($path2.'/', '/' === $basePath ? '/' : $basePath.'/')) {
                 return $basePath;
             }
 
