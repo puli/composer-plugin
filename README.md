@@ -25,7 +25,7 @@ ResourceStreamWrapper::register('resource', $locator);
 echo file_get_contents('resource:///acme/blog/css/style.css');
 ```
 
-This document teaches you how to use the Puli plugin for Composer in practice.
+This document teaches you how to use the Puli plugin in practice.
 
 Installation
 ------------
