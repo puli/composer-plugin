@@ -55,6 +55,9 @@ echo $locator->get('/acme/blog/css/style.css')->getPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
+Check the [Puli documentation] if you want to learn more about the API of the
+resource locator.
+
 Overriding Resources
 --------------------
 
@@ -149,4 +152,5 @@ print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
 ```
 
 [Puli library]: https://github.com/webmozart/puli
+[Puli documentation]: https://github.com/webmozart/puli/blob/master/README.md
 [`OverrideConflictException`]: src/RepositoryLoader/OverrideConflictException.php
