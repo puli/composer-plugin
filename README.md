@@ -52,7 +52,7 @@ require_once __DIR__.'/vendor/autoload.php';
 $locator = require __DIR__.'/vendor/resource-locator.php';
 
 echo $locator->get('/acme/demo/css/style.css')->getPath();
-// => /path/to/vendor/acme/demo/assets/css/style.css
+// => /path/to/project/vendor/acme/demo/assets/css/style.css
 ```
 
 Overriding Resources
@@ -89,8 +89,8 @@ they were overridden, with the original path coming first:
 print_r($locator->get('/acme/demo/css/style.css')->getAlternativePaths());
 // Array
 // (
-//     [0] => /path/to/vendor/acme/demo/config/config.yml
-//     [1] => /path/to/vendor/acme/demo-extension/config/config.yml
+//     [0] => /path/to/project/vendor/acme/demo/assets/css/style.css
+//     [1] => /path/to/project/vendor/acme/demo-extension/assets/css/style.css
 // )
 ```
 
@@ -131,6 +131,22 @@ package "acme/demo-extension" which overrides the "/acme/demo/css" directory.
 To complicate things, the application overrides this path as well. Through
 the "override-order" key, you can tell Puli that the overrides in
 "vendor/application" should be preferred over those in "acme/demo-extension".
+
+If you query the path of the file style.css again, and if that file exists in
+all three packages, you will get a result like this:
+
+```php
+echo $locator->get('/acme/demo/css/style.css')->getPath();
+// => /path/to/project/resources/acme/demo/css/style.css
+
+print_r($locator->get('/acme/demo/css/style.css')->getAlternativePaths());
+// Array
+// (
+//     [0] => /path/to/project/vendor/acme/demo/assets/css/style.css
+//     [1] => /path/to/project/vendor/acme/demo-extension/assets/css/style.css
+//     [2] => /path/to/project/resources/acme/demo/css/style.css
+// )
+```
 
 [Puli library]: https://github.com/webmozart/puli
 [`OverrideConflictException`]: src/RepositoryLoader/OverrideConflictException.php
