@@ -30,12 +30,12 @@ Map any file or directory that you want to access through Puli in the
 
 ```json
 {
-    "name": "acme/demo",
+    "name": "acme/blog",
     "extra": {
         "resources": {
             "export": {
-                "/acme/demo": "resources",
-                "/acme/demo/css": "assets/css"
+                "/acme/blog": "resources",
+                "/acme/blog/css": "assets/css"
             }
         }
     }
@@ -51,8 +51,8 @@ require_once __DIR__.'/vendor/autoload.php';
 
 $locator = require __DIR__.'/vendor/resource-locator.php';
 
-echo $locator->get('/acme/demo/css/style.css')->getPath();
-// => /path/to/project/vendor/acme/demo/assets/css/style.css
+echo $locator->get('/acme/blog/css/style.css')->getPath();
+// => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
 Overriding Resources
@@ -63,22 +63,22 @@ path you want to override to the "override" key:
 
 ```json
 {
-    "name": "acme/demo-extension",
+    "name": "acme/blog-extension",
     "require": {
-        "acme/demo": "*"
+        "acme/blog": "*"
     },
     "extra": {
         "resources": {
             "override": {
-                "/acme/demo/css": "assets/css"
+                "/acme/blog/css": "assets/css"
             }
         }
     }
 }
 ```
 
-The resources in the "acme/demo-extension" package are now preferred over those
-in the "acme/demo" package. If a resource was not found in the overriding
+The resources in the "acme/blog-extension" package are now preferred over those
+in the "acme/blog" package. If a resource was not found in the overriding
 package, the resource from the original package will be returned instead.
 
 You can get all paths for an overridden resource using the
@@ -86,11 +86,11 @@ You can get all paths for an overridden resource using the
 they were overridden, with the original path coming first:
 
 ```php
-print_r($locator->get('/acme/demo/css/style.css')->getAlternativePaths());
+print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
 // Array
 // (
-//     [0] => /path/to/project/vendor/acme/demo/assets/css/style.css
-//     [1] => /path/to/project/vendor/acme/demo-extension/assets/css/style.css
+//     [0] => /path/to/project/vendor/acme/blog/assets/css/style.css
+//     [1] => /path/to/project/vendor/acme/blog-extension/assets/css/style.css
 // )
 ```
 
@@ -110,41 +110,41 @@ which packages should override a path in the repository:
 {
     "vendor/application",
     "require": {
-        "acme/demo": "*",
-        "acme/demo-extension": "*"
+        "acme/blog": "*",
+        "acme/blog-extension": "*"
     },
     "extra": {
         "resources": {
             "override": {
-                "/acme/demo/css": "resources/acme/demo/css",
+                "/acme/blog/css": "resources/acme/blog/css",
             },
             "override-order": {
-                "/acme/demo/css": ["acme/demo-extension", "vendor/application"]
+                "/acme/blog/css": ["acme/blog-extension", "vendor/application"]
             }
         }
     }
 }
 ```
 
-In this example, the application requires the package "acme/demo" and another
-package "acme/demo-extension" which overrides the "/acme/demo/css" directory.
+In this example, the application requires the package "acme/blog" and another
+package "acme/blog-extension" which overrides the "/acme/blog/css" directory.
 To complicate things, the application overrides this path as well. Through
 the "override-order" key, you can tell Puli that the overrides in
-"vendor/application" should be preferred over those in "acme/demo-extension".
+"vendor/application" should be preferred over those in "acme/blog-extension".
 
 If you query the path of the file style.css again, and if that file exists in
 all three packages, you will get a result like this:
 
 ```php
-echo $locator->get('/acme/demo/css/style.css')->getPath();
-// => /path/to/project/resources/acme/demo/css/style.css
+echo $locator->get('/acme/blog/css/style.css')->getPath();
+// => /path/to/project/resources/acme/blog/css/style.css
 
-print_r($locator->get('/acme/demo/css/style.css')->getAlternativePaths());
+print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
 // Array
 // (
-//     [0] => /path/to/project/vendor/acme/demo/assets/css/style.css
-//     [1] => /path/to/project/vendor/acme/demo-extension/assets/css/style.css
-//     [2] => /path/to/project/resources/acme/demo/css/style.css
+//     [0] => /path/to/project/vendor/acme/blog/assets/css/style.css
+//     [1] => /path/to/project/vendor/acme/blog-extension/assets/css/style.css
+//     [2] => /path/to/project/resources/acme/blog/css/style.css
 // )
 ```
 
