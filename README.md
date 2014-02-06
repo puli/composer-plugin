@@ -41,8 +41,9 @@ You can install the plugin by adding it to your composer.json:
 }
 ```
 
-Add the second package "webmozart/puli" is required because this plugin depends on the
-[Puli library], which is not yet available in a stable version.
+The second package "webmozart/puli" must be added explicitly with the
+"alpha" modifier, because Composer only installs stable dependencies
+by default.
 
 Mapping Resources
 -----------------
