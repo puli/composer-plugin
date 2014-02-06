@@ -56,7 +56,7 @@ class RepositoryLoader
     /**
      * @var array[]
      */
-    private $tags;
+    private $tags = array();
 
     public function __construct(ResourceRepositoryInterface $repository)
     {
