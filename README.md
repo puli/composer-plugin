@@ -35,13 +35,13 @@ You can install the plugin by adding it to your composer.json:
 ```json
 {
     "require": {
-        "webmozart/composer-puli-plugin": "~1.0@alpha"
-    },
-    "minimum-stability": "alpha"
+        "webmozart/composer-puli-plugin": "~1.0@alpha",
+        "webmozart/puli": "~1.0@alpha"
+    }
 }
 ```
 
-The "minimum-stability" setting is required because this plugin depends on the
+Add the second package "webmozart/puli" is required because this plugin depends on the
 [Puli library], which is not yet available in a stable version.
 
 Mapping Resources
