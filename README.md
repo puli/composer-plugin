@@ -45,10 +45,10 @@ The second package "webmozart/puli" must be added explicitly with the
 "alpha" modifier, because Composer only installs stable dependencies
 by default.
 
-Note that you don't necessarily need to require the plugin if you want
-to support Puli in your package (as explained in the next section).
-Just add the relevant entries to composer.json and let the end user
-require the plugin.
+If you develop a reusable library, you don't necessarily need to
+require the plugin if you want to support Puli (as explained in the
+next section). Just add the relevant entries to composer.json and let
+the end user require the plugin.
 
 Mapping Resources
 -----------------
