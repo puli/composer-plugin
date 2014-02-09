@@ -46,9 +46,9 @@ The second package "webmozart/puli" must be added explicitly with the
 by default.
 
 If you develop a reusable library, you don't necessarily need to
-require the plugin if you want to support Puli (as explained in the
-next section). Just add the relevant entries to composer.json and let
-the end user require the plugin.
+require the plugin for supporting Puli. Just add the relevant entries
+to composer.json (as explained in the next section) and let the end
+user require the plugin.
 
 Mapping Resources
 -----------------
