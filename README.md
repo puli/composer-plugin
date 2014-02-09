@@ -70,6 +70,9 @@ Map any file or directory that you want to access through Puli in the
 }
 ```
 
+Unless your package has no name, all exported paths must start with the prefix
+`/<package-name>` (e.g. "/acme/blog" in the example).
+
 As soon as you run `composer install` or `composer update`, a resource locator
 will be built that takes the resource definitions of all installed packages
 into account. Include the locator and you're ready to go:
