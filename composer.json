@@ -11,7 +11,7 @@
     ],
     "require": {
         "composer-plugin-api": "1.0.0",
-        "webmozart/puli": "~1.0@alpha"
+        "webmozart/puli": "~1.0@dev"
     },
     "require-dev": {
         "composer/composer": "~1.0@alpha"
