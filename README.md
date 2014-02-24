@@ -37,7 +37,16 @@ by default.
 If you develop a reusable library, you don't necessarily need to
 require the plugin for supporting Puli. Just add the relevant entries
 to composer.json (as explained in the next section) and let the end
-user require the plugin.
+user require the plugin. Nevertheless, adding an entry to the "suggest"
+section is probably a good idea:
+
+```json
+{
+    "suggest": {
+        "webmozart/composer-puli-plugin": "This package contains Puli resources. Require the plugin to use them."
+    }
+}
+```
 
 Mapping Resources
 -----------------
