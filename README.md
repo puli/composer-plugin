@@ -10,7 +10,7 @@ of those packages:
 ```php
 $locator = require __DIR__.'/vendor/resource-locator.php';
 
-echo $locator->get('/acme/blog/css/style.css')->getPath();
+echo $locator->get('/acme/blog/css/style.css')->getRealPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
@@ -117,7 +117,7 @@ require_once __DIR__.'/vendor/autoload.php';
 
 $locator = require __DIR__.'/vendor/resource-locator.php';
 
-echo $locator->get('/acme/blog/css/style.css')->getPath();
+echo $locator->get('/acme/blog/css/style.css')->getRealath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
@@ -157,41 +157,9 @@ resource locator:
 
 ```php
 foreach ($locator->getByTag('acme/translator/xlf') as $resource) {
-    echo $resource->getPath();
+    echo $resource->getRealPath();
 }
 ```
-
-If you are the developer of the `\Acme\Translator` class, you can implement
-[`ResourceDiscoveringInterface`] to let it discover its resources by itself:
-
-```php
-namespace Acme;
-
-use Webmozart\Puli\ResourceDiscoveringInterface;
-
-class Translator implements ResourceDiscoveringInterface
-{
-    // ...
-
-    public function discoverResources(ResourceLocatorInterface $locator)
-    {
-        foreach ($locator->getByTag('acme/translator/xlf') as $resource) {
-            // register $resource->getPath()...
-        }
-    }
-}
-```
-
-When you create the translator, call `discoverResources()` and pass the locator:
-
-```php
-$translator = new Translator('en');
-$translator->discoverResources($locator);
-```
-
-If you use a Dependency Injection Container, you can let the container call
-this method automatically on services that implement
-[`ResourceDiscoveringInterface`].
 
 Overriding Resources
 --------------------
@@ -274,7 +242,7 @@ If you query the path of the file style.css again, and if that file exists in
 all three packages, you will get a result like this:
 
 ```php
-echo $locator->get('/acme/blog/css/style.css')->getPath();
+echo $locator->get('/acme/blog/css/style.css')->getRealPath();
 // => /path/to/project/resources/acme/blog/css/style.css
 
 print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
@@ -290,4 +258,3 @@ print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
 [Puli documentation]: https://github.com/webmozart/puli/blob/master/README.md
 [Composer]: https://getcomposer.org
 [`OverrideConflictException`]: src/RepositoryLoader/OverrideConflictException.php
-[`ResourceDiscoveringInterface`]: https://github.com/webmozart/puli/blob/master/src/ResourceDiscoveringInterface.php
