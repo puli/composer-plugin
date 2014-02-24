@@ -38,12 +38,13 @@ The second package "webmozart/puli" must be added explicitly with the
 by default.
 
 After typing `composer install` or `composer update` in your shell,
-you can load the generated resource locator in your application:
+you can load the generated resource locator into your application:
 
 ```php
 $locator = require __DIR__.'/vendor/resource-locator.php';
 
-$path = $locator->get('/acme/blog/config/config.yml')->getRealPath();
+echo $locator->get('/acme/blog/css/style.css')->getRealPath();
+// => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
 ### Libraries
@@ -51,8 +52,8 @@ $path = $locator->get('/acme/blog/config/config.yml')->getRealPath();
 If you develop a reusable library, you don't necessarily need to
 require the plugin for supporting Puli. Just add the relevant entries
 to composer.json (as explained in the next section) and let the end
-user require the plugin. Nevertheless, adding an entry to the "suggest"
-section is probably a good idea:
+user require the plugin. Nevertheless, it's a good idea to add an
+entry to the "suggest" section of your composer.json:
 
 ```json
 {
@@ -67,6 +68,8 @@ inject it via the constructor or a setter of the class:
 
 ```php
 namespace Acme/Blog/Config/Loader;
+
+use Webmozart\Puli\Locator\ResourceLocatorInterface;
 
 class ConfigFileLoader
 {
