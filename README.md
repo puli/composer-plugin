@@ -14,7 +14,24 @@ echo $locator->get('/acme/blog/css/style.css')->getRealPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
-This document teaches you how to use the Puli plugin in practice.
+The locator finds the resource paths by reading the "resources" entries of all
+installed composer.json files. For example, the package "acme/blog" could map
+its "resources" directory to the Puli path "/acme/blog" like this:
+
+```
+{
+    "name": "acme/blog",
+    "extra": {
+        "resources": {
+            "export": {
+                "/acme/blog": "resources"
+            }
+        }
+    }
+}
+```
+
+This document teaches you all about using the Puli plugin in practice.
 
 Installation
 ------------
