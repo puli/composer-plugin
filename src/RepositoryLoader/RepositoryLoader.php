@@ -14,8 +14,7 @@ namespace Webmozart\Composer\PuliPlugin\RepositoryLoader;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
 use Webmozart\Composer\PuliPlugin\Util\PathMatcher;
-use Webmozart\Puli\Repository\ResourceRepository;
-use Webmozart\Puli\Repository\ResourceRepositoryInterface;
+use Webmozart\Puli\ManageableRepositoryInterface;
 
 /**
  * @since  1.0
@@ -24,7 +23,7 @@ use Webmozart\Puli\Repository\ResourceRepositoryInterface;
 class RepositoryLoader
 {
     /**
-     * @var ResourceRepository
+     * @var ManageableRepositoryInterface
      */
     private $repository;
 
@@ -58,7 +57,7 @@ class RepositoryLoader
      */
     private $tags = array();
 
-    public function __construct(ResourceRepositoryInterface $repository)
+    public function __construct(ManageableRepositoryInterface $repository)
     {
         $this->repository = $repository;
         $this->pathMatcher = new PathMatcher();

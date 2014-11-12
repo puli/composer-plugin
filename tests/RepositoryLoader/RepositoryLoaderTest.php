@@ -35,7 +35,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->repo = $this->getMock('\Webmozart\Puli\Repository\ResourceRepositoryInterface');
+        $this->repo = $this->getMock('\Webmozart\Puli\ManageableRepositoryInterface');
         $this->loader = new RepositoryLoader($this->repo);
     }
 

@@ -19,9 +19,8 @@ use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
 use Webmozart\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
-use Webmozart\Puli\LocatorDumper\PhpCacheDumper;
-use Webmozart\Puli\LocatorDumper\PhpResourceLocatorDumper;
-use Webmozart\Puli\Repository\ResourceRepository;
+use Webmozart\Puli\Filesystem\PhpCacheRepository;
+use Webmozart\Puli\ResourceRepository;
 
 /**
  * A plugin for managing resources of Composer dependencies.
@@ -96,8 +95,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $filesystem->ensureDirectoryExists($vendorPath.'/composer');
 
-        $dumper = new PhpCacheDumper();
-        $dumper->dumpLocator($repository, $vendorPath.'/composer');
+        PhpCacheRepository::dumpRepository($repository, $vendorPath.'/composer');
 
         $locatorCode = <<<LOCATOR
 <?php
