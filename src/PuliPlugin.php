@@ -77,7 +77,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $basePath = $filesystem->normalizePath(realpath(getcwd()));
         $vendorPath = $filesystem->normalizePath(realpath($config->get('vendor-dir')));
 
-        $event->getIO()->write('<info>Generating resource locator</info>');
+        $event->getIO()->write('<info>Generating resource repository</info>');
 
         $repository = new ResourceRepository();
         $loader = new RepositoryLoader($repository);
