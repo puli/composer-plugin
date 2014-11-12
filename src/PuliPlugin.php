@@ -108,6 +108,6 @@ return new PhpCacheRepository(__DIR__.'/composer');
 
 LOCATOR;
 
-        file_put_contents($vendorPath.'/resource-repository .php', $locatorCode);
+        file_put_contents($vendorPath.'/resource-repository.php', $locatorCode);
     }
 }
