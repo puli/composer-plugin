@@ -35,32 +35,37 @@ class RepositoryLoader
     /**
      * @var array[]
      */
-    private $overrides = array();
+    private $overrides;
 
     /**
      * @var array[]
      */
-    private $overrideOrder = array();
+    private $overrideOrder;
 
     /**
      * @var array[]
      */
-    private $conflictingPackages = array();
+    private $conflictingPackages;
 
     /**
      * @var array[]
      */
-    private $conflictingPaths = array();
+    private $conflictingPaths;
 
     /**
      * @var array[]
      */
-    private $tags = array();
+    private $tags;
 
-    public function __construct(ManageableRepositoryInterface $repository)
+    public function setRepository(ManageableRepositoryInterface $repository)
     {
         $this->repository = $repository;
         $this->pathMatcher = new PathMatcher();
+        $this->overrides = array();
+        $this->overrideOrder = array();
+        $this->conflictingPackages = array();
+        $this->conflictingPaths = array();
+        $this->tags = array();
     }
 
     public function loadPackage(PackageInterface $package, $packageRoot)
