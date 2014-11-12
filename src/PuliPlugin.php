@@ -42,8 +42,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return array(
-            ScriptEvents::POST_INSTALL_CMD => 'dumpResourceLocator',
-            ScriptEvents::POST_UPDATE_CMD => 'dumpResourceLocator',
+            ScriptEvents::POST_INSTALL_CMD => 'dumpRepository',
+            ScriptEvents::POST_UPDATE_CMD => 'dumpRepository',
         );
     }
 
@@ -58,7 +58,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $composer->getEventDispatcher()->addSubscriber($this);
     }
 
-    public function dumpResourceLocator(CommandEvent $event)
+    public function dumpRepository(CommandEvent $event)
     {
         // This method is called twice. Run it only once.
         if (!$this->firstRun) {
@@ -108,6 +108,6 @@ return new PhpCacheRepository(__DIR__.'/composer');
 
 LOCATOR;
 
-        file_put_contents($vendorPath.'/resource-repository.php', $locatorCode);
+        file_put_contents($vendorPath.'/resource-repository .php', $locatorCode);
     }
 }
