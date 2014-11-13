@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\PuliPlugin\RepositoryLoader;
+namespace Puli\Composer\PuliPlugin\RepositoryLoader;
 
 /**
  * @since  1.0

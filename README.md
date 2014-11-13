@@ -4,17 +4,17 @@ Composer Puli Plugin
 This plugin integrates the [Puli library] into Composer. With this plugin,
 finding the absolute paths of the files (*resources*) in your Composer packages
 becomes a breeze. Whenever you install or update your Composer packages, the
-plugin generates a resource locator for you which lets you access the resources
+plugin generates a resource repository for you which lets you access the resources
 of those packages:
 
 ```php
-$locator = require __DIR__.'/vendor/resource-locator.php';
+$repo = require __DIR__.'/vendor/resource-repository.php';
 
-echo $locator->get('/acme/blog/css/style.css')->getRealPath();
+echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
-The locator finds the resource paths by reading the "resources" entries of all
+The repository finds the resource paths by reading the "resources" entries of all
 installed composer.json files. For example, the package "acme/blog" could map
 its "resources" directory to the Puli path "/acme/blog" like this:
 
@@ -44,23 +44,22 @@ If you develop a web application, you can install the plugin with
 ```json
 {
     "require": {
-        "webmozart/composer-puli-plugin": "~1.0@alpha",
-        "webmozart/puli": "~1.0@alpha"
+        "puli/composer-puli-plugin": "~1.0@alpha",
+        "puli/puli": "~1.0@alpha"
     }
 }
 ```
 
-The second package "webmozart/puli" must be added explicitly with the
-"alpha" modifier, because Composer only installs stable dependencies
-by default.
+The second package "puli/puli" must be added explicitly with the "alpha" 
+modifier, because Composer only installs stable dependencies by default.
 
 After typing `composer install` or `composer update` in your shell,
-you can load the generated resource locator into your application:
+you can load the generated resource repository into your application:
 
 ```php
-$locator = require __DIR__.'/vendor/resource-locator.php';
+$repo = require __DIR__.'/vendor/resource-repository.php';
 
-echo $locator->get('/acme/blog/css/style.css')->getRealPath();
+echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
@@ -75,32 +74,31 @@ entry to the "suggest" section of your composer.json:
 ```json
 {
     "suggest": {
-        "webmozart/composer-puli-plugin": "This package contains Puli resources. Require the plugin to use them."
+        "puli/composer-puli-plugin": "This package contains Puli resources. Require the plugin to use them."
     }
 }
 ```
 
-Let the user of your library pass the locator to the methods that
+Let the user of your library pass the repository to the methods that
 need it or inject it via the constructor or a setter of your classes:
 
 ```php
 namespace Acme/Blog/Config/Loader;
 
-use Webmozart\Puli\Locator\ResourceLocatorInterface;
+use Puli\Repository\ResourceRepositoryInterface;
 
 class ConfigurationLoader
 {
-    public function loadConfiguration(ResourceLocatorInterface $locator)
+    public function loadConfiguration(ResourceRepositoryInterface $repo)
     {
-        $realPath = $locator->get('/acme/blog/config/config.yml')->getRealPath();
+        $path = $repo->get('/acme/blog/config/config.yml')->getLocalPath();
         
         // ...
     }
 }
 ```
 
-In this way, it is up to the end user to load and configure the
-resource locator.
+In this way, it is up to the end user to load and configure the repository.
 
 Mapping Resources
 -----------------
@@ -125,21 +123,21 @@ Map any file or directory that you want to access through Puli in the
 Unless your package has no name, all exported paths must start with the prefix
 `/<package-name>` (e.g. "/acme/blog" in the example).
 
-As soon as you run `composer install` or `composer update`, a resource locator
+As soon as you run `composer install` or `composer update`, a resource repository
 will be built that takes the resource definitions of all installed packages
-into account. Include the locator and you're ready to go:
+into account. Include the repository and you're ready to go:
 
 ```php
 require_once __DIR__.'/vendor/autoload.php';
 
-$locator = require __DIR__.'/vendor/resource-locator.php';
+$repo = require __DIR__.'/vendor/resource-repository.php';
 
-echo $locator->get('/acme/blog/css/style.css')->getRealath();
+echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
 // => /path/to/project/vendor/acme/blog/assets/css/style.css
 ```
 
 Check the [Puli documentation] if you want to learn more about the API of the
-resource locator.
+resource repository.
 
 Tagging Resources
 -----------------
@@ -170,11 +168,11 @@ resources. The right side contains one or more tag that should be added to the
 selected resources.
 
 The tagged resources can then be retrieved with the `getByTag()` method of the
-resource locator:
+resource repository:
 
 ```php
-foreach ($locator->getByTag('acme/translator/xlf') as $resource) {
-    echo $resource->getRealPath();
+foreach ($repo->getByTag('acme/translator/xlf') as $resource) {
+    echo $resource->getLocalPath();
 }
 ```
 
@@ -205,11 +203,11 @@ in the "acme/blog" package. If a resource was not found in the overriding
 package, the resource from the original package will be returned instead.
 
 You can get all paths for an overridden resource using the
-`getAlternativePaths()` method. The paths are returned in the order in which
+`getAllLocalPaths()` method. The paths are returned in the order in which
 they were overridden, with the original path coming first:
 
 ```php
-print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
+print_r($repo->get('/acme/blog/css/style.css')->getAllLocalPaths());
 // Array
 // (
 //     [0] => /path/to/project/vendor/acme/blog/assets/css/style.css
@@ -259,10 +257,10 @@ If you query the path of the file style.css again, and if that file exists in
 all three packages, you will get a result like this:
 
 ```php
-echo $locator->get('/acme/blog/css/style.css')->getRealPath();
+echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
 // => /path/to/project/resources/acme/blog/css/style.css
 
-print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
+print_r($repo->get('/acme/blog/css/style.css')->getAllLocalPaths());
 // Array
 // (
 //     [0] => /path/to/project/vendor/acme/blog/assets/css/style.css
@@ -271,7 +269,7 @@ print_r($locator->get('/acme/blog/css/style.css')->getAlternativePaths());
 // )
 ```
 
-[Puli library]: https://github.com/webmozart/puli
-[Puli documentation]: https://github.com/webmozart/puli/blob/master/README.md
+[Puli library]: https://github.com/puli/puli
+[Puli documentation]: https://github.com/puli/puli/blob/master/README.md
 [Composer]: https://getcomposer.org
 [`OverrideConflictException`]: src/RepositoryLoader/OverrideConflictException.php

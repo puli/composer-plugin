@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\PuliPlugin\RepositoryLoader;
+namespace Puli\Composer\PuliPlugin\RepositoryLoader;
 
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
-use Webmozart\Composer\PuliPlugin\Util\PathMatcher;
-use Webmozart\Puli\ManageableRepositoryInterface;
+use Puli\Composer\PuliPlugin\Util\PathMatcher;
+use Puli\Repository\ManageableRepositoryInterface;
 
 /**
  * @since  1.0

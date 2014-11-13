@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\PuliPlugin;
+namespace Puli\Composer\PuliPlugin;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
@@ -17,9 +17,9 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
-use Webmozart\Composer\PuliPlugin\RepositoryDumper\RepositoryDumper;
-use Webmozart\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
-use Webmozart\Puli\ResourceRepository;
+use Puli\Composer\PuliPlugin\RepositoryDumper\RepositoryDumper;
+use Puli\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
+use Puli\Repository\ResourceRepository;
 
 /**
  * A plugin for managing resources of Composer dependencies.

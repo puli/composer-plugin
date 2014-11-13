@@ -4,20 +4,20 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "690fb49fc279ca2048aaa9569985649e",
+    "hash": "bb7ba80201fbfc62624973d42ad3641d",
     "packages": [
         {
-            "name": "webmozart/puli",
+            "name": "puli/puli",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/webmozart/puli.git",
-                "reference": "b1b281dba30f7ad4c84a0aad2647e8e196f6d8b0"
+                "url": "https://github.com/puli/puli.git",
+                "reference": "757fa5a77f3b63e1100206d0bbd73bc582ede0c0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/puli/zipball/b1b281dba30f7ad4c84a0aad2647e8e196f6d8b0",
-                "reference": "b1b281dba30f7ad4c84a0aad2647e8e196f6d8b0",
+                "url": "https://api.github.com/repos/puli/puli/zipball/757fa5a77f3b63e1100206d0bbd73bc582ede0c0",
+                "reference": "757fa5a77f3b63e1100206d0bbd73bc582ede0c0",
                 "shasum": ""
             },
             "require": {
@@ -43,8 +43,8 @@
             },
             "autoload": {
                 "psr-4": {
-                    "Webmozart\\Puli\\": "src/",
-                    "Webmozart\\Puli\\Tests\\": "tests/"
+                    "Puli\\": "src/",
+                    "Puli\\Tests\\": "tests/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -57,8 +57,8 @@
                     "email": "bschussek@gmail.com"
                 }
             ],
-            "description": "Puli returns the absolute file paths of the files in your PHP project through a unified naming system.",
-            "time": "2014-11-12 16:32:27"
+            "description": "Puli manages files, directories and other resources in a filesystem-like repository.",
+            "time": "2014-11-13 08:58:45"
         }
     ],
     "packages-dev": [
@@ -385,7 +385,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "webmozart/puli": 20,
+        "puli/puli": 20,
         "composer/composer": 15
     },
     "prefer-stable": false,

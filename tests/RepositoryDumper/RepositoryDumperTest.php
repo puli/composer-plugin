@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\PuliPlugin\Tests\RepositoryDumper;
+namespace Puli\Composer\PuliPlugin\Tests\RepositoryDumper;
 
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
-use Webmozart\Composer\PuliPlugin\RepositoryDumper\RepositoryDumper;
-use Webmozart\Puli\ResourceRepository;
+use Puli\Composer\PuliPlugin\RepositoryDumper\RepositoryDumper;
+use Puli\Repository\ResourceRepository;
 
 /**
  * @since  1.0
@@ -46,7 +46,7 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
         // Create dependencies
         $repo = new ResourceRepository();
         $repo->add('/file', __FILE__);
-        $loader = $this->getMockBuilder('Webmozart\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader')
+        $loader = $this->getMockBuilder('Puli\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader')
             ->disableOriginalConstructor()
             ->getMock();
         $projectPackage = $this->getMock('Composer\Package\PackageInterface');
@@ -113,7 +113,7 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
         // Load and test
         $generatedRepo = require ($vendorDir.'/resource-repository.php');
 
-        $this->assertInstanceOf('Webmozart\Puli\ResourceRepositoryInterface', $generatedRepo);
+        $this->assertInstanceOf('Puli\Repository\ResourceRepositoryInterface', $generatedRepo);
 
         $this->assertTrue($generatedRepo->contains('/file'));
         $this->assertSame(__FILE__, $generatedRepo->get('/file')->getLocalPath());

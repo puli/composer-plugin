@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Webmozart\Composer\PuliPlugin\Tests\Util;
+namespace Puli\Composer\PuliPlugin\Tests\Util;
 
-use Webmozart\Composer\PuliPlugin\Util\PathMatcher;
+use Puli\Composer\PuliPlugin\Util\PathMatcher;
 
 /**
  * @since  1.0
