@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin\RepositoryDumper;
+namespace Puli\Extension\Composer\RepositoryDumper;
 
 use Composer\Installer\InstallationManager;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
-use Puli\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
+use Puli\Extension\Composer\RepositoryLoader\RepositoryLoader;
 use Puli\Filesystem\PhpCacheRepository;
 use Puli\Repository\ManageableRepositoryInterface;
 

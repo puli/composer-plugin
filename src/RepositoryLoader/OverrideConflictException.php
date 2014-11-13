@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin\RepositoryLoader;
+namespace Puli\Extension\Composer\RepositoryLoader;
 
 /**
  * @since  1.0

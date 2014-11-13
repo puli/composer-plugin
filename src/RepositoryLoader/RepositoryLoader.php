@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin\RepositoryLoader;
+namespace Puli\Extension\Composer\RepositoryLoader;
 
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
-use Puli\Composer\PuliPlugin\Util\PathMatcher;
+use Puli\Extension\Composer\Util\PathMatcher;
 use Puli\Repository\ManageableRepositoryInterface;
 
 /**

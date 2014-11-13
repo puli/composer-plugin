@@ -18,13 +18,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Puli\\Composer\\PuliPlugin\\": "src/"
+            "Puli\\Extension\\Composer\\": "src/",
+            "Puli\\Extension\\Composer\\Tests\\": "tests/"
         }
     },
     "extra": {
         "branch-alias": {
             "dev-master": "1.0-dev"
         },
-        "class": "Puli\\Composer\\PuliPlugin\\PuliPlugin"
+        "class": "Puli\\Extension\\Composer\\PuliPlugin"
     }
 }

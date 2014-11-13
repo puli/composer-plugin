@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin\Tests\Util;
+namespace Puli\Extension\Composer\Tests\Util;
 
-use Puli\Composer\PuliPlugin\Util\PathMatcher;
+use Puli\Extension\Composer\Util\PathMatcher;
 
 /**
  * @since  1.0

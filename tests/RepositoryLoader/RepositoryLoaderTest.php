@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin\Tests\RepositoryLoader;
+namespace Puli\Extension\Composer\Tests\RepositoryLoader;
 
-use Puli\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
+use Puli\Extension\Composer\RepositoryLoader\RepositoryLoader;
 
 /**
  * @since  1.0
@@ -138,7 +138,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testExportExpectsPackageNameAsBasePath()
     {
@@ -157,7 +157,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testExportDoesNotAcceptStringPrefixes()
     {
@@ -176,7 +176,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testExportExpectsPackageNameAsBasePathForRoot()
     {
@@ -416,7 +416,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\OverrideConflictException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\OverrideConflictException
      */
     public function testMultipleOverridesConflictForSamePath()
     {
@@ -451,7 +451,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\OverrideConflictException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\OverrideConflictException
      */
     public function testMultipleOverridesConflictIfOverrideOrderDefinedForSubPath()
     {
@@ -501,7 +501,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\OverrideConflictException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\OverrideConflictException
      */
     public function testMultipleOverridesConflictFirstNestedPath()
     {
@@ -536,7 +536,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\OverrideConflictException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\OverrideConflictException
      */
     public function testMultipleOverridesConflictSecondNestedPath()
     {
@@ -731,7 +731,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\OverrideConflictException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\OverrideConflictException
      */
     public function testOverrideOrderInNonRootPackageIsIgnored()
     {
@@ -1181,7 +1181,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testExportsMustBeArray()
     {
@@ -1198,7 +1198,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testOverridesMustBeArray()
     {
@@ -1215,7 +1215,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testOverrideOrderMustBeArray()
     {
@@ -1232,7 +1232,7 @@ class RepositoryLoaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Puli\Composer\PuliPlugin\RepositoryLoader\ResourceDefinitionException
+     * @expectedException \Puli\Extension\Composer\RepositoryLoader\ResourceDefinitionException
      */
     public function testTagsMustBeArray()
     {

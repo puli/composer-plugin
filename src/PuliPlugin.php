@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin;
+namespace Puli\Extension\Composer;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
@@ -17,8 +17,8 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
-use Puli\Composer\PuliPlugin\RepositoryDumper\RepositoryDumper;
-use Puli\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader;
+use Puli\Extension\Composer\RepositoryDumper\RepositoryDumper;
+use Puli\Extension\Composer\RepositoryLoader\RepositoryLoader;
 use Puli\Repository\ResourceRepository;
 
 /**

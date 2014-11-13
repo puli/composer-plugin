@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Composer\PuliPlugin\Tests\RepositoryDumper;
+namespace Puli\Extension\Composer\Tests\RepositoryDumper;
 
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
-use Puli\Composer\PuliPlugin\RepositoryDumper\RepositoryDumper;
+use Puli\Extension\Composer\RepositoryDumper\RepositoryDumper;
 use Puli\Repository\ResourceRepository;
 
 /**
@@ -46,7 +46,7 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
         // Create dependencies
         $repo = new ResourceRepository();
         $repo->add('/file', __FILE__);
-        $loader = $this->getMockBuilder('Puli\Composer\PuliPlugin\RepositoryLoader\RepositoryLoader')
+        $loader = $this->getMockBuilder('Puli\Extension\Composer\RepositoryLoader\RepositoryLoader')
             ->disableOriginalConstructor()
             ->getMock();
         $projectPackage = $this->getMock('Composer\Package\PackageInterface');
