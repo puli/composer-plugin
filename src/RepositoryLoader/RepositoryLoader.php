@@ -310,9 +310,10 @@ class RepositoryLoader
                 if ('__root__' !== $packageName
                     && !$this->pathMatcher->isBasePath('/'.$packageName, $repositoryPath)) {
                     throw new ResourceDefinitionException(sprintf(
-                        'Resources exported by the "%s" plugin must have the '.
+                        'Resources exported by the "%s" package must have the '.
                         'prefix "/%s". This is not the case for the resource '.
-                        '"%s".',
+                        '"%s". Maybe you should move this line from the '.
+                        '"export" to the "override" key?',
                         $packageName,
                         $packageName,
                         $repositoryPath
