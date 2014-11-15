@@ -91,14 +91,13 @@ class RepositoryDumper
         $repo = new ResourceRepository();
         $filesystem = new Filesystem();
         $filesystem->ensureDirectoryExists($this->vendorDir);
-        $basePath = $filesystem->normalizePath(realpath($this->projectDir));
         $vendorPath = $filesystem->normalizePath(realpath($this->vendorDir));
 
-        $this->repoBuilder->loadPackage($this->projectPackage, $basePath);
+        $this->repoBuilder->loadPackage($this->projectPackage);
 
         foreach ($this->installedPackages as $package) {
             /** @var \Composer\Package\PackageInterface $package */
-            $this->repoBuilder->loadPackage($package, $this->installationManager->getInstallPath($package));
+            $this->repoBuilder->loadPackage($package);
         }
 
         $this->repoBuilder->buildRepository($repo);

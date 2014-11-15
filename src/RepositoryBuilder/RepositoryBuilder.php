@@ -11,6 +11,7 @@
 
 namespace Puli\Extension\Composer\RepositoryBuilder;
 
+use Composer\Installer\InstallationManager;
 use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
@@ -27,6 +28,16 @@ use Puli\Resource\DirectoryResourceInterface;
  */
 class RepositoryBuilder
 {
+    /**
+     * @var InstallationManager
+     */
+    private $installationManager;
+
+    /**
+     * @var PackageInterface[]
+     */
+    private $packages = array();
+
     /**
      * @var PackageGraph
      */
@@ -52,12 +63,13 @@ class RepositoryBuilder
      */
     private $tags = array();
 
-    public function __construct()
+    public function __construct(InstallationManager $installationManager)
     {
+        $this->installationManager = $installationManager;
         $this->packageGraph = new PackageGraph();
     }
 
-    public function loadPackage(PackageInterface $package, $packageRoot)
+    public function loadPackage(PackageInterface $package)
     {
         // We don't care about aliases, only "the real deal"
         if ($package instanceof AliasPackage) {
@@ -65,67 +77,77 @@ class RepositoryBuilder
         }
 
         $packageName = $package->getName();
-        $config = $package->getExtra();
 
-        $this->packageGraph->addPackage($packageName);
-
-        if (isset($config['resources'])) {
-            if (!is_array($config['resources'])) {
-                throw new ResourceDefinitionException(sprintf(
-                    'The "export" key in the composer.json of the "%s" '.
-                    'package should contain an array.',
-                    $packageName
-                ));
-            }
-
-            $this->processResources($config['resources'], $packageName, $packageRoot);
-        }
-
-        if (isset($config['override'])) {
-            if (!is_array($config['override']) && !is_string($config['override'])) {
-                throw new ResourceDefinitionException(sprintf(
-                    'The "override" key in the composer.json of the "%s" '.
-                    'package should contain a string or an array.',
-                    $packageName
-                ));
-            }
-
-            $this->processOverrides((array) $config['override'], $packageName);
-        }
-
-        if (isset($config['package-order']) && $package instanceof RootPackageInterface) {
-            if (!is_array($config['package-order'])) {
-                throw new ResourceDefinitionException(sprintf(
-                    'The "package-order" key in the composer.json of the "%s" '.
-                    'package should contain an array.',
-                    $packageName
-                ));
-            }
-
-            $this->processPackageOrder($config['package-order']);
-        }
-
-        if (isset($config['resource-tags'])) {
-            if (!is_array($config['resource-tags'])) {
-                throw new ResourceDefinitionException(sprintf(
-                    'The "resource-tags" key in the composer.json of the "%s" '.
-                    'package should contain an array.',
-                    $packageName
-                ));
-            }
-
-            $this->processTags($config['resource-tags']);
-        }
+        $this->packages[$packageName] = $package;
     }
 
     public function buildRepository(ManageableRepositoryInterface $repo)
     {
+        $this->loadPackageConfiguration();
         $this->buildPackageGraph();
         $this->detectConflicts();
         $this->addResources($repo);
         $this->tagResources($repo);
 
         return $repo;
+    }
+
+    private function loadPackageConfiguration()
+    {
+        foreach ($this->packages as $packageName => $package) {
+            $packageRoot = $this->installationManager->getInstallPath($package);
+            $config = $package->getExtra();
+
+            $this->packageGraph->addPackage($packageName);
+
+            if (isset($config['resources'])) {
+                if (!is_array($config['resources'])) {
+                    throw new ResourceDefinitionException(sprintf(
+                        'The "export" key in the composer.json of the "%s" '.
+                        'package should contain an array.',
+                        $packageName
+                    ));
+                }
+
+                $this->processResources($config['resources'], $packageName, $packageRoot);
+            }
+
+            if (isset($config['override'])) {
+                if (!is_array($config['override']) && !is_string($config['override'])) {
+                    throw new ResourceDefinitionException(sprintf(
+                        'The "override" key in the composer.json of the "%s" '.
+                        'package should contain a string or an array.',
+                        $packageName
+                    ));
+                }
+
+                $this->processOverrides((array) $config['override'], $packageName);
+            }
+
+            if (isset($config['package-order']) && $package instanceof RootPackageInterface) {
+                if (!is_array($config['package-order'])) {
+                    throw new ResourceDefinitionException(sprintf(
+                        'The "package-order" key in the composer.json of the "%s" '.
+                        'package should contain an array.',
+                        $packageName
+                    ));
+                }
+
+                $this->processPackageOrder($config['package-order']);
+            }
+
+            if (isset($config['resource-tags'])) {
+                if (!is_array($config['resource-tags'])) {
+                    throw new ResourceDefinitionException(sprintf(
+                        'The "resource-tags" key in the composer.json of the "%s" '.
+                        'package should contain an array.',
+                        $packageName
+                    ));
+                }
+
+                $this->processTags($config['resource-tags']);
+            }
+        }
     }
 
     /**
@@ -149,7 +171,29 @@ class RepositoryBuilder
             }
 
             foreach ((array) $relativePaths as $relativePath) {
-                $absolutePath = $packageRoot.'/'.$relativePath;
+                // Reference to install path of other package
+                if ('@' === $relativePath[0] && false !== ($pos = strpos($relativePath, ':'))) {
+                    $refPackageName = substr($relativePath, 1, $pos - 1);
+
+                    if (!isset($this->packages[$refPackageName])) {
+                        throw new ResourceDefinitionException(sprintf(
+                            'The package "%s" referred to a non-existing '.
+                            'package "%s" in the resource path "%s". Did you '.
+                            'forget to require the package "%s"?',
+                            $currentPackageName,
+                            $refPackageName,
+                            $relativePath,
+                            $refPackageName
+                        ));
+                    }
+
+                    $refPackage = $this->packages[$refPackageName];
+                    $refPackageRoot = $this->installationManager->getInstallPath($refPackage);
+
+                    $absolutePath = $refPackageRoot.'/'.substr($relativePath, $pos + 1);
+                } else {
+                    $absolutePath = $packageRoot.'/'.$relativePath;
+                }
 
                 $resource = is_dir($absolutePath)
                     ? new LocalDirectoryResource($absolutePath)

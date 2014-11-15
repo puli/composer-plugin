@@ -23,6 +23,16 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
      */
+    private $im;
+
+    /**
+     * @var string[]
+     */
+    private $packageRoots;
+
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject
+     */
     private $repo;
 
     /**
@@ -38,8 +48,20 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->repo = $this->getMock('\Puli\Repository\ManageableRepositoryInterface');
-        $this->builder = new RepositoryBuilder();
+        $packageRoots = &$this->packageRoots;
+
+        $this->im = $this->getMockBuilder('Composer\Installer\InstallationManager')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->im->expects($this->any())
+            ->method('getInstallPath')
+            ->will($this->returnCallback(function ($package) use (&$packageRoots) {
+                return $packageRoots[spl_object_hash($package)];
+            }));
+
+        $this->repo = $this->getMock('Puli\Repository\ManageableRepositoryInterface');
+        $this->builder = new RepositoryBuilder($this->im);
         $this->package1Root = __DIR__.'/Fixtures/package1';
         $this->package2Root = __DIR__.'/Fixtures/package2';
         $this->package3Root = __DIR__.'/Fixtures/package3';
@@ -50,9 +72,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->repo->expects($this->never())
             ->method('add');
 
-        $package = $this->createPackage(array());
+        $package = $this->createPackage($this->package1Root, array());
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -61,16 +83,16 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->repo->expects($this->never())
             ->method('add');
 
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'extra' => array(
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
-    public function testBuildRepository()
+    public function testAddResources()
     {
         $this->repo->expects($this->at(0))
             ->method('add')
@@ -80,7 +102,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/package/css', new LocalDirectoryResource($this->package1Root.'/assets/css'));
 
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -90,7 +112,52 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
+    }
+
+    public function testAddResourcesFromOtherPackagesInstallPath()
+    {
+        $this->repo->expects($this->once())
+            ->method('add')
+            ->with('/acme/package', new LocalDirectoryResource($this->package2Root.'/resources'));
+
+        $package1 = $this->createPackage($this->package1Root, array(
+            'name' => 'acme/package1',
+            'extra' => array(
+                'resources' => array(
+                    '/acme/package' => '@acme/package2:resources',
+                ),
+            ),
+        ));
+
+        $package2 = $this->createPackage($this->package2Root, array(
+            'name' => 'acme/package2',
+        ));
+
+        $this->builder->loadPackage($package1);
+        $this->builder->loadPackage($package2);
+        $this->builder->buildRepository($this->repo);
+    }
+
+    /**
+     * @expectedException \Puli\Extension\Composer\RepositoryBuilder\ResourceDefinitionException
+     */
+    public function testFailIfReferencedPackageCouldNotBeFound()
+    {
+        $this->repo->expects($this->never())
+            ->method('add');
+
+        $package1 = $this->createPackage($this->package1Root, array(
+            'name' => 'acme/package1',
+            'extra' => array(
+                'resources' => array(
+                    '/acme/package' => '@acme/package2:resources',
+                ),
+            ),
+        ));
+
+        $this->builder->loadPackage($package1);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -109,7 +176,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -118,7 +185,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testFailIfResourceNotFound()
     {
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -127,7 +194,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
     }
 
     public function testIgnoreResourceOrder()
@@ -140,7 +208,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/package/css', new LocalDirectoryResource($this->package1Root.'/assets/css'));
 
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -150,7 +218,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -164,7 +232,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/package', new LocalDirectoryResource($this->package1Root.'/assets'));
 
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -173,7 +241,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -195,7 +263,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden/css', new LocalDirectoryResource($this->package2Root.'/css-override'));
 
-        $overridingPackage = $this->createPackage(array(
+        $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -206,7 +274,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overriddenPackage = $this->createPackage(array(
+        $overriddenPackage = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden',
             'extra' => array(
                 'resources' => array(
@@ -217,8 +285,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         ));
 
         // Load overridden package first
-        $this->builder->loadPackage($overriddenPackage, $this->package1Root);
-        $this->builder->loadPackage($overridingPackage, $this->package2Root);
+        $this->builder->loadPackage($overriddenPackage);
+        $this->builder->loadPackage($overridingPackage);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -232,7 +300,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden', new LocalDirectoryResource($this->package2Root.'/override'));
 
-        $overridingPackage = $this->createPackage(array(
+        $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -242,7 +310,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overriddenPackage = $this->createPackage(array(
+        $overriddenPackage = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden',
             'extra' => array(
                 'resources' => array(
@@ -252,8 +320,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         ));
 
         // Load overridden package last
-        $this->builder->loadPackage($overridingPackage, $this->package2Root);
-        $this->builder->loadPackage($overriddenPackage, $this->package1Root);
+        $this->builder->loadPackage($overridingPackage);
+        $this->builder->loadPackage($overriddenPackage);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -271,7 +339,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden', new LocalDirectoryResource($this->package3Root.'/override2'));
 
-        $package3 = $this->createPackage(array(
+        $package3 = $this->createPackage($this->package3Root, array(
             'name' => 'acme/priority2',
             'extra' => array(
                 'resources' => array(
@@ -281,7 +349,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $package2 = $this->createPackage(array(
+        $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/priority1',
             'extra' => array(
                 'resources' => array(
@@ -291,7 +359,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $package1 = $this->createPackage(array(
+        $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/priority0',
             'extra' => array(
                 'resources' => array(
@@ -300,9 +368,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package1, $this->package1Root);
-        $this->builder->loadPackage($package2, $this->package2Root);
-        $this->builder->loadPackage($package3, $this->package3Root);
+        $this->builder->loadPackage($package1);
+        $this->builder->loadPackage($package2);
+        $this->builder->loadPackage($package3);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -324,7 +392,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden2', new LocalDirectoryResource($this->package3Root.'/override2'));
 
-        $overridingPackage = $this->createPackage(array(
+        $overridingPackage = $this->createPackage($this->package3Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -335,7 +403,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overriddenPackage1 = $this->createPackage(array(
+        $overriddenPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden1',
             'extra' => array(
                 'resources' => array(
@@ -344,7 +412,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overriddenPackage2 = $this->createPackage(array(
+        $overriddenPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/overridden2',
             'extra' => array(
                 'resources' => array(
@@ -354,9 +422,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         ));
 
         // Load overridden package first
-        $this->builder->loadPackage($overriddenPackage1, $this->package1Root);
-        $this->builder->loadPackage($overriddenPackage2, $this->package2Root);
-        $this->builder->loadPackage($overridingPackage, $this->package3Root);
+        $this->builder->loadPackage($overriddenPackage1);
+        $this->builder->loadPackage($overriddenPackage2);
+        $this->builder->loadPackage($overridingPackage);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -366,7 +434,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden', new LocalDirectoryResource($this->package2Root.'/override'));
 
-        $overridingPackage = $this->createPackage(array(
+        $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -376,7 +444,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($overridingPackage, $this->package2Root);
+        $this->builder->loadPackage($overridingPackage);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -394,7 +462,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden', new LocalDirectoryResource($this->package2Root.'/css-override'));
 
-        $overridingPackage = $this->createPackage(array(
+        $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -404,7 +472,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overriddenPackage = $this->createPackage(array(
+        $overriddenPackage = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden',
             'extra' => array(
                 'resources' => array(
@@ -413,8 +481,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($overridingPackage, $this->package2Root);
-        $this->builder->loadPackage($overriddenPackage, $this->package1Root);
+        $this->builder->loadPackage($overridingPackage);
+        $this->builder->loadPackage($overriddenPackage);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -426,7 +494,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->repo->expects($this->never())
             ->method('add');
 
-        $overridingPackage1 = $this->createPackage(array(
+        $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -435,7 +503,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage2 = $this->createPackage(array(
+        $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resources' => array(
@@ -444,8 +512,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($overridingPackage1, $this->package1Root);
-        $this->builder->loadPackage($overridingPackage2, $this->package2Root);
+        $this->builder->loadPackage($overridingPackage1);
+        $this->builder->loadPackage($overridingPackage2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -457,7 +525,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->repo->expects($this->never())
             ->method('add');
 
-        $overridingPackage1 = $this->createPackage(array(
+        $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -466,7 +534,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage2 = $this->createPackage(array(
+        $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resources' => array(
@@ -475,8 +543,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($overridingPackage1, $this->package1Root);
-        $this->builder->loadPackage($overridingPackage2, $this->package2Root);
+        $this->builder->loadPackage($overridingPackage1);
+        $this->builder->loadPackage($overridingPackage2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -490,7 +558,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden/new', new LocalDirectoryResource($this->package2Root.'/override'));
 
-        $overridingPackage1 = $this->createPackage(array(
+        $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -499,7 +567,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage2 = $this->createPackage(array(
+        $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resources' => array(
@@ -508,8 +576,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($overridingPackage1, $this->package1Root);
-        $this->builder->loadPackage($overridingPackage2, $this->package2Root);
+        $this->builder->loadPackage($overridingPackage1);
+        $this->builder->loadPackage($overridingPackage2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -523,7 +591,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden', new LocalDirectoryResource($this->package2Root.'/override'));
 
-        $rootPackage = $this->createRootPackage(array(
+        $rootPackage = $this->createRootPackage('/', array(
             'extra' => array(
                 'package-order' => array(
                     'acme/package1',
@@ -532,7 +600,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage1 = $this->createPackage(array(
+        $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -541,7 +609,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage2 = $this->createPackage(array(
+        $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resources' => array(
@@ -550,9 +618,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($rootPackage, '/');
-        $this->builder->loadPackage($overridingPackage1, $this->package1Root);
-        $this->builder->loadPackage($overridingPackage2, $this->package2Root);
+        $this->builder->loadPackage($rootPackage);
+        $this->builder->loadPackage($overridingPackage1);
+        $this->builder->loadPackage($overridingPackage2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -564,7 +632,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->repo->expects($this->never())
             ->method('add');
 
-        $pseudoRootPackage = $this->createPackage(array(
+        $pseudoRootPackage = $this->createPackage('/', array(
             'extra' => array(
                 'package-order' => array(
                     'acme/package2',
@@ -573,7 +641,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage1 = $this->createPackage(array(
+        $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -582,7 +650,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $overridingPackage2 = $this->createPackage(array(
+        $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resources' => array(
@@ -591,9 +659,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($pseudoRootPackage, '/');
-        $this->builder->loadPackage($overridingPackage1, $this->package1Root);
-        $this->builder->loadPackage($overridingPackage2, $this->package2Root);
+        $this->builder->loadPackage($pseudoRootPackage);
+        $this->builder->loadPackage($overridingPackage1);
+        $this->builder->loadPackage($overridingPackage2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -607,7 +675,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('tag')
             ->with('/acme/package', 'acme/tag');
 
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => array(
@@ -619,7 +687,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -633,7 +701,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('tag')
             ->with('/acme/package1', 'acme/tag');
 
-        $package1 = $this->createPackage(array(
+        $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -642,7 +710,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $package2 = $this->createPackage(array(
+        $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resource-tags' => array(
@@ -651,8 +719,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package1, $this->package1Root);
-        $this->builder->loadPackage($package2, $this->package2Root);
+        $this->builder->loadPackage($package1);
+        $this->builder->loadPackage($package2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -666,7 +734,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('tag')
             ->with('/acme/package1', 'acme/tag');
 
-        $package1 = $this->createPackage(array(
+        $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -675,7 +743,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $package2 = $this->createPackage(array(
+        $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resource-tags' => array(
@@ -684,8 +752,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package2, $this->package2Root);
-        $this->builder->loadPackage($package1, $this->package1Root);
+        $this->builder->loadPackage($package2);
+        $this->builder->loadPackage($package1);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -703,7 +771,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('tag')
             ->with('/acme/package1', 'acme/tag2');
 
-        $package1 = $this->createPackage(array(
+        $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -715,7 +783,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $package2 = $this->createPackage(array(
+        $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resource-tags' => array(
@@ -724,8 +792,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package1, $this->package1Root);
-        $this->builder->loadPackage($package2, $this->package2Root);
+        $this->builder->loadPackage($package1);
+        $this->builder->loadPackage($package2);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -739,7 +807,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('tag')
             ->with('/acme/package1', 'acme/tag');
 
-        $package1 = $this->createPackage(array(
+        $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -751,7 +819,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $package2 = $this->createPackage(array(
+        $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
                 'resource-tags' => array(
@@ -760,8 +828,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package2, $this->package2Root);
-        $this->builder->loadPackage($package1, $this->package1Root);
+        $this->builder->loadPackage($package2);
+        $this->builder->loadPackage($package1);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -779,7 +847,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('tag')
             ->with('/acme/package1', 'acme/tag2');
 
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
                 'resources' => array(
@@ -791,7 +859,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -800,14 +868,15 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testResourcesMustBeArray()
     {
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => 'foobar',
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
     }
 
     /**
@@ -815,14 +884,15 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testOverrideMustBeStringOrArray()
     {
-        $package = $this->createPackage(array(
+        $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
                 'resources' => new \stdClass(),
             ),
         ));
 
-        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
     }
 
     /**
@@ -830,14 +900,15 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testOverrideOrderMustBeArray()
     {
-        $package = $this->createRootPackage(array(
+        $package = $this->createRootPackage('/', array(
             'name' => 'acme/package',
             'extra' => array(
                 'package-order' => 'foobar',
             ),
         ));
 
-        $this->builder->loadPackage($package, '/');
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
     }
 
     /**
@@ -845,14 +916,15 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testTagsMustBeArray()
     {
-        $package = $this->createRootPackage(array(
+        $package = $this->createRootPackage('/', array(
             'name' => 'acme/package',
             'extra' => array(
                 'resource-tags' => 'foobar',
             ),
         ));
 
-        $this->builder->loadPackage($package, '/');
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
     }
 
     /**
@@ -860,7 +932,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      *
      * @return \Composer\Package\PackageInterface
      */
-    private function createPackage(array $config)
+    private function createPackage($root, array $config)
     {
         $package = $this->getMock('\Composer\Package\PackageInterface');
 
@@ -872,6 +944,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('getExtra')
             ->will($this->returnValue(isset($config['extra']) ? $config['extra'] : array()));
 
+        $this->packageRoots[spl_object_hash($package)] = $root;
+
         return $package;
     }
 
@@ -880,7 +954,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      *
      * @return \Composer\Package\PackageInterface
      */
-    private function createRootPackage(array $config)
+    private function createRootPackage($root, array $config)
     {
         $package = $this->getMock('\Composer\Package\RootPackageInterface');
 
@@ -891,6 +965,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package->expects($this->any())
             ->method('getExtra')
             ->will($this->returnValue(isset($config['extra']) ? $config['extra'] : array()));
+
+        $this->packageRoots[spl_object_hash($package)] = $root;
 
         return $package;
     }

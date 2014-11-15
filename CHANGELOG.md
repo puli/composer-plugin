@@ -12,6 +12,8 @@ Changelog
    the overridden package
  * the "override-order" key was moved to "extra" and renamed to "package-order".
    Its value is a list of package names now
+ * install paths of other packages can now be referenced using the syntax
+   "@vendor/package:path"
 
 * 1.0.0-alpha1 (2014-02-05)
 
