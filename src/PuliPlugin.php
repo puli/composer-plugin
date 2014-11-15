@@ -33,6 +33,14 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     const RELEASE_DATE = '@release_date@';
 
+    /**
+     * @var RepositoryDumper
+     */
+    private $dumper;
+
+    /**
+     * @var bool
+     */
     private $firstRun = true;
 
     /**
@@ -44,6 +52,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             ScriptEvents::POST_INSTALL_CMD => 'dumpRepository',
             ScriptEvents::POST_UPDATE_CMD => 'dumpRepository',
         );
+    }
+
+    public function __construct(RepositoryDumper $dumper = null)
+    {
+        $this->dumper = $dumper ?: new RepositoryDumper();
     }
 
     /**
@@ -69,16 +82,14 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $composer = $event->getComposer();
         $repositoryManager = $composer->getRepositoryManager();
 
-        $dumper = new RepositoryDumper();
-        $dumper->setInstallationManager($composer->getInstallationManager());
-        $dumper->setProjectDir(getcwd());
-        $dumper->setVendorDir($composer->getConfig()->get('vendor-dir'));
-        $dumper->setProjectPackage($composer->getPackage());
-        $dumper->setInstalledPackages($repositoryManager->getLocalRepository()->getPackages());
-        $dumper->setRepositoryBuilder(new RepositoryBuilder());
+        $this->dumper->setProjectDir(getcwd());
+        $this->dumper->setVendorDir($composer->getConfig()->get('vendor-dir'));
+        $this->dumper->setProjectPackage($composer->getPackage());
+        $this->dumper->setInstalledPackages($repositoryManager->getLocalRepository()->getPackages());
+        $this->dumper->setRepositoryBuilder(new RepositoryBuilder($composer->getInstallationManager()));
 
         $event->getIO()->write('<info>Generating resource repository</info>');
 
-        $dumper->dumpRepository();
+        $this->dumper->dumpRepository();
     }
 }

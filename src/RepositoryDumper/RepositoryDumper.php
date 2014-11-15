@@ -27,11 +27,6 @@ use Puli\Repository\ResourceRepository;
 class RepositoryDumper
 {
     /**
-     * @var InstallationManager
-     */
-    private $installationManager;
-
-    /**
      * @var string
      */
     private $vendorDir;
@@ -55,11 +50,6 @@ class RepositoryDumper
      * @var RepositoryBuilder
      */
     private $repoBuilder;
-
-    public function setInstallationManager(InstallationManager $installationManager)
-    {
-        $this->installationManager = $installationManager;
-    }
 
     public function setVendorDir($vendorDir)
     {
