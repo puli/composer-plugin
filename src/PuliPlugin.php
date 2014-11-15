@@ -75,10 +75,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $dumper->setVendorDir($composer->getConfig()->get('vendor-dir'));
         $dumper->setProjectPackage($composer->getPackage());
         $dumper->setInstalledPackages($repositoryManager->getLocalRepository()->getPackages());
-
-        $repo = new ResourceRepository();
-        $dumper->setRepository($repo);
-        $dumper->setRepositoryBuilder(new RepositoryBuilder($repo));
+        $dumper->setRepositoryBuilder(new RepositoryBuilder());
 
         $event->getIO()->write('<info>Generating resource repository</info>');
 
