@@ -1,275 +1,78 @@
-Composer Puli Plugin
-====================
+Puli Plugin for Composer
+========================
 
-This plugin integrates the [Puli library] into Composer. With this plugin,
-finding the absolute paths of the files (*resources*) in your Composer packages
-becomes a breeze. Whenever you install or update your Composer packages, the
-plugin generates a resource repository for you which lets you access the resources
-of those packages:
+[![Build Status](https://travis-ci.org/puli/composer-puli-plugin.png?branch=master)](https://travis-ci.org/puli/composer-puli-plugin)
+[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/puli/composer-puli-plugin/badges/quality-score.png?s=f1fbf1884aed7f896c18fc237d3eed5823ac85eb)](https://scrutinizer-ci.com/g/puli/composer-puli-plugin/)
+[![Code Coverage](https://scrutinizer-ci.com/g/puli/composer-puli-plugin/badges/coverage.png?s=5d83649f6fc3a9754297da9dc0d997be212c9145)](https://scrutinizer-ci.com/g/puli/composer-puli-plugin/)
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/c519f170-f530-4f3a-83e9-0516583ddc92/mini.png)](https://insight.sensiolabs.com/projects/c519f170-f530-4f3a-83e9-0516583ddc92)
+[![Latest Stable Version](https://poser.pugx.org/puli/composer-puli-plugin/v/stable.png)](https://packagist.org/packages/puli/composer-puli-plugin)
+[![Total Downloads](https://poser.pugx.org/puli/composer-puli-plugin/downloads.png)](https://packagist.org/packages/puli/composer-puli-plugin)
+[![Dependency Status](https://www.versioneye.com/php/puli:composer-puli-plugin/1.0.0/badge.png)](https://www.versioneye.com/php/puli:composer-puli-plugin/1.0.0)
 
-```php
-$repo = require __DIR__.'/vendor/resource-repository.php';
+Latest release: [1.0.0-alpha1](https://packagist.org/packages/puli/composer-puli-plugin#1.0.0-alpha1)
 
-echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
-// => /path/to/project/vendor/acme/blog/assets/css/style.css
-```
+PHP >= 5.3.9
 
-The repository finds the resource paths by reading the "resources" entries of all
-installed composer.json files. For example, the package "acme/blog" could map
-its "resources" directory to the Puli path "/acme/blog" like this:
+This plugin integrates the [Puli library] into [Composer]. Whenever you install
+or update your Composer dependencies, a Puli repository is generated from the
+composer.json files of the installed packages:
 
-```
+```json
 {
     "name": "acme/blog",
     "extra": {
         "resources": {
-            "export": {
-                "/acme/blog": "resources"
-            }
+            "/acme/blog": "resources"
         }
     }
 }
 ```
 
-This document teaches you all about using the Puli plugin in practice.
+You can include the generated repository in your code and access all exported
+resources by their Puli paths:
+
+```php
+$repo = require __DIR__.'/vendor/resource-repository.php';
+
+// /path/to/project/vendor/acme/blog/resources/config/config.yml
+echo $repo->get('/acme/blog/config/config.yml')->getContents();
+```
 
 Installation
 ------------
 
-### Applications
+Follow the [Getting Started] guide to install the Puli plugin in your project.
 
-If you develop a web application, you can install the plugin with
-[Composer]:
+Documentation
+-------------
 
-```json
-{
-    "require": {
-        "puli/composer-puli-plugin": "~1.0@alpha",
-        "puli/puli": "~1.0@alpha"
-    }
-}
-```
+Read the [Plugin Documentation] if you want to learn more about configuring
+repositories with the Composer plugin.
 
-The second package "puli/puli" must be added explicitly with the "alpha" 
-modifier, because Composer only installs stable dependencies by default.
+Contribute
+----------
 
-After typing `composer install` or `composer update` in your shell,
-you can load the generated resource repository into your application:
+Contributions to Puli are always welcome!
 
-```php
-$repo = require __DIR__.'/vendor/resource-repository.php';
+* Report any bugs or issues you find on the [issue tracker].
+* You can grab the source code at Puli’s [Git repository].
 
-echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
-// => /path/to/project/vendor/acme/blog/assets/css/style.css
-```
+Support
+-------
 
-### Libraries
+If you are having problems, send a mail to bschussek@gmail.com or shout out to
+[@webmozart] on Twitter.
 
-If you develop a reusable library, you don't necessarily need to
-require the plugin for supporting Puli. Just add the relevant entries
-to composer.json (as explained in the next section) and let the end
-user require the plugin. Nevertheless, it's a good idea to add an
-entry to the "suggest" section of your composer.json:
+License
+-------
 
-```json
-{
-    "suggest": {
-        "puli/composer-puli-plugin": "This package contains Puli resources. Require the plugin to use them."
-    }
-}
-```
+Puli and its documentation are licensed under the [MIT license].
 
-Let the user of your library pass the repository to the methods that
-need it or inject it via the constructor or a setter of your classes:
-
-```php
-namespace Acme/Blog/Config/Loader;
-
-use Puli\Repository\ResourceRepositoryInterface;
-
-class ConfigurationLoader
-{
-    public function loadConfiguration(ResourceRepositoryInterface $repo)
-    {
-        $path = $repo->get('/acme/blog/config/config.yml')->getLocalPath();
-        
-        // ...
-    }
-}
-```
-
-In this way, it is up to the end user to load and configure the repository.
-
-Mapping Resources
------------------
-
-Map any file or directory that you want to access through Puli in the
-"resources" key of your composer.json:
-
-```json
-{
-    "name": "acme/blog",
-    "extra": {
-        "resources": {
-            "export": {
-                "/acme/blog": "resources",
-                "/acme/blog/css": "assets/css"
-            }
-        }
-    }
-}
-```
-
-Unless your package has no name, all exported paths must start with the prefix
-`/<package-name>` (e.g. "/acme/blog" in the example).
-
-As soon as you run `composer install` or `composer update`, a resource repository
-will be built that takes the resource definitions of all installed packages
-into account. Include the repository and you're ready to go:
-
-```php
-require_once __DIR__.'/vendor/autoload.php';
-
-$repo = require __DIR__.'/vendor/resource-repository.php';
-
-echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
-// => /path/to/project/vendor/acme/blog/assets/css/style.css
-```
-
-Check the [Puli documentation] if you want to learn more about the API of the
-resource repository.
-
-Tagging Resources
------------------
-
-You can tag mapped resources in order to indicate that they support specific
-features. For example, assume that all XLIFF translation files in the
-"acme/blog" package should be registered with the `\Acme\Translator` class.
-You can tag resources by adding them to the "tag" key in composer.json:
-
-```json
-{
-    "name": "acme/blog",
-    "extra": {
-        "resources": {
-            "export": {
-                "/acme/blog": "resources",
-            },
-            "tag": {
-                "/acme/blog/translations/*.xlf": "acme/translator/xlf"
-            }
-        }
-    }
-}
-```
-
-The left side of the array is a path or a glob that selects one or more
-resources. The right side contains one or more tag that should be added to the
-selected resources.
-
-The tagged resources can then be retrieved with the `getByTag()` method of the
-resource repository:
-
-```php
-foreach ($repo->getByTag('acme/translator/xlf') as $resource) {
-    echo $resource->getLocalPath();
-}
-```
-
-Overriding Resources
---------------------
-
-Each package can override the resources of another package. To do so, add the
-path you want to override to the "override" key:
-
-```json
-{
-    "name": "acme/blog-extension",
-    "require": {
-        "acme/blog": "*"
-    },
-    "extra": {
-        "resources": {
-            "override": {
-                "/acme/blog/css": "assets/css"
-            }
-        }
-    }
-}
-```
-
-The resources in the "acme/blog-extension" package are now preferred over those
-in the "acme/blog" package. If a resource was not found in the overriding
-package, the resource from the original package will be returned instead.
-
-You can get all paths for an overridden resource using the
-`getAllLocalPaths()` method. The paths are returned in the order in which
-they were overridden, with the original path coming first:
-
-```php
-print_r($repo->get('/acme/blog/css/style.css')->getAllLocalPaths());
-// Array
-// (
-//     [0] => /path/to/project/vendor/acme/blog/assets/css/style.css
-//     [1] => /path/to/project/vendor/acme/blog-extension/assets/css/style.css
-// )
-```
-
-Override Conflicts
-------------------
-
-If multiple packages try to override the same path, an
-[`OverrideConflictException`] will be thrown and the overrides will be ignored.
-The reason for this behavior is that Puli can't know in which order the
-overrides should be applied.
-
-You can fix this problem by adding the key "override-order" to the root
-composer.json file of your project. In this key, you can define the order in
-which packages should override a path in the repository:
-
-```json
-{
-    "name": "vendor/application",
-    "require": {
-        "acme/blog": "*",
-        "acme/blog-extension": "*"
-    },
-    "extra": {
-        "resources": {
-            "override": {
-                "/acme/blog/css": "resources/acme/blog/css",
-            },
-            "override-order": {
-                "/acme/blog/css": ["acme/blog-extension", "vendor/application"]
-            }
-        }
-    }
-}
-```
-
-In this example, the application requires the package "acme/blog" and another
-package "acme/blog-extension" which overrides the "/acme/blog/css" directory.
-To complicate things, the application overrides this path as well. Through
-the "override-order" key, you can tell Puli that the overrides in
-"vendor/application" should be preferred over those in "acme/blog-extension".
-
-If you query the path of the file style.css again, and if that file exists in
-all three packages, you will get a result like this:
-
-```php
-echo $repo->get('/acme/blog/css/style.css')->getLocalPath();
-// => /path/to/project/resources/acme/blog/css/style.css
-
-print_r($repo->get('/acme/blog/css/style.css')->getAllLocalPaths());
-// Array
-// (
-//     [0] => /path/to/project/vendor/acme/blog/assets/css/style.css
-//     [1] => /path/to/project/vendor/acme/blog-extension/assets/css/style.css
-//     [2] => /path/to/project/resources/acme/blog/css/style.css
-// )
-```
-
-[Puli library]: https://github.com/puli/puli
-[Puli documentation]: https://github.com/puli/puli/blob/master/README.md
+[Puli library]: https://github.com/puli/composer-puli-plugin
 [Composer]: https://getcomposer.org
-[`OverrideConflictException`]: src/RepositoryBuilder/OverrideConflictException.php
+[Getting Started]: http://puli.readthedocs.org/en/latest/getting-started/application-devs.html
+[Plugin Documentation]: http://puli.readthedocs.org/en/latest/repository-management/composer.html
+[issue tracker]: https://github.com/puli/composer-puli-plugin/issues
+[Git repository]: https://github.com/puli/composer-puli-plugin
+[@webmozart]: https://twitter.com/webmozart
+[MIT license]: LICENSE
