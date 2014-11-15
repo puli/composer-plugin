@@ -68,7 +68,7 @@ License
 
 Puli and its documentation are licensed under the [MIT license].
 
-[Puli library]: https://github.com/puli/composer-puli-plugin
+[Puli library]: https://github.com/puli/puli
 [Composer]: https://getcomposer.org
 [Getting Started]: http://puli.readthedocs.org/en/latest/getting-started/application-devs.html
 [Plugin Documentation]: http://puli.readthedocs.org/en/latest/repository-management/composer.html
