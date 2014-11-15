@@ -11,6 +11,7 @@
 
 namespace Puli\Extension\Composer\RepositoryBuilder;
 
+use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
 use Puli\Extension\Composer\PackageGraph\PackageGraph;
@@ -58,6 +59,11 @@ class RepositoryBuilder
 
     public function loadPackage(PackageInterface $package, $packageRoot)
     {
+        // We don't care about aliases, only "the real deal"
+        if ($package instanceof AliasPackage) {
+            return;
+        }
+
         $packageName = $package->getName();
         $config = $package->getExtra();
 

@@ -94,6 +94,25 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->buildRepository($this->repo);
     }
 
+    public function testIgnoreAliasPackages()
+    {
+        $this->repo->expects($this->never())
+            ->method('add');
+
+        $package = $this->createAliasPackage(array(
+            'name' => 'acme/package',
+            'extra' => array(
+                'resources' => array(
+                    '/acme/package' => 'resources',
+                    '/acme/package/css' => 'assets/css',
+                ),
+            ),
+        ));
+
+        $this->builder->loadPackage($package, $this->package1Root);
+        $this->builder->buildRepository($this->repo);
+    }
+
     /**
      * @expectedException \Puli\Filesystem\FilesystemException
      */
@@ -868,6 +887,28 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package->expects($this->any())
             ->method('getName')
             ->will($this->returnValue(isset($config['name']) ? $config['name'] : '__root__'));
+
+        $package->expects($this->any())
+            ->method('getExtra')
+            ->will($this->returnValue(isset($config['extra']) ? $config['extra'] : array()));
+
+        return $package;
+    }
+
+    /**
+     * @param array $config
+     *
+     * @return \Composer\Package\AliasPackage
+     */
+    private function createAliasPackage(array $config)
+    {
+        $package = $this->getMockBuilder('\Composer\Package\AliasPackage')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $package->expects($this->any())
+            ->method('getName')
+            ->will($this->returnValue(isset($config['name']) ? $config['name'] : ''));
 
         $package->expects($this->any())
             ->method('getExtra')
