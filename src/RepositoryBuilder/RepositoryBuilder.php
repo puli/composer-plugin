@@ -87,16 +87,16 @@ class RepositoryBuilder
             $this->processOverrides((array) $config['override'], $packageName);
         }
 
-        if (isset($config['override-order']) && $package instanceof RootPackageInterface) {
-            if (!is_array($config['override-order'])) {
+        if (isset($config['package-order']) && $package instanceof RootPackageInterface) {
+            if (!is_array($config['package-order'])) {
                 throw new ResourceDefinitionException(sprintf(
-                    'The "override-order" key in the composer.json of the "%s" '.
+                    'The "package-order" key in the composer.json of the "%s" '.
                     'package should contain an array.',
                     $packageName
                 ));
             }
 
-            $this->processOverrideOrder($config['override-order']);
+            $this->processPackageOrder($config['package-order']);
         }
 
         if (isset($config['resource-tags'])) {
@@ -194,7 +194,7 @@ class RepositoryBuilder
     /**
      * @param array $packageOrder
      */
-    private function processOverrideOrder(array $packageOrder)
+    private function processPackageOrder(array $packageOrder)
     {
         // Make sure we have numeric, ascending keys here
         $packageOrder = array_values($packageOrder);

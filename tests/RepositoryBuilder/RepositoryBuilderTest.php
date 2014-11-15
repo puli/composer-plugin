@@ -494,7 +494,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->buildRepository($this->repo);
     }
 
-    public function testDefineOverrideOrderOnRootPackage()
+    public function testDefinePackageOrderOnRootPackage()
     {
         $this->repo->expects($this->at(0))
             ->method('add')
@@ -506,7 +506,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
 
         $rootPackage = $this->createRootPackage(array(
             'extra' => array(
-                'override-order' => array(
+                'package-order' => array(
                     'acme/package1',
                     'acme/package2',
                 ),
@@ -540,14 +540,14 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Puli\Extension\Composer\RepositoryBuilder\ResourceConflictException
      */
-    public function testOverrideOrderInNonRootPackageIsIgnored()
+    public function testPackageOrderInNonRootPackageIsIgnored()
     {
         $this->repo->expects($this->never())
             ->method('add');
 
         $pseudoRootPackage = $this->createPackage(array(
             'extra' => array(
-                'override-order' => array(
+                'package-order' => array(
                     'acme/package2',
                     'acme/package1',
                 ),
@@ -814,7 +814,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createRootPackage(array(
             'name' => 'acme/package',
             'extra' => array(
-                'override-order' => 'foobar',
+                'package-order' => 'foobar',
             ),
         ));
 

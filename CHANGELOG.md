@@ -10,8 +10,8 @@ Changelog
  * the "tags" key was moved to "extra" and renamed to "resource-tags"
  * the "override" key was moved to "extra". Its value is now the name(s) of
    the overridden package
- * the "override-order" key was moved to "extra". Its value is a list of
-   package names now
+ * the "override-order" key was moved to "extra" and renamed to "package-order".
+   Its value is a list of package names now
 
 * 1.0.0-alpha1 (2014-02-05)
 
