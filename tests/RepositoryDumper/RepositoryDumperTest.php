@@ -72,21 +72,20 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
         $dumper->setVendorDir($vendorDir);
         $dumper->setProjectPackage($projectPackage);
         $dumper->setInstalledPackages(array($instPackage1, $instPackage2));
-        $dumper->setInstallationManager($installationManager);
         $dumper->setRepositoryBuilder($builder);
 
         // Expectations
         $builder->expects($this->at(0))
             ->method('loadPackage')
-            ->with($projectPackage, $projectDir);
+            ->with($projectPackage);
 
         $builder->expects($this->at(1))
             ->method('loadPackage')
-            ->with($instPackage1, '/inst1/dir');
+            ->with($instPackage1);
 
         $builder->expects($this->at(2))
             ->method('loadPackage')
-            ->with($instPackage2, '/inst2/dir');
+            ->with($instPackage2);
 
         $builder->expects($this->at(3))
             ->method('buildRepository')
