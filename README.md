@@ -52,7 +52,7 @@ repositories with the Composer plugin.
 Contribute
 ----------
 
-Contributions to Puli are always welcome!
+Contributions to are very welcome!
 
 * Report any bugs or issues you find on the [issue tracker].
 * You can grab the source code at Puli’s [Git repository].
@@ -72,7 +72,7 @@ Puli and its documentation are licensed under the [MIT license].
 [Composer]: https://getcomposer.org
 [Getting Started]: http://puli.readthedocs.org/en/latest/getting-started/application-devs.html
 [Plugin Documentation]: http://puli.readthedocs.org/en/latest/repository-management/composer.html
-[issue tracker]: https://github.com/puli/composer-puli-plugin/issues
+[issue tracker]: https://github.com/puli/puli/issues
 [Git repository]: https://github.com/puli/composer-puli-plugin
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE
