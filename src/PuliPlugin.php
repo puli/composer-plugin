@@ -17,8 +17,8 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
+use Puli\Extension\Composer\RepositoryBuilder\RepositoryBuilder;
 use Puli\Extension\Composer\RepositoryDumper\RepositoryDumper;
-use Puli\Extension\Composer\RepositoryLoader\RepositoryLoader;
 use Puli\Repository\ResourceRepository;
 
 /**
@@ -78,7 +78,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $repo = new ResourceRepository();
         $dumper->setRepository($repo);
-        $dumper->setRepositoryLoader(new RepositoryLoader($repo));
+        $dumper->setRepositoryBuilder(new RepositoryBuilder($repo));
 
         $event->getIO()->write('<info>Generating resource repository</info>');
 

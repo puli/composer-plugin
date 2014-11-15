@@ -14,7 +14,7 @@ namespace Puli\Extension\Composer\Tests\RepositoryDumper;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Puli\Extension\Composer\RepositoryDumper\RepositoryDumper;
-use Puli\Repository\ResourceRepository;
+use Puli\Repository\ManageableRepositoryInterface;
 
 /**
  * @since  1.0
@@ -44,9 +44,7 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
         mkdir($vendorDir);
 
         // Create dependencies
-        $repo = new ResourceRepository();
-        $repo->add('/file', __FILE__);
-        $loader = $this->getMockBuilder('Puli\Extension\Composer\RepositoryLoader\RepositoryLoader')
+        $builder = $this->getMockBuilder('Puli\Extension\Composer\RepositoryBuilder\RepositoryBuilder')
             ->disableOriginalConstructor()
             ->getMock();
         $projectPackage = $this->getMock('Composer\Package\PackageInterface');
@@ -75,34 +73,27 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
         $dumper->setProjectPackage($projectPackage);
         $dumper->setInstalledPackages(array($instPackage1, $instPackage2));
         $dumper->setInstallationManager($installationManager);
-        $dumper->setRepository($repo);
-        $dumper->setRepositoryLoader($loader);
+        $dumper->setRepositoryBuilder($builder);
 
         // Expectations
-        $loader->expects($this->at(0))
-            ->method('setRepository')
-            ->with($repo);
-
-        $loader->expects($this->at(1))
+        $builder->expects($this->at(0))
             ->method('loadPackage')
             ->with($projectPackage, $projectDir);
 
-        $loader->expects($this->at(2))
+        $builder->expects($this->at(1))
             ->method('loadPackage')
             ->with($instPackage1, '/inst1/dir');
 
-        $loader->expects($this->at(3))
+        $builder->expects($this->at(2))
             ->method('loadPackage')
             ->with($instPackage2, '/inst2/dir');
 
-        $loader->expects($this->at(4))
-            ->method('validateOverrides');
-
-        $loader->expects($this->at(5))
-            ->method('applyOverrides');
-
-        $loader->expects($this->at(6))
-            ->method('applyTags');
+        $builder->expects($this->at(3))
+            ->method('buildRepository')
+            ->with($this->isInstanceOf('Puli\Repository\ManageableRepositoryInterface'))
+            ->will($this->returnCallback(function (ManageableRepositoryInterface $repo) {
+                $repo->add('/file', __FILE__);
+            }));
 
         // Go
         $dumper->dumpRepository();

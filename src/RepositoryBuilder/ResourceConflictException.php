@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Extension\Composer\RepositoryLoader;
+namespace Puli\Extension\Composer\RepositoryBuilder;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceDefinitionException extends \Exception
+class ResourceConflictException extends \Exception
 {
 }

@@ -9,12 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Extension\Composer\RepositoryLoader;
+namespace Puli\Extension\Composer\PackageGraph;
 
 /**
+ * Thrown when a cyclic dependency is detected in the package graph.
+ *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class OverrideConflictException extends \Exception
+class CycleException extends \RuntimeException
 {
+
 }

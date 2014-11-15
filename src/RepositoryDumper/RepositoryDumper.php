@@ -14,9 +14,9 @@ namespace Puli\Extension\Composer\RepositoryDumper;
 use Composer\Installer\InstallationManager;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
-use Puli\Extension\Composer\RepositoryLoader\RepositoryLoader;
+use Puli\Extension\Composer\RepositoryBuilder\RepositoryBuilder;
 use Puli\Filesystem\PhpCacheRepository;
-use Puli\Repository\ManageableRepositoryInterface;
+use Puli\Repository\ResourceRepository;
 
 /**
  * Dumps a resource repository based on the Composer configuration.
@@ -52,14 +52,9 @@ class RepositoryDumper
     private $installedPackages;
 
     /**
-     * @var ManageableRepositoryInterface
+     * @var RepositoryBuilder
      */
-    private $repo;
-
-    /**
-     * @var RepositoryLoader
-     */
-    private $repoLoader;
+    private $repoBuilder;
 
     public function setInstallationManager(InstallationManager $installationManager)
     {
@@ -86,38 +81,31 @@ class RepositoryDumper
         $this->installedPackages = $packages;
     }
 
-    public function setRepository(ManageableRepositoryInterface $repo)
+    public function setRepositoryBuilder(RepositoryBuilder $repoLoader)
     {
-        $this->repo = $repo;
-    }
-
-    public function setRepositoryLoader(RepositoryLoader $repoLoader)
-    {
-        $this->repoLoader = $repoLoader;
+        $this->repoBuilder = $repoLoader;
     }
 
     public function dumpRepository()
     {
+        $repo = new ResourceRepository();
         $filesystem = new Filesystem();
         $filesystem->ensureDirectoryExists($this->vendorDir);
         $basePath = $filesystem->normalizePath(realpath($this->projectDir));
         $vendorPath = $filesystem->normalizePath(realpath($this->vendorDir));
 
-        $this->repoLoader->setRepository($this->repo);
-        $this->repoLoader->loadPackage($this->projectPackage, $basePath);
+        $this->repoBuilder->loadPackage($this->projectPackage, $basePath);
 
         foreach ($this->installedPackages as $package) {
             /** @var \Composer\Package\PackageInterface $package */
-            $this->repoLoader->loadPackage($package, $this->installationManager->getInstallPath($package));
+            $this->repoBuilder->loadPackage($package, $this->installationManager->getInstallPath($package));
         }
 
-        $this->repoLoader->validateOverrides();
-        $this->repoLoader->applyOverrides();
-        $this->repoLoader->applyTags();
+        $this->repoBuilder->buildRepository($repo);
 
         $filesystem->ensureDirectoryExists($vendorPath.'/composer');
 
-        PhpCacheRepository::dumpRepository($this->repo, $vendorPath.'/composer');
+        PhpCacheRepository::dumpRepository($repo, $vendorPath.'/composer');
 
         $locatorCode = <<<LOCATOR
 <?php

@@ -272,4 +272,4 @@ print_r($repo->get('/acme/blog/css/style.css')->getAllLocalPaths());
 [Puli library]: https://github.com/puli/puli
 [Puli documentation]: https://github.com/puli/puli/blob/master/README.md
 [Composer]: https://getcomposer.org
-[`OverrideConflictException`]: src/RepositoryLoader/OverrideConflictException.php
+[`OverrideConflictException`]: src/RepositoryBuilder/OverrideConflictException.php
