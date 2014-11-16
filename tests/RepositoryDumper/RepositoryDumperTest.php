@@ -68,7 +68,6 @@ class RepositoryDumperTest extends \PHPUnit_Framework_TestCase
 
         // Configure
         $dumper = new RepositoryDumper();
-        $dumper->setProjectDir($projectDir);
         $dumper->setVendorDir($vendorDir);
         $dumper->setProjectPackage($projectPackage);
         $dumper->setInstalledPackages(array($instPackage1, $instPackage2));

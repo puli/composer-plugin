@@ -82,7 +82,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $composer = $event->getComposer();
         $repositoryManager = $composer->getRepositoryManager();
 
-        $this->dumper->setProjectDir(getcwd());
         $this->dumper->setVendorDir($composer->getConfig()->get('vendor-dir'));
         $this->dumper->setProjectPackage($composer->getPackage());
         $this->dumper->setInstalledPackages($repositoryManager->getLocalRepository()->getPackages());

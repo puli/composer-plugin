@@ -32,11 +32,6 @@ class RepositoryDumper
     private $vendorDir;
 
     /**
-     * @var string
-     */
-    private $projectDir;
-
-    /**
      * @var PackageInterface
      */
     private $projectPackage;
@@ -54,11 +49,6 @@ class RepositoryDumper
     public function setVendorDir($vendorDir)
     {
         $this->vendorDir = $vendorDir;
-    }
-
-    public function setProjectDir($projectDir)
-    {
-        $this->projectDir = $projectDir;
     }
 
     public function setProjectPackage(PackageInterface $package)

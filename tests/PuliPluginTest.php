@@ -59,10 +59,6 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
     private $installedPackages;
 
-    private $cwd;
-
-    private $cwdBackup;
-
     protected function setUp()
     {
         $this->dumper = $this->getMockBuilder('Puli\Extension\Composer\RepositoryDumper\RepositoryDumper')
@@ -96,16 +92,6 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $this->composer->setInstallationManager($this->installationManager);
         $this->composer->setConfig($this->config);
         $this->composer->setPackage($this->projectPackage);
-
-        $this->cwdBackup = getcwd();
-        $this->cwd = __DIR__;
-
-        chdir($this->cwd);
-    }
-
-    protected function tearDown()
-    {
-        chdir($this->cwdBackup);
     }
 
     public function testActivate()
@@ -148,10 +134,6 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
                 'vendor-dir' => 'VENDOR/DIR',
             ),
         ));
-
-        $this->dumper->expects($this->once())
-            ->method('setProjectDir')
-            ->with($this->cwd);
 
         $this->dumper->expects($this->once())
             ->method('setVendorDir')
