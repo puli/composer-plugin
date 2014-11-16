@@ -78,6 +78,20 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->buildRepository($this->repo);
     }
 
+    public function testIgnorePackageWithoutPuli()
+    {
+        $this->repo->expects($this->never())
+            ->method('add');
+
+        $package = $this->createPackage($this->package1Root, array(
+            'extra' => array(
+            ),
+        ));
+
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
+    }
+
     public function testIgnorePackageWithoutResources()
     {
         $this->repo->expects($this->never())
@@ -85,6 +99,8 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
 
         $package = $this->createPackage($this->package1Root, array(
             'extra' => array(
+                'puli' => array(
+                ),
             ),
         ));
 
@@ -105,9 +121,11 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => 'resources',
-                    '/acme/package/css' => 'assets/css',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'resources',
+                        '/acme/package/css' => 'assets/css',
+                    ),
                 ),
             ),
         ));
@@ -125,8 +143,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => '@acme/package2:resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => '@acme/package2:resources',
+                    ),
                 ),
             ),
         ));
@@ -151,8 +171,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => '@acme/package2:resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => '@acme/package2:resources',
+                    ),
                 ),
             ),
         ));
@@ -169,9 +191,11 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createAliasPackage(array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => 'resources',
-                    '/acme/package/css' => 'assets/css',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'resources',
+                        '/acme/package/css' => 'assets/css',
+                    ),
                 ),
             ),
         ));
@@ -188,8 +212,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => 'foobar',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'foobar',
+                    ),
                 ),
             ),
         ));
@@ -211,9 +237,11 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package/css' => 'assets/css',
-                    '/acme/package' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package/css' => 'assets/css',
+                        '/acme/package' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -235,8 +263,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => array('resources', 'assets'),
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => array('resources', 'assets'),
+                    ),
                 ),
             ),
         ));
@@ -266,20 +296,24 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
-                    '/acme/overridden/css' => 'css-override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                        '/acme/overridden/css' => 'css-override',
+                    ),
+                    'override' => 'acme/overridden',
                 ),
-                'override' => 'acme/overridden',
             ),
         ));
 
         $overriddenPackage = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
-                    '/acme/overridden/css' => 'assets/css',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                        '/acme/overridden/css' => 'assets/css',
+                    ),
                 ),
             ),
         ));
@@ -303,18 +337,22 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                    ),
+                    'override' => 'acme/overridden',
                 ),
-                'override' => 'acme/overridden',
             ),
         ));
 
         $overriddenPackage = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -342,28 +380,34 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package3 = $this->createPackage($this->package3Root, array(
             'name' => 'acme/priority2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override2',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override2',
+                    ),
+                    'override' => 'acme/priority1',
                 ),
-                'override' => 'acme/priority1',
             ),
         ));
 
         $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/priority1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                    ),
+                    'override' => 'acme/priority0',
                 ),
-                'override' => 'acme/priority0',
             ),
         ));
 
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/priority0',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -395,19 +439,23 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage = $this->createPackage($this->package3Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden1' => 'override1',
-                    '/acme/overridden2' => 'override2',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden1' => 'override1',
+                        '/acme/overridden2' => 'override2',
+                    ),
+                    'override' => array('acme/overridden1', 'acme/overridden2'),
                 ),
-                'override' => array('acme/overridden1', 'acme/overridden2'),
             ),
         ));
 
         $overriddenPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden1' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden1' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -415,8 +463,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overriddenPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/overridden2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden2' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden2' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -437,10 +487,12 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                    ),
+                    'override' => 'acme/overridden',
                 ),
-                'override' => 'acme/overridden',
             ),
         ));
 
@@ -465,18 +517,22 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => array('override', 'css-override'),
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => array('override', 'css-override'),
+                    ),
+                    'override' => 'acme/overridden',
                 ),
-                'override' => 'acme/overridden',
             ),
         ));
 
         $overriddenPackage = $this->createPackage($this->package1Root, array(
             'name' => 'acme/overridden',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -497,8 +553,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -506,8 +564,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                    ),
                 ),
             ),
         ));
@@ -528,8 +588,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -537,8 +599,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden/config' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden/config' => 'override',
+                    ),
                 ),
             ),
         ));
@@ -561,8 +625,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -570,8 +636,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden/new' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden/new' => 'override',
+                    ),
                 ),
             ),
         ));
@@ -593,9 +661,11 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
 
         $rootPackage = $this->createRootPackage('/', array(
             'extra' => array(
-                'package-order' => array(
-                    'acme/package1',
-                    'acme/package2',
+                'puli' => array(
+                    'package-order' => array(
+                        'acme/package1',
+                        'acme/package2',
+                    ),
                 ),
             ),
         ));
@@ -603,8 +673,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -612,8 +684,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                    ),
                 ),
             ),
         ));
@@ -634,9 +708,11 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
 
         $pseudoRootPackage = $this->createPackage('/', array(
             'extra' => array(
-                'package-order' => array(
-                    'acme/package2',
-                    'acme/package1',
+                'puli' => array(
+                    'package-order' => array(
+                        'acme/package2',
+                        'acme/package1',
+                    ),
                 ),
             ),
         ));
@@ -644,8 +720,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -653,8 +731,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $overridingPackage2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resources' => array(
-                    '/acme/overridden' => 'override',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/overridden' => 'override',
+                    ),
                 ),
             ),
         ));
@@ -678,11 +758,13 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package' => 'resources',
-                ),
-                'resource-tags' => array(
-                    '/acme/package' => 'acme/tag',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'resources',
+                    ),
+                    'tags' => array(
+                        '/acme/package' => 'acme/tag',
+                    ),
                 ),
             ),
         ));
@@ -704,8 +786,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package1' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package1' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -713,8 +797,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resource-tags' => array(
-                    '/acme/package1' => 'acme/tag',
+                'puli' => array(
+                    'tags' => array(
+                        '/acme/package1' => 'acme/tag',
+                    ),
                 ),
             ),
         ));
@@ -737,8 +823,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package1' => 'resources',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package1' => 'resources',
+                    ),
                 ),
             ),
         ));
@@ -746,8 +834,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resource-tags' => array(
-                    '/acme/package1' => 'acme/tag',
+                'puli' => array(
+                    'tags' => array(
+                        '/acme/package1' => 'acme/tag',
+                    ),
                 ),
             ),
         ));
@@ -774,11 +864,13 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package1' => 'resources',
-                ),
-                'resource-tags' => array(
-                    '/acme/package1' => 'acme/tag1',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package1' => 'resources',
+                    ),
+                    'tags' => array(
+                        '/acme/package1' => 'acme/tag1',
+                    ),
                 ),
             ),
         ));
@@ -786,8 +878,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resource-tags' => array(
-                    '/acme/package1' => 'acme/tag2',
+                'puli' => array(
+                    'tags' => array(
+                        '/acme/package1' => 'acme/tag2',
+                    ),
                 ),
             ),
         ));
@@ -810,11 +904,13 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package1 = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package1' => 'resources',
-                ),
-                'resource-tags' => array(
-                    '/acme/package1' => 'acme/tag',
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package1' => 'resources',
+                    ),
+                    'tags' => array(
+                        '/acme/package1' => 'acme/tag',
+                    ),
                 ),
             ),
         ));
@@ -822,8 +918,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package2 = $this->createPackage($this->package2Root, array(
             'name' => 'acme/package2',
             'extra' => array(
-                'resource-tags' => array(
-                    '/acme/package1' => 'acme/tag',
+                'puli' => array(
+                    'tags' => array(
+                        '/acme/package1' => 'acme/tag',
+                    ),
                 ),
             ),
         ));
@@ -850,11 +948,13 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package1',
             'extra' => array(
-                'resources' => array(
-                    '/acme/package1' => 'resources',
-                ),
-                'resource-tags' => array(
-                    '/acme/package1' => array('acme/tag1', 'acme/tag2'),
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package1' => 'resources',
+                    ),
+                    'tags' => array(
+                        '/acme/package1' => array('acme/tag1', 'acme/tag2'),
+                    ),
                 ),
             ),
         ));
@@ -871,7 +971,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => 'foobar',
+                'puli' => array(
+                    'resources' => 'foobar',
+                ),
             ),
         ));
 
@@ -887,7 +989,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createPackage($this->package1Root, array(
             'name' => 'acme/package',
             'extra' => array(
-                'resources' => new \stdClass(),
+                'puli' => array(
+                    'override' => new \stdClass(),
+                ),
             ),
         ));
 
@@ -903,7 +1007,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createRootPackage('/', array(
             'name' => 'acme/package',
             'extra' => array(
-                'package-order' => 'foobar',
+                'puli' => array(
+                    'package-order' => 'foobar',
+                ),
             ),
         ));
 
@@ -919,7 +1025,9 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package = $this->createRootPackage('/', array(
             'name' => 'acme/package',
             'extra' => array(
-                'resource-tags' => 'foobar',
+                'puli' => array(
+                    'tags' => 'foobar',
+                ),
             ),
         ));
 

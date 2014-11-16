@@ -96,14 +96,20 @@ class RepositoryBuilder
     {
         foreach ($this->packages as $packageName => $package) {
             $packageRoot = $this->installationManager->getInstallPath($package);
-            $config = $package->getExtra();
+            $extra = $package->getExtra();
+
+            if (!isset($extra['puli'])) {
+                return;
+            }
+
+            $config = $extra['puli'];
 
             $this->packageGraph->addPackage($packageName);
 
             if (isset($config['resources'])) {
                 if (!is_array($config['resources'])) {
                     throw new ResourceDefinitionException(sprintf(
-                        'The "export" key in the composer.json of the "%s" '.
+                        'The "resources" key in the composer.json of the "%s" '.
                         'package should contain an array.',
                         $packageName
                     ));
@@ -136,16 +142,16 @@ class RepositoryBuilder
                 $this->processPackageOrder($config['package-order']);
             }
 
-            if (isset($config['resource-tags'])) {
-                if (!is_array($config['resource-tags'])) {
+            if (isset($config['tags'])) {
+                if (!is_array($config['tags'])) {
                     throw new ResourceDefinitionException(sprintf(
-                        'The "resource-tags" key in the composer.json of the "%s" '.
+                        'The "tags" key in the composer.json of the "%s" '.
                         'package should contain an array.',
                         $packageName
                     ));
                 }
 
-                $this->processTags($config['resource-tags']);
+                $this->processTags($config['tags']);
             }
         }
     }
