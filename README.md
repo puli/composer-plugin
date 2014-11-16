@@ -38,6 +38,12 @@ $repo = require __DIR__.'/vendor/resource-repository.php';
 echo $repo->get('/acme/blog/config/config.yml')->getContents();
 ```
 
+Authors
+-------
+
+* [Bernhard Schussek] a.k.a. [@webmozart]
+* [The Community Contributors]
+
 Installation
 ------------
 
@@ -68,6 +74,8 @@ License
 
 Puli and its documentation are licensed under the [MIT license].
 
+[Bernhard Schussek]: http://webmozarts.com
+[The Community Contributors]: https://github.com/puli/composer-puli-plugin/graphs/contributors
 [Puli library]: https://github.com/puli/puli
 [Composer]: https://getcomposer.org
 [Getting Started]: http://puli.readthedocs.org/en/latest/getting-started/application-devs.html
