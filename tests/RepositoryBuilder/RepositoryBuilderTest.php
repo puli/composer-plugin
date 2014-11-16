@@ -46,6 +46,10 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
 
     private $package3Root;
 
+    private $previousWd;
+
+    private $cwd;
+
     protected function setUp()
     {
         $packageRoots = &$this->packageRoots;
@@ -65,6 +69,15 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->package1Root = __DIR__.'/Fixtures/package1';
         $this->package2Root = __DIR__.'/Fixtures/package2';
         $this->package3Root = __DIR__.'/Fixtures/package3';
+        $this->previousWd = getcwd();
+        $this->cwd = __DIR__.'/Fixtures/root-package';
+
+        chdir($this->cwd);
+    }
+
+    protected function tearDown()
+    {
+        chdir($this->previousWd);
     }
 
     public function testIgnorePackageWithoutExtras()
@@ -119,6 +132,32 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->with('/acme/package/css', new LocalDirectoryResource($this->package1Root.'/assets/css'));
 
         $package = $this->createPackage($this->package1Root, array(
+            'name' => 'acme/package',
+            'extra' => array(
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'resources',
+                        '/acme/package/css' => 'assets/css',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->builder->loadPackage($package);
+        $this->builder->buildRepository($this->repo);
+    }
+
+    public function testAddResourcesInRootPackage()
+    {
+        $this->repo->expects($this->at(0))
+            ->method('add')
+            ->with('/acme/package', new LocalDirectoryResource($this->cwd.'/resources'));
+
+        $this->repo->expects($this->at(1))
+            ->method('add')
+            ->with('/acme/package/css', new LocalDirectoryResource($this->cwd.'/assets/css'));
+
+        $package = $this->createRootPackage(array(
             'name' => 'acme/package',
             'extra' => array(
                 'puli' => array(
@@ -659,7 +698,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
             ->method('add')
             ->with('/acme/overridden', new LocalDirectoryResource($this->package2Root.'/override'));
 
-        $rootPackage = $this->createRootPackage('/', array(
+        $rootPackage = $this->createRootPackage(array(
             'extra' => array(
                 'puli' => array(
                     'package-order' => array(
@@ -1004,7 +1043,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testOverrideOrderMustBeArray()
     {
-        $package = $this->createRootPackage('/', array(
+        $package = $this->createRootPackage(array(
             'name' => 'acme/package',
             'extra' => array(
                 'puli' => array(
@@ -1022,7 +1061,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testTagsMustBeArray()
     {
-        $package = $this->createRootPackage('/', array(
+        $package = $this->createRootPackage(array(
             'name' => 'acme/package',
             'extra' => array(
                 'puli' => array(
@@ -1062,7 +1101,7 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
      *
      * @return \Composer\Package\PackageInterface
      */
-    private function createRootPackage($root, array $config)
+    private function createRootPackage(array $config)
     {
         $package = $this->getMock('\Composer\Package\RootPackageInterface');
 
@@ -1073,8 +1112,6 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $package->expects($this->any())
             ->method('getExtra')
             ->will($this->returnValue(isset($config['extra']) ? $config['extra'] : array()));
-
-        $this->packageRoots[spl_object_hash($package)] = $root;
 
         return $package;
     }

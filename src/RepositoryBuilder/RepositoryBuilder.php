@@ -95,7 +95,7 @@ class RepositoryBuilder
     private function loadPackageConfiguration()
     {
         foreach ($this->packages as $packageName => $package) {
-            $packageRoot = $this->installationManager->getInstallPath($package);
+            $packageRoot = $this->getInstallPath($package);
             $extra = $package->getExtra();
 
             if (!isset($extra['puli'])) {
@@ -194,7 +194,7 @@ class RepositoryBuilder
                     }
 
                     $refPackage = $this->packages[$refPackageName];
-                    $refPackageRoot = $this->installationManager->getInstallPath($refPackage);
+                    $refPackageRoot = $this->getInstallPath($refPackage);
 
                     $absolutePath = $refPackageRoot.'/'.substr($relativePath, $pos + 1);
                 } else {
@@ -354,5 +354,14 @@ class RepositoryBuilder
                 $repo->tag($path, $tag);
             }
         }
+    }
+
+    private function getInstallPath(PackageInterface $package)
+    {
+        if ($package instanceof RootPackageInterface) {
+            return getcwd();
+        }
+
+        return $this->installationManager->getInstallPath($package);
     }
 }
