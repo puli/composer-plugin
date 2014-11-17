@@ -99,7 +99,7 @@ class RepositoryBuilder
             $extra = $package->getExtra();
 
             if (!isset($extra['puli'])) {
-                return;
+                continue;
             }
 
             $config = $extra['puli'];
