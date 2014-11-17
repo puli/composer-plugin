@@ -18,7 +18,11 @@
     },
     "autoload": {
         "psr-4": {
-            "Puli\\Extension\\Composer\\": "src/",
+            "Puli\\Extension\\Composer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "Puli\\Extension\\Composer\\Tests\\": "tests/"
         }
     },
