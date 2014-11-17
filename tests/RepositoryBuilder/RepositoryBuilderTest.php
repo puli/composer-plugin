@@ -105,6 +105,31 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->buildRepository($this->repo);
     }
 
+    public function testAddPackageAfterPackageWithoutPuli()
+    {
+        $this->repo->expects($this->once())
+            ->method('add');
+
+        $package1 = $this->createPackage($this->package1Root, array(
+            'name' => 'acme/package1',
+        ));
+
+        $package2 = $this->createPackage($this->package2Root, array(
+            'name' => 'acme/package2',
+            'extra' => array(
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $this->builder->loadPackage($package1);
+        $this->builder->loadPackage($package2);
+        $this->builder->buildRepository($this->repo);
+    }
+
     public function testIgnorePackageWithoutResources()
     {
         $this->repo->expects($this->never())
