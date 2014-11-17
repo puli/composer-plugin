@@ -199,6 +199,30 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->buildRepository($this->repo);
     }
 
+    public function testAliasPackages()
+    {
+        $this->repo->expects($this->once())
+            ->method('add')
+            ->with('/acme/package', new LocalDirectoryResource($this->package1Root.'/resources'));
+
+        $package = $this->createPackage($this->package1Root, array(
+            'name' => 'acme/package1',
+            'extra' => array(
+                'puli' => array(
+                    'resources' => array(
+                        '/acme/package' => 'resources',
+                    ),
+                ),
+            ),
+        ));
+
+        $alias = $this->createAliasPackage($package);
+
+        $this->builder->loadPackage($package);
+        $this->builder->loadPackage($alias);
+        $this->builder->buildRepository($this->repo);
+    }
+
     /**
      * @expectedException \Puli\Extension\Composer\RepositoryBuilder\ResourceDefinitionException
      */
@@ -219,27 +243,6 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
         ));
 
         $this->builder->loadPackage($package1);
-        $this->builder->buildRepository($this->repo);
-    }
-
-    public function testIgnoreAliasPackages()
-    {
-        $this->repo->expects($this->never())
-            ->method('add');
-
-        $package = $this->createAliasPackage(array(
-            'name' => 'acme/package',
-            'extra' => array(
-                'puli' => array(
-                    'resources' => array(
-                        '/acme/package' => 'resources',
-                        '/acme/package/css' => 'assets/css',
-                    ),
-                ),
-            ),
-        ));
-
-        $this->builder->loadPackage($package);
         $this->builder->buildRepository($this->repo);
     }
 
@@ -1117,24 +1120,20 @@ class RepositoryBuilderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param array $config
+     * @param \Composer\Package\PackageInterface $package
      *
      * @return \Composer\Package\AliasPackage
      */
-    private function createAliasPackage(array $config)
+    private function createAliasPackage($package)
     {
-        $package = $this->getMockBuilder('\Composer\Package\AliasPackage')
+        $alias = $this->getMockBuilder('\Composer\Package\AliasPackage')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $package->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue(isset($config['name']) ? $config['name'] : ''));
+        $alias->expects($this->any())
+            ->method('getAliasOf')
+            ->will($this->returnValue($package));
 
-        $package->expects($this->any())
-            ->method('getExtra')
-            ->will($this->returnValue(isset($config['extra']) ? $config['extra'] : array()));
-
-        return $package;
+        return $alias;
     }
 }
