@@ -73,7 +73,7 @@ class RepositoryBuilder
     {
         // We don't care about aliases, only "the real deal"
         if ($package instanceof AliasPackage) {
-            return;
+            $package = $package->getAliasOf();
         }
 
         $packageName = $package->getName();
