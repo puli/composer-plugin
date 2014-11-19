@@ -1,7 +1,7 @@
 {
-    "name": "puli/composer-puli-plugin",
+    "name": "puli/puli-composer-plugin",
     "type": "composer-plugin",
-    "description": "A resource location plugin for Composer based on the Puli library.",
+    "description": "A Puli plugin that generates resource repositories for Composer packages.",
     "license": "MIT",
     "authors": [
         {
