@@ -19,6 +19,7 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\PackageManager\PackageManager;
+use Puli\Util\Path;
 
 /**
  * A Puli plugin for Composer.
@@ -74,7 +75,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         // Add Puli support if necessary
         if (!PackageManager::isPuliProject($rootDir)) {
-            if (!$io->askConfirmation('The project does not have Puli support. Add Puli support now?')) {
+            if (!$io->askConfirmation("<question>The project does not have Puli support. Add Puli support now? (yes/no)</question> [<comment>yes</comment>]\n", true)) {
                 // No Puli support desired for now - quit
                 return;
             }
@@ -89,13 +90,13 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         // Enable the Puli plugin so that we can load the package names from
         // Composer
         if (!$packageManager->isPluginClassInstalled($pluginClass)) {
-            if (!$io->askConfirmation('The Composer plugin for Puli is not installed. Install now?')) {
+            if (!$io->askConfirmation("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n", true)) {
                 // No Puli support desired for now - quit
                 return;
             }
 
             // Install plugin
-            $io->write('Installing <info>'.$pluginClass.'</info>');
+            $io->write(sprintf('Installing <info>%s</info>', $pluginClass));
             $packageManager->installPluginClass($pluginClass, true);
 
             // Restart package manager to load plugin
@@ -119,6 +120,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $repositoryManager = $event->getComposer()->getRepositoryManager();
         $installationManager = $event->getComposer()->getInstallationManager();
         $packages = $repositoryManager->getLocalRepository()->getPackages();
+        $rootDir = $packageManager->getRootPackage()->getInstallPath();
 
         foreach ($packages as $package) {
             if ($package instanceof AliasPackage) {
@@ -137,7 +139,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            $event->getIO()->write('  - Adding <info>'.$package->getName().'</info>');
+            $event->getIO()->write(sprintf(
+                'Installing <info>%s</info> (<comment>%s</comment>)',
+                $package->getName(),
+                Path::makeRelative($installPath, $rootDir)
+            ));
 
             $packageManager->installPackage($installPath);
         }

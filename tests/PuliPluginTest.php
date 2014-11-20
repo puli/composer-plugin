@@ -185,10 +185,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('  - Adding <info>package1</info>');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('  - Adding <info>package2</info>');
+            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -231,7 +231,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('  - Adding <info>package1</info>');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -261,7 +261,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('  - Adding <info>package1</info>');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -292,7 +292,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('  - Adding <info>package1</info>');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -309,7 +309,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('askConfirmation')
-            ->with('The Composer plugin for Puli is not installed. Install now?')
+            ->with("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n")
             ->will($this->returnValue(true));
 
         $this->io->expects($this->at(1))
@@ -320,10 +320,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('  - Adding <info>package1</info>');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(4))
             ->method('write')
-            ->with('  - Adding <info>package2</info>');
+            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(5))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -350,7 +350,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->once())
             ->method('askConfirmation')
-            ->with('The Composer plugin for Puli is not installed. Install now?')
+            ->with("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n")
             ->will($this->returnValue(false));
 
         $this->io->expects($this->never())
@@ -372,7 +372,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('askConfirmation')
-            ->with('The project does not have Puli support. Add Puli support now?')
+            ->with("<question>The project does not have Puli support. Add Puli support now? (yes/no)</question> [<comment>yes</comment>]\n")
             ->will($this->returnValue(true));
 
         $this->io->expects($this->at(1))
@@ -381,7 +381,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(2))
             ->method('askConfirmation')
-            ->with('The Composer plugin for Puli is not installed. Install now?')
+            ->with("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n")
             ->will($this->returnValue(true));
 
         $this->io->expects($this->at(3))
@@ -392,10 +392,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(5))
             ->method('write')
-            ->with('  - Adding <info>package1</info>');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(6))
             ->method('write')
-            ->with('  - Adding <info>package2</info>');
+            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(7))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
