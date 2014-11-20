@@ -14,8 +14,10 @@ namespace Puli\Extension\Composer\Tests;
 use Composer\Composer;
 use Composer\Config;
 use Composer\Installer\InstallationManager;
+use Composer\Package\AliasPackage;
 use Composer\Package\Package;
 use Composer\Repository\RepositoryManager;
+use Composer\Repository\WritableRepositoryInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\Extension\Composer\PuliPlugin;
@@ -51,6 +53,9 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
      */
     private $io;
 
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject|WritableRepositoryInterface
+     */
     private $localRepository;
 
     private $repositoryManager;
@@ -220,6 +225,67 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
         copy(__DIR__.'/Fixtures/root-preinstalled/packages.json', $this->tempDir.'/packages.json');
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('  - Adding <info>package1</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testResolveAliasPackages()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy(__DIR__.'/Fixtures/root-preinstalled/packages.json', $this->tempDir.'/packages.json');
+
+        $package = new Package('package1', '1.0', '1.0');
+
+        $this->installedPackages = array(
+            // Package is not listed in installed packages
+            new AliasPackage($package, '1.0', '1.0'),
+        );
+
+        $this->localRepository->expects($this->any())
+            ->method('getPackages')
+            ->will($this->returnValue($this->installedPackages));
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('  - Adding <info>package1</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testInstallAliasedPackageOnlyOnce()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy(__DIR__.'/Fixtures/root-preinstalled/packages.json', $this->tempDir.'/packages.json');
+
+        $package = new Package('package1', '1.0', '1.0');
+
+        $this->installedPackages = array(
+            // This time the package is returned here as well
+            $package,
+            new AliasPackage($package, '1.0', '1.0'),
+        );
+
+        $this->localRepository->expects($this->any())
+            ->method('getPackages')
+            ->will($this->returnValue($this->installedPackages));
 
         $this->io->expects($this->at(0))
             ->method('write')
