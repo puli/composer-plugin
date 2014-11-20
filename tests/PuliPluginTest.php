@@ -314,7 +314,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('Installing <info>Puli\Extension\Composer\ComposerPlugin</info>');
+            ->with(sprintf('Wrote <comment>%s/%s</comment>', $this->tempHome, PackageManager::GLOBAL_CONFIG));
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Looking for new Puli packages</info>');
@@ -386,7 +386,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('Installing <info>Puli\Extension\Composer\ComposerPlugin</info>');
+            ->with(sprintf('Wrote <comment>%s/%s</comment>', $this->tempHome, PackageManager::GLOBAL_CONFIG));
         $this->io->expects($this->at(4))
             ->method('write')
             ->with('<info>Looking for new Puli packages</info>');

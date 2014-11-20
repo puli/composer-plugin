@@ -80,8 +80,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 return;
             }
 
-            $io->write('Wrote <comment>puli.json</comment>');
             PackageManager::initializePuliProject($rootDir);
+            $io->write('Wrote <comment>puli.json</comment>');
         }
 
         $packageManager = PackageManager::createDefault($rootDir);
@@ -96,8 +96,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             }
 
             // Install plugin
-            $io->write(sprintf('Installing <info>%s</info>', $pluginClass));
             $packageManager->installPluginClass($pluginClass, true);
+            $io->write(sprintf(
+                'Wrote <comment>%s</comment>',
+                PackageManager::getHomeDirectory().'/'.PackageManager::GLOBAL_CONFIG
+            ));
 
             // Restart package manager to load plugin
             $packageManager = PackageManager::createDefault(getcwd());
