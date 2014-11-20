@@ -1,0 +1,4 @@
+{
+    "package-repository": "packages.json",
+    "resource-repository": "resource-repository.php"
+}

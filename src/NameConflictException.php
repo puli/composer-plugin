@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Composer Puli Plugin.
+ * This file is part of the Puli Composer Plugin.
  *
  * (c) Bernhard Schussek <bschussek@gmail.com>
  *
@@ -9,12 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Extension\Composer\RepositoryBuilder;
+namespace Puli\Extension\Composer;
 
 /**
+ * Thrown when the name of the Composer package and the Puli package differs.
+ *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ResourceConflictException extends \Exception
+class NameConflictException extends \RuntimeException
 {
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Composer Puli Plugin.
+ * This file is part of the Puli Composer Plugin.
  *
  * (c) Bernhard Schussek <bschussek@gmail.com>
  *
@@ -13,10 +13,15 @@ namespace Puli\Extension\Composer\Tests;
 
 use Composer\Composer;
 use Composer\Config;
+use Composer\Installer\InstallationManager;
+use Composer\Package\Package;
 use Composer\Repository\RepositoryManager;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\Extension\Composer\PuliPlugin;
+use Puli\PackageManager\Config\Reader\ConfigJsonReader;
+use Puli\PackageManager\PackageManager;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @since  1.0
@@ -24,6 +29,8 @@ use Puli\Extension\Composer\PuliPlugin;
  */
 class PuliPluginTest extends \PHPUnit_Framework_TestCase
 {
+    const PLUGIN_CLASS = 'Puli\Extension\Composer\ComposerPlugin';
+
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
      */
@@ -48,6 +55,9 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
     private $repositoryManager;
 
+    /**
+     * @var \PHPUnit_Framework_MockObject_MockObject|InstallationManager
+     */
     private $installationManager;
 
     /**
@@ -59,8 +69,21 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
     private $installedPackages;
 
+    private $tempDir;
+
+    private $tempHome;
+
+    private $previousWd;
+
     protected function setUp()
     {
+        while (false === mkdir($this->tempDir = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_root'.rand(10000, 99999), 0777, true)) {}
+        while (false === mkdir($this->tempHome = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_home'.rand(10000, 99999), 0777, true)) {}
+
+        $filesystem = new Filesystem();
+        $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
+        $filesystem->mirror(__DIR__.'/Fixtures/home', $this->tempHome);
+
         $this->dumper = $this->getMockBuilder('Puli\Extension\Composer\RepositoryDumper\RepositoryDumper')
             ->disableOriginalConstructor()
             ->getMock();
@@ -77,10 +100,18 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $tempDir = $this->tempDir;
+        $this->installationManager->expects($this->any())
+            ->method('getInstallPath')
+            ->will($this->returnCallback(function (Package $package) use ($tempDir) {
+                return $tempDir.'/'.$package->getName();
+            }));
+
         $this->projectPackage = $this->getMock('Composer\Package\RootPackageInterface');
         $this->installedPackages = array(
-            $this->getMock('Composer\Package\PackageInterface'),
-            $this->getMock('Composer\Package\PackageInterface'),
+            new Package('package1', '1.0', '1.0'),
+            new Package('package2', '1.0', '1.0'),
+            new Package('non-puli-package', '1.0', '1.0'),
         );
 
         $this->localRepository->expects($this->any())
@@ -92,6 +123,21 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $this->composer->setInstallationManager($this->installationManager);
         $this->composer->setConfig($this->config);
         $this->composer->setPackage($this->projectPackage);
+
+        $this->previousWd = getcwd();
+
+        chdir($this->tempDir);
+        putenv('PULI_HOME='.$this->tempHome);
+    }
+
+    protected function tearDown()
+    {
+        chdir($this->previousWd);
+        putenv('PULI_HOME');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->tempDir);
+        $filesystem->remove($this->tempHome);
     }
 
     public function testActivate()
@@ -120,52 +166,46 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider provideEventNames
      */
-    public function testEventListeners($eventName)
+    public function testInstallNewPuliPackages($eventName)
     {
-        $event = new CommandEvent($eventName, $this->composer, $this->io);
-        $listeners = PuliPlugin::getSubscribedEvents();
+        $listeners = $this->plugin->getSubscribedEvents();
 
         $this->assertArrayHasKey($eventName, $listeners);
 
         $listener = $listeners[$eventName];
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        $this->config->merge(array(
-            'config' => array(
-                'vendor-dir' => 'VENDOR/DIR',
-            ),
-        ));
-
-        $this->dumper->expects($this->once())
-            ->method('setVendorDir')
-            ->with('VENDOR/DIR');
-
-        $this->dumper->expects($this->once())
-            ->method('setProjectPackage')
-            ->with($this->projectPackage);
-
-        $this->dumper->expects($this->once())
-            ->method('setInstalledPackages')
-            ->with($this->installedPackages);
-
-        $this->dumper->expects($this->once())
-            ->method('setRepositoryBuilder')
-            ->with($this->isInstanceOf('Puli\Extension\Composer\RepositoryBuilder\RepositoryBuilder'));
-
-        $this->io->expects($this->once())
+        $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Generating resource repository</info>');
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('  - Adding <info>package1</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('  - Adding <info>package2</info>');
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
 
         $this->plugin->$listener($event);
+
+        $this->assertFileExists($this->tempDir.'/resource-repository.php');
+
+        $repo = include $this->tempDir.'/resource-repository.php';
+
+        $this->assertInstanceOf('Puli\Repository\ResourceRepositoryInterface', $repo);
+        $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
     }
 
     /**
      * @dataProvider provideEventNames
-     * @depends testEventListeners
+     * @depends testInstallNewPuliPackages
      */
     public function testEventListenersOnlyProcessedOnFirstCall($eventName)
     {
         // Execute normal test
-        $this->testEventListeners($eventName);
+        $this->testInstallNewPuliPackages($eventName);
 
         // Now fire again
         $event = new CommandEvent($eventName, $this->composer, $this->io);
@@ -175,4 +215,129 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $this->plugin->$listener($event);
     }
 
+    public function testDoNotReinstallExistingPuliPackages()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy(__DIR__.'/Fixtures/root-preinstalled/packages.json', $this->tempDir.'/packages.json');
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('  - Adding <info>package1</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testInstallPluginIfNecessary()
+    {
+        $reader = new ConfigJsonReader();
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy(__DIR__.'/Fixtures/root-no-plugin/puli.json', $this->tempDir.'/puli.json');
+
+        $this->io->expects($this->at(0))
+            ->method('askConfirmation')
+            ->with('The Composer plugin for Puli is not installed. Install now?')
+            ->will($this->returnValue(true));
+
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Installing <info>Puli\Extension\Composer\ComposerPlugin</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('  - Adding <info>package1</info>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('  - Adding <info>package2</info>');
+        $this->io->expects($this->at(5))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        // Configuration does not contain plugin
+        $globalConfig = $reader->readGlobalConfig($this->tempHome.'/config.json');
+
+        $this->assertFalse($globalConfig->hasPluginClass(self::PLUGIN_CLASS));
+
+        $this->plugin->postInstall($event);
+
+        // Global config contains plugin now
+        $globalConfig = $reader->readGlobalConfig($this->tempHome.'/config.json');
+
+        $this->assertTrue($globalConfig->hasPluginClass(self::PLUGIN_CLASS));
+    }
+
+    public function testAbortIfPluginInstallationNotDesired()
+    {
+        $reader = new ConfigJsonReader();
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy(__DIR__.'/Fixtures/root-no-plugin/puli.json', $this->tempDir.'/puli.json');
+
+        $this->io->expects($this->once())
+            ->method('askConfirmation')
+            ->with('The Composer plugin for Puli is not installed. Install now?')
+            ->will($this->returnValue(false));
+
+        $this->io->expects($this->never())
+            ->method('write');
+
+        $this->plugin->postInstall($event);
+
+        // Global config was not changed
+        $globalConfig = $reader->readGlobalConfig($this->tempHome.'/config.json');
+
+        $this->assertFalse($globalConfig->hasPluginClass(self::PLUGIN_CLASS));
+    }
+
+    public function testInitializeProjectIfNecessary()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        unlink($this->tempDir.'/puli.json');
+
+        $this->io->expects($this->at(0))
+            ->method('askConfirmation')
+            ->with('The project does not have Puli support. Add Puli support now?')
+            ->will($this->returnValue(true));
+
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Initializing Puli project</info>');
+
+        $this->io->expects($this->at(2))
+            ->method('askConfirmation')
+            ->with('The Composer plugin for Puli is not installed. Install now?')
+            ->will($this->returnValue(true));
+
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('Installing <info>Puli\Extension\Composer\ComposerPlugin</info>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(5))
+            ->method('write')
+            ->with('  - Adding <info>package1</info>');
+        $this->io->expects($this->at(6))
+            ->method('write')
+            ->with('  - Adding <info>package2</info>');
+        $this->io->expects($this->at(7))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->assertFalse(PackageManager::isPuliProject($this->tempDir));
+
+        $this->plugin->postInstall($event);
+
+        $this->assertTrue(PackageManager::isPuliProject($this->tempDir));
+    }
 }

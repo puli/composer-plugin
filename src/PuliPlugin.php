@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Composer Puli Plugin.
+ * This file is part of the Puli Composer Plugin.
  *
  * (c) Bernhard Schussek <bschussek@gmail.com>
  *
@@ -14,30 +14,23 @@ namespace Puli\Extension\Composer;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
+use Composer\Package\AliasPackage;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
-use Puli\Extension\Composer\RepositoryBuilder\RepositoryBuilder;
-use Puli\Extension\Composer\RepositoryDumper\RepositoryDumper;
-use Puli\Repository\ResourceRepository;
+use Puli\PackageManager\PackageManager;
 
 /**
- * A plugin for managing resources of Composer dependencies.
+ * A Puli plugin for Composer.
+ *
+ * The plugin updates the Puli package repository based on the Composer
+ * packages whenever `composer install` or `composer update` is executed.
  *
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
 {
-    const VERSION = '@package_version@';
-
-    const RELEASE_DATE = '@release_date@';
-
-    /**
-     * @var RepositoryDumper
-     */
-    private $dumper;
-
     /**
      * @var bool
      */
@@ -49,28 +42,25 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return array(
-            ScriptEvents::POST_INSTALL_CMD => 'dumpRepository',
-            ScriptEvents::POST_UPDATE_CMD => 'dumpRepository',
+            ScriptEvents::POST_INSTALL_CMD => 'postInstall',
+            ScriptEvents::POST_UPDATE_CMD => 'postInstall',
         );
     }
 
-    public function __construct(RepositoryDumper $dumper = null)
-    {
-        $this->dumper = $dumper ?: new RepositoryDumper();
-    }
-
     /**
-     * Apply plugin modifications to composer
-     *
-     * @param Composer    $composer
-     * @param IOInterface $io
+     * {@inheritdoc}
      */
     public function activate(Composer $composer, IOInterface $io)
     {
         $composer->getEventDispatcher()->addSubscriber($this);
     }
 
-    public function dumpRepository(CommandEvent $event)
+    /**
+     * Updates the Puli repository after Composer installations/updates.
+     *
+     * @param CommandEvent $event The Composer event.
+     */
+    public function postInstall(CommandEvent $event)
     {
         // This method is called twice. Run it only once.
         if (!$this->firstRun) {
@@ -79,16 +69,77 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $this->firstRun = false;
 
-        $composer = $event->getComposer();
-        $repositoryManager = $composer->getRepositoryManager();
+        $io = $event->getIO();
+        $rootDir = getcwd();
 
-        $this->dumper->setVendorDir($composer->getConfig()->get('vendor-dir'));
-        $this->dumper->setProjectPackage($composer->getPackage());
-        $this->dumper->setInstalledPackages($repositoryManager->getLocalRepository()->getPackages());
-        $this->dumper->setRepositoryBuilder(new RepositoryBuilder($composer->getInstallationManager()));
+        // Add Puli support if necessary
+        if (!PackageManager::isPuliProject($rootDir)) {
+            if (!$io->askConfirmation('The project does not have Puli support. Add Puli support now?')) {
+                // No Puli support desired for now - quit
+                return;
+            }
 
-        $event->getIO()->write('<info>Generating resource repository</info>');
+            $io->write('<info>Initializing Puli project</info>');
+            PackageManager::initializePuliProject($rootDir);
+        }
 
-        $this->dumper->dumpRepository();
+        $packageManager = PackageManager::createDefault($rootDir);
+        $pluginClass = __NAMESPACE__.'\ComposerPlugin';
+
+        // Enable the Puli plugin so that we can load the package names from
+        // Composer
+        if (!$packageManager->isPluginClassInstalled($pluginClass)) {
+            if (!$io->askConfirmation('The Composer plugin for Puli is not installed. Install now?')) {
+                // No Puli support desired for now - quit
+                return;
+            }
+
+            // Install plugin
+            $io->write('Installing <info>'.$pluginClass.'</info>');
+            $packageManager->installPluginClass($pluginClass, true);
+
+            // Restart package manager to load plugin
+            $packageManager = PackageManager::createDefault(getcwd());
+        }
+
+        // Install new Composer packages
+        $io->write('<info>Looking for new Puli packages</info>');
+        $this->installNewPackages($event, $packageManager);
+
+        // TODO uninstall removed packages
+
+        // Refresh Puli resource repository
+        $io->write('<info>Generating Puli resource repository</info>');
+        $packageManager->generateResourceRepository();
+    }
+
+    private function installNewPackages(CommandEvent $event, PackageManager $packageManager)
+    {
+        // Install other packages
+        $repositoryManager = $event->getComposer()->getRepositoryManager();
+        $installationManager = $event->getComposer()->getInstallationManager();
+        $packages = $repositoryManager->getLocalRepository()->getPackages();
+
+        foreach ($packages as $package) {
+            if ($package instanceof AliasPackage) {
+                $package = $package->getAliasOf();
+            }
+
+            $installPath = $installationManager->getInstallPath($package);
+
+            // Puli support?
+            if (!file_exists($installPath.'/'.PackageManager::PACKAGE_CONFIG)) {
+                continue;
+            }
+
+            // Already installed?
+            if ($packageManager->isPackageInstalled($installPath)) {
+                continue;
+            }
+
+            $event->getIO()->write('  - Adding <info>'.$package->getName().'</info>');
+
+            $packageManager->installPackage($installPath);
+        }
     }
 }

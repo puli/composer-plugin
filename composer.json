@@ -1,7 +1,7 @@
 {
     "name": "puli/puli-composer-plugin",
     "type": "composer-plugin",
-    "description": "A Puli plugin that generates resource repositories for Composer packages.",
+    "description": "Integrates Composer into the Puli package manager.",
     "license": "MIT",
     "authors": [
         {
@@ -11,10 +11,13 @@
     ],
     "require": {
         "composer-plugin-api": "1.0.0",
-        "puli/puli": "~1.0@dev"
+        "puli/puli": "~1.0@dev",
+        "puli/json": "~1.0@dev",
+        "puli/puli-package-manager": "~1.0@dev"
     },
     "require-dev": {
-        "composer/composer": "~1.0@alpha"
+        "composer/composer": "~1.0@dev",
+        "symfony/filesystem": "~2.3"
     },
     "autoload": {
         "psr-4": {
