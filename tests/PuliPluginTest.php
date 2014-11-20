@@ -309,7 +309,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('askConfirmation')
-            ->with("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n")
+            ->with('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ')
             ->will($this->returnValue(true));
 
         $this->io->expects($this->at(1))
@@ -350,7 +350,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->once())
             ->method('askConfirmation')
-            ->with("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n")
+            ->with('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ')
             ->will($this->returnValue(false));
 
         $this->io->expects($this->never())
@@ -372,16 +372,16 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('askConfirmation')
-            ->with("<question>The project does not have Puli support. Add Puli support now? (yes/no)</question> [<comment>yes</comment>]\n")
+            ->with('<info>The project does not have Puli support. Add Puli support now? (yes/no)</info> [<comment>yes</comment>]: ')
             ->will($this->returnValue(true));
 
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Initializing Puli project</info>');
+            ->with('Wrote <comment>puli.json</comment>');
 
         $this->io->expects($this->at(2))
             ->method('askConfirmation')
-            ->with("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n")
+            ->with('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ')
             ->will($this->returnValue(true));
 
         $this->io->expects($this->at(3))

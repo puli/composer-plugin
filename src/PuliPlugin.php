@@ -75,12 +75,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         // Add Puli support if necessary
         if (!PackageManager::isPuliProject($rootDir)) {
-            if (!$io->askConfirmation("<question>The project does not have Puli support. Add Puli support now? (yes/no)</question> [<comment>yes</comment>]\n", true)) {
+            if (!$io->askConfirmation('<info>The project does not have Puli support. Add Puli support now? (yes/no)</info> [<comment>yes</comment>]: ', true)) {
                 // No Puli support desired for now - quit
                 return;
             }
 
-            $io->write('<info>Initializing Puli project</info>');
+            $io->write('Wrote <comment>puli.json</comment>');
             PackageManager::initializePuliProject($rootDir);
         }
 
@@ -90,7 +90,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         // Enable the Puli plugin so that we can load the package names from
         // Composer
         if (!$packageManager->isPluginClassInstalled($pluginClass)) {
-            if (!$io->askConfirmation("<question>The Composer plugin for Puli is not installed. Install now? (yes/no)</question> [<comment>yes</comment>]\n", true)) {
+            if (!$io->askConfirmation('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ', true)) {
                 // No Puli support desired for now - quit
                 return;
             }
