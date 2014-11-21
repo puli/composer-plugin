@@ -12,8 +12,9 @@
 namespace Puli\Extension\Composer\Tests;
 
 use Puli\Extension\Composer\ComposerPlugin;
-use Puli\PackageManager\Event\JsonEvent;
+use Puli\PackageManager\Event\PackageConfigEvent;
 use Puli\PackageManager\Event\PackageEvents;
+use Puli\PackageManager\Package\Config\PackageConfig;
 
 /**
  * @since  1.0
@@ -40,39 +41,32 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
 
         $dispatcher->expects($this->at(0))
             ->method('addListener')
-            ->with(PackageEvents::PACKAGE_JSON_LOADED, array($this->plugin, 'addComposerNameToJson'));
+            ->with(PackageEvents::LOAD_PACKAGE_CONFIG, array($this->plugin, 'addComposerName'));
         $dispatcher->expects($this->at(1))
             ->method('addListener')
-            ->with(PackageEvents::PACKAGE_JSON_GENERATED, array($this->plugin, 'removeComposerNameFromJson'));
+            ->with(PackageEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'removeComposerName'));
 
         $this->plugin->activate($manager, $dispatcher);
     }
 
-    public function testComposerNameAddedToJson()
+    public function testComposerNameAddedToConfig()
     {
-        $jsonData = new \stdClass();
-        $event = new JsonEvent(__DIR__.'/Fixtures/root/puli.json', $jsonData);
+        $config = new PackageConfig(null, __DIR__.'/Fixtures/root/puli.json');
+        $event = new PackageConfigEvent($config);
 
-        $this->plugin->addComposerNameToJson($event);
+        $this->plugin->addComposerName($event);
 
-        $jsonData = $event->getJsonData();
-
-        $this->assertInternalType('object', $jsonData);
-        $this->assertObjectHasAttribute('name', $jsonData);
-        $this->assertSame('root', $jsonData->name);
+        $this->assertSame('root', $config->getPackageName());
     }
 
-    public function testNoNameAddedToJsonIfNoComposerJson()
+    public function testNoNameAddedToConfigIfNoComposerJson()
     {
-        $jsonData = new \stdClass();
-        $event = new JsonEvent(__DIR__.'/Fixtures/root-no-composer/puli.json', $jsonData);
+        $config = new PackageConfig(null, __DIR__.'/Fixtures/root-no-composer/puli.json');
+        $event = new PackageConfigEvent($config);
 
-        $this->plugin->addComposerNameToJson($event);
+        $this->plugin->addComposerName($event);
 
-        $jsonData = $event->getJsonData();
-
-        $this->assertInternalType('object', $jsonData);
-        $this->assertObjectNotHasAttribute('name', $jsonData);
+        $this->assertNull($config->getPackageName());
     }
 
     /**
@@ -81,40 +75,30 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddNameFailsIfDifferentNames()
     {
-        $jsonData = new \stdClass();
-        $jsonData->name = 'package-name';
-        $event = new JsonEvent(__DIR__.'/Fixtures/root/puli.json', $jsonData);
+        $config = new PackageConfig('package-name', __DIR__.'/Fixtures/root/puli.json');
+        $event = new PackageConfigEvent($config);
 
-        $this->plugin->addComposerNameToJson($event);
+        $this->plugin->addComposerName($event);
     }
 
     public function testComposerNameRemovedFromJson()
     {
-        $jsonData = new \stdClass();
-        $jsonData->name = 'root';
-        $event = new JsonEvent(__DIR__.'/Fixtures/root/puli.json', $jsonData);
+        $config = new PackageConfig('root', __DIR__.'/Fixtures/root/puli.json');
+        $event = new PackageConfigEvent($config);
 
-        $this->plugin->removeComposerNameFromJson($event);
+        $this->plugin->removeComposerName($event);
 
-        $jsonData = $event->getJsonData();
-
-        $this->assertInternalType('object', $jsonData);
-        $this->assertObjectNotHasAttribute('name', $jsonData);
+        $this->assertNull($config->getPackageName());
     }
 
     public function testNoNameRemovedFromJsonIfNoComposerJson()
     {
-        $jsonData = new \stdClass();
-        $jsonData->name = 'root';
-        $event = new JsonEvent(__DIR__.'/Fixtures/root-no-composer/puli.json', $jsonData);
+        $config = new PackageConfig('root', __DIR__.'/Fixtures/root-no-composer/puli.json');
+        $event = new PackageConfigEvent($config);
 
-        $this->plugin->removeComposerNameFromJson($event);
+        $this->plugin->removeComposerName($event);
 
-        $jsonData = $event->getJsonData();
-
-        $this->assertInternalType('object', $jsonData);
-        $this->assertObjectHasAttribute('name', $jsonData);
-        $this->assertSame('root', $jsonData->name);
+        $this->assertSame('root', $config->getPackageName());
     }
 
     /**
@@ -123,10 +107,10 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveNameFailsIfDifferentNames()
     {
-        $jsonData = new \stdClass();
-        $jsonData->name = 'package-name';
-        $event = new JsonEvent(__DIR__.'/Fixtures/root/puli.json', $jsonData);
+        $config = new PackageConfig('package-name', __DIR__.'/Fixtures/root/puli.json');
 
-        $this->plugin->removeComposerNameFromJson($event);
+        $event = new PackageConfigEvent($config);
+
+        $this->plugin->removeComposerName($event);
     }
 }

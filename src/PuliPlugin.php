@@ -19,6 +19,7 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\PackageManager\PackageManager;
+use Puli\PackageManager\PuliEnvironment;
 use Puli\Util\Path;
 
 /**
@@ -71,57 +72,50 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->firstRun = false;
 
         $io = $event->getIO();
-        $rootDir = getcwd();
+        $environment = PackageManager::createEnvironment();
 
-        // Add Puli support if necessary
-        if (!PackageManager::isPuliProject($rootDir)) {
-            if (!$io->askConfirmation('<info>The project does not have Puli support. Add Puli support now? (yes/no)</info> [<comment>yes</comment>]: ', true)) {
-                // No Puli support desired for now - quit
-                return;
-            }
-
-            PackageManager::initializePuliProject($rootDir);
-            $io->write('Wrote <comment>puli.json</comment>');
+        if (!$this->installComposerPlugin($environment, $io)) {
+            return;
         }
 
-        $packageManager = PackageManager::createDefault($rootDir);
-        $pluginClass = __NAMESPACE__.'\ComposerPlugin';
+        $packageManager = PackageManager::createPackageManager(getcwd(), $environment);
 
-        // Enable the Puli plugin so that we can load the package names from
-        // Composer
-        if (!$packageManager->isPluginClassInstalled($pluginClass)) {
-            if (!$io->askConfirmation('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ', true)) {
-                // No Puli support desired for now - quit
-                return;
-            }
-
-            // Install plugin
-            $packageManager->installPluginClass($pluginClass, true);
-            $io->write(sprintf(
-                'Wrote <comment>%s</comment>',
-                PackageManager::getHomeDirectory().'/'.PackageManager::GLOBAL_CONFIG
-            ));
-
-            // Restart package manager to load plugin
-            $packageManager = PackageManager::createDefault(getcwd());
-        }
-
-        // Install new Composer packages
-        $io->write('<info>Looking for new Puli packages</info>');
-        $this->installNewPackages($event, $packageManager);
+        $this->installNewPackages($packageManager, $io, $event->getComposer());
 
         // TODO uninstall removed packages
 
-        // Refresh Puli resource repository
-        $io->write('<info>Generating Puli resource repository</info>');
-        $packageManager->generateResourceRepository();
+        $this->generateResourceRepository($packageManager, $io);
     }
 
-    private function installNewPackages(CommandEvent $event, PackageManager $packageManager)
+    private function installComposerPlugin(PuliEnvironment $environment, IOInterface $io)
     {
-        // Install other packages
-        $repositoryManager = $event->getComposer()->getRepositoryManager();
-        $installationManager = $event->getComposer()->getInstallationManager();
+        $pluginClass = __NAMESPACE__.'\ComposerPlugin';
+
+        if ($environment->isGlobalPluginClassInstalled($pluginClass)) {
+            return true;
+        }
+
+        if (!$io->askConfirmation('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ', true)) {
+            // No Puli support desired for now - quit
+            return false;
+        }
+
+        $environment->installGlobalPluginClass($pluginClass, true);
+
+        $io->write(sprintf(
+            'Wrote <comment>%s</comment>',
+            $environment->getGlobalConfig()->getPath()
+        ));
+
+        return true;
+    }
+
+    private function installNewPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
+    {
+        $io->write('<info>Looking for new Puli packages</info>');
+
+        $repositoryManager = $composer->getRepositoryManager();
+        $installationManager = $composer->getInstallationManager();
         $packages = $repositoryManager->getLocalRepository()->getPackages();
         $rootDir = $packageManager->getRootPackage()->getInstallPath();
 
@@ -132,17 +126,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
             $installPath = $installationManager->getInstallPath($package);
 
-            // Puli support?
-            if (!file_exists($installPath.'/'.PackageManager::PACKAGE_CONFIG)) {
-                continue;
-            }
-
             // Already installed?
             if ($packageManager->isPackageInstalled($installPath)) {
                 continue;
             }
 
-            $event->getIO()->write(sprintf(
+            $io->write(sprintf(
                 'Installing <info>%s</info> (<comment>%s</comment>)',
                 $package->getName(),
                 Path::makeRelative($installPath, $rootDir)
@@ -150,5 +139,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
             $packageManager->installPackage($installPath);
         }
+    }
+
+    private function generateResourceRepository(PackageManager $packageManager, IOInterface $io)
+    {
+        $io->write('<info>Generating Puli resource repository</info>');
+
+        $packageManager->generateResourceRepository();
     }
 }

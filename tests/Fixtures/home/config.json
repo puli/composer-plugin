@@ -1,2 +1,5 @@
 {
+    "plugins": [
+        "Puli\\Extension\\Composer\\ComposerPlugin"
+    ]
 }

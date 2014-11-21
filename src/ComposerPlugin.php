@@ -12,7 +12,7 @@
 namespace Puli\Extension\Composer;
 
 use Puli\Json\JsonDecoder;
-use Puli\PackageManager\Event\JsonEvent;
+use Puli\PackageManager\Event\PackageConfigEvent;
 use Puli\PackageManager\Event\PackageEvents;
 use Puli\PackageManager\PackageManager;
 use Puli\PackageManager\Plugin\PluginInterface;
@@ -42,14 +42,15 @@ class ComposerPlugin implements PluginInterface
      */
     public function activate(PackageManager $manager, EventDispatcherInterface $dispatcher)
     {
-        $dispatcher->addListener(PackageEvents::PACKAGE_JSON_LOADED, array($this, 'addComposerNameToJson'));
-        $dispatcher->addListener(PackageEvents::PACKAGE_JSON_GENERATED, array($this, 'removeComposerNameFromJson'));
+        $dispatcher->addListener(PackageEvents::LOAD_PACKAGE_CONFIG, array($this, 'addComposerName'));
+        $dispatcher->addListener(PackageEvents::SAVE_PACKAGE_CONFIG, array($this, 'removeComposerName'));
     }
 
-    public function addComposerNameToJson(JsonEvent $event)
+    public function addComposerName(PackageConfigEvent $event)
     {
-        $jsonData = $event->getJsonData();
-        $packageRoot = Path::getDirectory($event->getJsonPath());
+        $config = $event->getPackageConfig();
+        $packageRoot = Path::getDirectory($config->getPath());
+        $packageName = $config->getPackageName();
 
         // We can't do anything without a composer.json
         if (!file_exists($packageRoot.'/composer.json')) {
@@ -61,19 +62,18 @@ class ComposerPlugin implements PluginInterface
         $composerData = $decoder->decodeFile($packageRoot.'/composer.json');
 
         // If the names are different, we have a problem
-        if (isset($jsonData->name) && $jsonData->name !== $composerData->name) {
-            throw $this->createNameConflictException($packageRoot, $jsonData->name, $composerData->name);
+        if (null !== $packageName && $packageName !== $composerData->name) {
+            throw $this->createNameConflictException($packageRoot, $packageName, $composerData->name);
         }
 
-        $jsonData->name = $composerData->name;
-
-        $event->setJsonData($jsonData);
+        $config->setPackageName($composerData->name);
     }
 
-    public function removeComposerNameFromJson(JsonEvent $event)
+    public function removeComposerName(PackageConfigEvent $event)
     {
-        $packageRoot = Path::getDirectory($event->getJsonPath());
-        $jsonData = $event->getJsonData();
+        $config = $event->getPackageConfig();
+        $packageRoot = Path::getDirectory($config->getPath());
+        $packageName = $config->getPackageName();
 
         // We can't do anything without a composer.json
         if (!file_exists($packageRoot.'/composer.json')) {
@@ -85,26 +85,22 @@ class ComposerPlugin implements PluginInterface
         $composerData = $decoder->decodeFile($packageRoot.'/composer.json');
 
         // If the names are different, we have a problem
-        if (isset($jsonData->name) && $jsonData->name !== $composerData->name) {
-            throw $this->createNameConflictException($packageRoot, $jsonData->name, $composerData->name);
+        if (null !== $packageName && $packageName !== $composerData->name) {
+            throw $this->createNameConflictException($packageRoot, $packageName, $composerData->name);
         }
 
-        unset($jsonData->name);
-
-        $event->setJsonData($jsonData);
+        $config->setPackageName(null);
     }
 
     private function createNameConflictException($packageRoot, $jsonName, $composerName)
     {
         return new NameConflictException(sprintf(
-            'In %s: %s sets the package name to "%s", composer.json to '.
+            'In %s: puli.json sets the package name to "%s", composer.json to '.
             '"%s". Which is correct? You should remove the name from '.
-            '%s to remove the conflict.',
+            'puli.json to remove the conflict.',
             $packageRoot,
-            PackageManager::PACKAGE_CONFIG,
             $jsonName,
-            $composerName,
-            PackageManager::PACKAGE_CONFIG
+            $composerName
         ));
     }
 }

@@ -3,8 +3,5 @@
         "/root": "res"
     },
     "package-repository": "packages.json",
-    "resource-repository": "resource-repository.php",
-    "plugins": [
-        "Puli\\Extension\\Composer\\ComposerPlugin"
-    ]
+    "resource-repository": "resource-repository.php"
 }
