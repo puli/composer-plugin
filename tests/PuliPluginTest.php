@@ -17,13 +17,11 @@ use Composer\Installer\InstallationManager;
 use Composer\Package\AliasPackage;
 use Composer\Package\Package;
 use Composer\Repository\RepositoryManager;
-use Composer\Repository\WritableRepositoryInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
 use Puli\PackageManager\Config\Reader\ConfigJsonReader;
-use Puli\PackageManager\PackageManager;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
