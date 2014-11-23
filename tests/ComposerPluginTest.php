@@ -12,9 +12,11 @@
 namespace Puli\Extension\Composer\Tests;
 
 use Puli\Extension\Composer\ComposerPlugin;
+use Puli\PackageManager\Config\GlobalConfig;
 use Puli\PackageManager\Event\PackageConfigEvent;
 use Puli\PackageManager\Event\PackageEvents;
 use Puli\PackageManager\Package\Config\PackageConfig;
+use Puli\PackageManager\Package\Config\RootPackageConfig;
 
 /**
  * @since  1.0
@@ -32,8 +34,10 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $this->plugin = new ComposerPlugin();
     }
 
-    public function testEventRegistration()
+    public function testActivate()
     {
+        $globalConfig = new GlobalConfig();
+        $config = new RootPackageConfig($globalConfig, null, __DIR__.'/Fixtures/root/puli.json');
         $dispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
         $manager = $this->getMockBuilder('Puli\PackageManager\PackageManager')
             ->disableOriginalConstructor()
@@ -41,12 +45,18 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
 
         $dispatcher->expects($this->at(0))
             ->method('addListener')
-            ->with(PackageEvents::LOAD_PACKAGE_CONFIG, array($this->plugin, 'addComposerName'));
+            ->with(PackageEvents::LOAD_PACKAGE_CONFIG, array($this->plugin, 'handleLoadPackageConfig'));
         $dispatcher->expects($this->at(1))
             ->method('addListener')
-            ->with(PackageEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'removeComposerName'));
+            ->with(PackageEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'handleSavePackageConfig'));
+
+        $manager->expects($this->any())
+            ->method('getRootPackageConfig')
+            ->will($this->returnValue($config));
 
         $this->plugin->activate($manager, $dispatcher);
+
+        $this->assertSame('root', $config->getPackageName());
     }
 
     public function testComposerNameAddedToConfig()
@@ -54,7 +64,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new PackageConfig(null, __DIR__.'/Fixtures/root/puli.json');
         $event = new PackageConfigEvent($config);
 
-        $this->plugin->addComposerName($event);
+        $this->plugin->handleLoadPackageConfig($event);
 
         $this->assertSame('root', $config->getPackageName());
     }
@@ -64,7 +74,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new PackageConfig(null, __DIR__.'/Fixtures/root-no-composer/puli.json');
         $event = new PackageConfigEvent($config);
 
-        $this->plugin->addComposerName($event);
+        $this->plugin->handleLoadPackageConfig($event);
 
         $this->assertNull($config->getPackageName());
     }
@@ -78,7 +88,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new PackageConfig('package-name', __DIR__.'/Fixtures/root/puli.json');
         $event = new PackageConfigEvent($config);
 
-        $this->plugin->addComposerName($event);
+        $this->plugin->handleLoadPackageConfig($event);
     }
 
     public function testComposerNameRemovedFromJson()
@@ -86,7 +96,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new PackageConfig('root', __DIR__.'/Fixtures/root/puli.json');
         $event = new PackageConfigEvent($config);
 
-        $this->plugin->removeComposerName($event);
+        $this->plugin->handleSavePackageConfig($event);
 
         $this->assertNull($config->getPackageName());
     }
@@ -96,7 +106,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new PackageConfig('root', __DIR__.'/Fixtures/root-no-composer/puli.json');
         $event = new PackageConfigEvent($config);
 
-        $this->plugin->removeComposerName($event);
+        $this->plugin->handleSavePackageConfig($event);
 
         $this->assertSame('root', $config->getPackageName());
     }
@@ -111,6 +121,6 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
 
         $event = new PackageConfigEvent($config);
 
-        $this->plugin->removeComposerName($event);
+        $this->plugin->handleSavePackageConfig($event);
     }
 }

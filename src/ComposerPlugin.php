@@ -14,6 +14,7 @@ namespace Puli\Extension\Composer;
 use Puli\Json\JsonDecoder;
 use Puli\PackageManager\Event\PackageConfigEvent;
 use Puli\PackageManager\Event\PackageEvents;
+use Puli\PackageManager\Package\Config\PackageConfig;
 use Puli\PackageManager\PackageManager;
 use Puli\PackageManager\Plugin\PluginInterface;
 use Puli\Util\Path;
@@ -42,13 +43,25 @@ class ComposerPlugin implements PluginInterface
      */
     public function activate(PackageManager $manager, EventDispatcherInterface $dispatcher)
     {
-        $dispatcher->addListener(PackageEvents::LOAD_PACKAGE_CONFIG, array($this, 'addComposerName'));
-        $dispatcher->addListener(PackageEvents::SAVE_PACKAGE_CONFIG, array($this, 'removeComposerName'));
+        $dispatcher->addListener(PackageEvents::LOAD_PACKAGE_CONFIG, array($this, 'handleLoadPackageConfig'));
+        $dispatcher->addListener(PackageEvents::SAVE_PACKAGE_CONFIG, array($this, 'handleSavePackageConfig'));
+
+        // The root configuration is already loaded. Fix it.
+        $this->addComposerName($manager->getRootPackageConfig());
     }
 
-    public function addComposerName(PackageConfigEvent $event)
+    public function handleLoadPackageConfig(PackageConfigEvent $event)
     {
-        $config = $event->getPackageConfig();
+        $this->addComposerName($event->getPackageConfig());
+    }
+
+    public function handleSavePackageConfig(PackageConfigEvent $event)
+    {
+        $this->removeComposerName($event->getPackageConfig());
+    }
+
+    private function addComposerName(PackageConfig $config)
+    {
         $packageRoot = Path::getDirectory($config->getPath());
         $packageName = $config->getPackageName();
 
@@ -69,9 +82,8 @@ class ComposerPlugin implements PluginInterface
         $config->setPackageName($composerData->name);
     }
 
-    public function removeComposerName(PackageConfigEvent $event)
+    private function removeComposerName(PackageConfig $config)
     {
-        $config = $event->getPackageConfig();
         $packageRoot = Path::getDirectory($config->getPath());
         $packageName = $config->getPackageName();
 
