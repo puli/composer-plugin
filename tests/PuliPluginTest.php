@@ -21,7 +21,8 @@ use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
-use Puli\PackageManager\Config\Reader\ConfigJsonReader;
+use Puli\PackageManager\Config\GlobalConfig;
+use Puli\PackageManager\Package\Config\Reader\PackageJsonReader;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -57,6 +58,9 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
      */
     private $localRepository;
 
+    /**
+     * @var RepositoryManager
+     */
     private $repositoryManager;
 
     /**
@@ -93,7 +97,6 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $this->plugin = new PuliPlugin($this->dumper);
         $this->io = $this->getMock('Composer\IO\IOInterface');
         $this->config = new Config();
-
 
         $this->installationManager = $this->getMockBuilder('Composer\Installer\InstallationManager')
             ->disableOriginalConstructor()
@@ -283,10 +286,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
     public function testInstallPluginIfNecessary()
     {
-        $reader = new ConfigJsonReader();
+        $reader = new PackageJsonReader();
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy(__DIR__.'/Fixtures/home-no-plugin/config.json', $this->tempHome.'/config.json');
+        copy($this->tempDir.'/puli-no-plugin.json', $this->tempDir.'/puli.json');
 
         $this->io->expects($this->at(0))
             ->method('askConfirmation')
@@ -295,7 +298,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with(sprintf('Wrote <comment>%s/config.json</comment>', $this->tempHome));
+            ->with(sprintf('Wrote <comment>%s/puli.json</comment>', $this->tempDir));
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Looking for new Puli packages</info>');
@@ -310,24 +313,25 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Generating Puli resource repository</info>');
 
         // Configuration does not contain plugin
-        $globalConfig = $reader->readGlobalConfig($this->tempHome.'/config.json');
+        $globalConfig = new GlobalConfig();
+        $config = $reader->readRootPackageConfig($this->tempDir.'/puli.json', $globalConfig);
 
-        $this->assertFalse($globalConfig->hasPluginClass(self::PLUGIN_CLASS));
+        $this->assertFalse($config->hasPluginClass(self::PLUGIN_CLASS));
 
         $this->plugin->postInstall($event);
 
         // Global config contains plugin now
-        $globalConfig = $reader->readGlobalConfig($this->tempHome.'/config.json');
+        $config = $reader->readRootPackageConfig($this->tempDir.'/puli.json', $globalConfig);
 
-        $this->assertTrue($globalConfig->hasPluginClass(self::PLUGIN_CLASS));
+        $this->assertTrue($config->hasPluginClass(self::PLUGIN_CLASS));
     }
 
     public function testAbortIfPluginInstallationNotDesired()
     {
-        $reader = new ConfigJsonReader();
+        $reader = new PackageJsonReader();
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy(__DIR__.'/Fixtures/home-no-plugin/config.json', $this->tempHome.'/config.json');
+        copy($this->tempDir.'/puli-no-plugin.json', $this->tempDir.'/puli.json');
 
         $this->io->expects($this->once())
             ->method('askConfirmation')
@@ -340,7 +344,8 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $this->plugin->postInstall($event);
 
         // Global config was not changed
-        $globalConfig = $reader->readGlobalConfig($this->tempHome.'/config.json');
+        $globalConfig = new GlobalConfig();
+        $config = $reader->readRootPackageConfig($this->tempDir.'/puli.json', $globalConfig);
 
         $this->assertFalse($globalConfig->hasPluginClass(self::PLUGIN_CLASS));
     }

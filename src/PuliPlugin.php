@@ -18,8 +18,9 @@ use Composer\Package\AliasPackage;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
-use Puli\PackageManager\PackageManager;
-use Puli\PackageManager\PuliEnvironment;
+use Puli\PackageManager\Manager\PackageManager;
+use Puli\PackageManager\Manager\ProjectConfigManager;
+use Puli\PackageManager\ManagerFactory;
 use Puli\Util\Path;
 
 /**
@@ -72,13 +73,16 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->firstRun = false;
 
         $io = $event->getIO();
-        $environment = PackageManager::createEnvironment();
+        $environment = ManagerFactory::createProjectEnvironment(getcwd());
+        $configManager = ManagerFactory::createProjectConfigManager($environment);
 
-        if (!$this->installComposerPlugin($environment, $io)) {
+        if (!$this->installComposerPlugin($configManager, $io)) {
             return;
         }
 
-        $packageManager = PackageManager::createPackageManager(getcwd(), $environment);
+        // Reload environment with the installed plugin
+        $environment = ManagerFactory::createProjectEnvironment(getcwd());
+        $packageManager = ManagerFactory::createPackageManager($environment);
 
         $this->installNewPackages($packageManager, $io, $event->getComposer());
 
@@ -87,11 +91,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->generateResourceRepository($packageManager, $io);
     }
 
-    private function installComposerPlugin(PuliEnvironment $environment, IOInterface $io)
+    private function installComposerPlugin(ProjectConfigManager $configManager, IOInterface $io)
     {
         $pluginClass = __NAMESPACE__.'\ComposerPlugin';
 
-        if ($environment->isGlobalPluginClassInstalled($pluginClass)) {
+        if ($configManager->isPluginClassInstalled($pluginClass)) {
             return true;
         }
 
@@ -100,11 +104,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             return false;
         }
 
-        $environment->installGlobalPluginClass($pluginClass, true);
+        $configManager->installPluginClass($pluginClass);
 
         $io->write(sprintf(
             'Wrote <comment>%s</comment>',
-            $environment->getGlobalConfig()->getPath()
+            $configManager->getEnvironment()->getProjectConfig()->getPath()
         ));
 
         return true;

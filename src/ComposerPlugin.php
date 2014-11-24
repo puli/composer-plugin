@@ -14,11 +14,11 @@ namespace Puli\Extension\Composer;
 use Puli\Json\JsonDecoder;
 use Puli\PackageManager\Event\PackageConfigEvent;
 use Puli\PackageManager\Event\PackageEvents;
+use Puli\PackageManager\Manager\ProjectEnvironment;
 use Puli\PackageManager\Package\Config\PackageConfig;
 use Puli\PackageManager\PackageManager;
 use Puli\PackageManager\Plugin\PluginInterface;
 use Puli\Util\Path;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * A Composer plugin for the Puli package manager.
@@ -38,16 +38,17 @@ class ComposerPlugin implements PluginInterface
     /**
      * Activates the plugin.
      *
-     * @param PackageManager           $manager    The package manager.
-     * @param EventDispatcherInterface $dispatcher The manager's event dispatcher.
+     * @param ProjectEnvironment $environment The project environment.
      */
-    public function activate(PackageManager $manager, EventDispatcherInterface $dispatcher)
+    public function activate(ProjectEnvironment $environment)
     {
+        $dispatcher = $environment->getEventDispatcher();
+
         $dispatcher->addListener(PackageEvents::LOAD_PACKAGE_CONFIG, array($this, 'handleLoadPackageConfig'));
         $dispatcher->addListener(PackageEvents::SAVE_PACKAGE_CONFIG, array($this, 'handleSavePackageConfig'));
 
-        // The root configuration is already loaded. Fix it.
-        $this->addComposerName($manager->getRootPackageConfig());
+        // The project configuration is already loaded. Fix it.
+        $this->addComposerName($environment->getProjectConfig());
     }
 
     public function handleLoadPackageConfig(PackageConfigEvent $event)

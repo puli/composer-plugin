@@ -39,9 +39,17 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $globalConfig = new GlobalConfig();
         $config = new RootPackageConfig($globalConfig, null, __DIR__.'/Fixtures/root/puli.json');
         $dispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
-        $manager = $this->getMockBuilder('Puli\PackageManager\PackageManager')
+
+        $environment = $this->getMockBuilder('Puli\PackageManager\Manager\ProjectEnvironment')
             ->disableOriginalConstructor()
             ->getMock();
+
+        $environment->expects($this->any())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($dispatcher));
+        $environment->expects($this->any())
+            ->method('getProjectConfig')
+            ->will($this->returnValue($config));
 
         $dispatcher->expects($this->at(0))
             ->method('addListener')
@@ -50,11 +58,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
             ->method('addListener')
             ->with(PackageEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'handleSavePackageConfig'));
 
-        $manager->expects($this->any())
-            ->method('getRootPackageConfig')
-            ->will($this->returnValue($config));
-
-        $this->plugin->activate($manager, $dispatcher);
+        $this->plugin->activate($environment);
 
         $this->assertSame('root', $config->getPackageName());
     }
