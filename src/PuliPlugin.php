@@ -108,7 +108,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $io->write(sprintf(
             'Wrote <comment>%s</comment>',
-            $configManager->getEnvironment()->getProjectConfig()->getPath()
+            $configManager->getEnvironment()->getRootPackageConfig()->getPath()
         ));
 
         return true;

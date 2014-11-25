@@ -40,7 +40,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new RootPackageConfig($globalConfig, null, __DIR__.'/Fixtures/root/puli.json');
         $dispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
-        $environment = $this->getMockBuilder('Puli\PackageManager\Manager\ProjectEnvironment')
+        $environment = $this->getMockBuilder('Puli\PackageManager\Environment\ProjectEnvironment')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -48,7 +48,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
             ->method('getEventDispatcher')
             ->will($this->returnValue($dispatcher));
         $environment->expects($this->any())
-            ->method('getProjectConfig')
+            ->method('getRootPackageConfig')
             ->will($this->returnValue($config));
 
         $dispatcher->expects($this->at(0))
