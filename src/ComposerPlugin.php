@@ -12,11 +12,10 @@
 namespace Puli\Extension\Composer;
 
 use Puli\Json\JsonDecoder;
+use Puli\PackageManager\Environment\ProjectEnvironment;
 use Puli\PackageManager\Event\PackageConfigEvent;
 use Puli\PackageManager\Event\PackageEvents;
-use Puli\PackageManager\Manager\ProjectEnvironment;
 use Puli\PackageManager\Package\Config\PackageConfig;
-use Puli\PackageManager\PackageManager;
 use Puli\PackageManager\Plugin\PluginInterface;
 use Puli\Util\Path;
 
@@ -48,7 +47,7 @@ class ComposerPlugin implements PluginInterface
         $dispatcher->addListener(PackageEvents::SAVE_PACKAGE_CONFIG, array($this, 'handleSavePackageConfig'));
 
         // The project configuration is already loaded. Fix it.
-        $this->addComposerName($environment->getProjectConfig());
+        $this->addComposerName($environment->getRootPackageConfig());
     }
 
     public function handleLoadPackageConfig(PackageConfigEvent $event)
