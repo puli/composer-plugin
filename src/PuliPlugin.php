@@ -18,10 +18,11 @@ use Composer\Package\AliasPackage;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
-use Puli\PackageManager\Manager\PackageManager;
-use Puli\PackageManager\Manager\ProjectConfigManager;
-use Puli\PackageManager\ManagerFactory;
-use Puli\Util\Path;
+use Puli\RepositoryManager\ManagerFactory;
+use Puli\RepositoryManager\Package\PackageManager;
+use Puli\RepositoryManager\Project\ProjectConfigManager;
+use Puli\RepositoryManager\Repository\RepositoryManager;
+use Webmozart\PathUtil\Path;
 
 /**
  * A Puli plugin for Composer.
@@ -88,7 +89,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         // TODO uninstall removed packages
 
-        $this->generateResourceRepository($packageManager, $io);
+        $repoManager = ManagerFactory::createRepositoryManager($environment, $packageManager);
+
+        $this->generateResourceRepository($repoManager, $io);
     }
 
     private function installComposerPlugin(ProjectConfigManager $configManager, IOInterface $io)
@@ -145,10 +148,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    private function generateResourceRepository(PackageManager $packageManager, IOInterface $io)
+    private function generateResourceRepository(RepositoryManager $repositoryManager, IOInterface $io)
     {
         $io->write('<info>Generating Puli resource repository</info>');
 
-        $packageManager->generateResourceRepository();
+        $repositoryManager->dumpRepository();
     }
 }

@@ -21,8 +21,8 @@ use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
-use Puli\PackageManager\Config\GlobalConfig;
-use Puli\PackageManager\Package\Config\Reader\PackageJsonReader;
+use Puli\RepositoryManager\Config\GlobalConfig;
+use Puli\RepositoryManager\Package\Config\Reader\PuliJsonReader;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -286,7 +286,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
     public function testInstallPluginIfNecessary()
     {
-        $reader = new PackageJsonReader();
+        $reader = new PuliJsonReader();
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
         copy($this->tempDir.'/puli-no-plugin.json', $this->tempDir.'/puli.json');
@@ -328,7 +328,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
     public function testAbortIfPluginInstallationNotDesired()
     {
-        $reader = new PackageJsonReader();
+        $reader = new PuliJsonReader();
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
         copy($this->tempDir.'/puli-no-plugin.json', $this->tempDir.'/puli.json');

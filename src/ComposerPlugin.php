@@ -11,13 +11,13 @@
 
 namespace Puli\Extension\Composer;
 
-use Puli\Json\JsonDecoder;
-use Puli\PackageManager\Environment\ProjectEnvironment;
-use Puli\PackageManager\Event\PackageConfigEvent;
-use Puli\PackageManager\Event\PackageEvents;
-use Puli\PackageManager\Package\Config\PackageConfig;
-use Puli\PackageManager\Plugin\PluginInterface;
-use Puli\Util\Path;
+use Puli\RepositoryManager\Event\PackageConfigEvent;
+use Puli\RepositoryManager\ManagerEvents;
+use Puli\RepositoryManager\Package\Config\PackageConfig;
+use Puli\RepositoryManager\Plugin\PluginInterface;
+use Puli\RepositoryManager\Project\ProjectEnvironment;
+use Webmozart\Json\JsonDecoder;
+use Webmozart\PathUtil\Path;
 
 /**
  * A Composer plugin for the Puli package manager.
@@ -43,8 +43,8 @@ class ComposerPlugin implements PluginInterface
     {
         $dispatcher = $environment->getEventDispatcher();
 
-        $dispatcher->addListener(PackageEvents::LOAD_PACKAGE_CONFIG, array($this, 'handleLoadPackageConfig'));
-        $dispatcher->addListener(PackageEvents::SAVE_PACKAGE_CONFIG, array($this, 'handleSavePackageConfig'));
+        $dispatcher->addListener(ManagerEvents::LOAD_PACKAGE_CONFIG, array($this, 'handleLoadPackageConfig'));
+        $dispatcher->addListener(ManagerEvents::SAVE_PACKAGE_CONFIG, array($this, 'handleSavePackageConfig'));
 
         // The project configuration is already loaded. Fix it.
         $this->addComposerName($environment->getRootPackageConfig());

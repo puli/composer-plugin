@@ -12,11 +12,11 @@
 namespace Puli\Extension\Composer\Tests;
 
 use Puli\Extension\Composer\ComposerPlugin;
-use Puli\PackageManager\Config\GlobalConfig;
-use Puli\PackageManager\Event\PackageConfigEvent;
-use Puli\PackageManager\Event\PackageEvents;
-use Puli\PackageManager\Package\Config\PackageConfig;
-use Puli\PackageManager\Package\Config\RootPackageConfig;
+use Puli\RepositoryManager\Config\GlobalConfig;
+use Puli\RepositoryManager\Event\PackageConfigEvent;
+use Puli\RepositoryManager\ManagerEvents;
+use Puli\RepositoryManager\Package\Config\PackageConfig;
+use Puli\RepositoryManager\Package\Config\RootPackageConfig;
 
 /**
  * @since  1.0
@@ -40,7 +40,7 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
         $config = new RootPackageConfig($globalConfig, null, __DIR__.'/Fixtures/root/puli.json');
         $dispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
-        $environment = $this->getMockBuilder('Puli\PackageManager\Environment\ProjectEnvironment')
+        $environment = $this->getMockBuilder('Puli\RepositoryManager\Project\ProjectEnvironment')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -53,10 +53,10 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
 
         $dispatcher->expects($this->at(0))
             ->method('addListener')
-            ->with(PackageEvents::LOAD_PACKAGE_CONFIG, array($this->plugin, 'handleLoadPackageConfig'));
+            ->with(ManagerEvents::LOAD_PACKAGE_CONFIG, array($this->plugin, 'handleLoadPackageConfig'));
         $dispatcher->expects($this->at(1))
             ->method('addListener')
-            ->with(PackageEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'handleSavePackageConfig'));
+            ->with(ManagerEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'handleSavePackageConfig'));
 
         $this->plugin->activate($environment);
 
