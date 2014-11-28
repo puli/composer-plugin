@@ -11,11 +11,11 @@
 
 namespace Puli\Extension\Composer;
 
-use Puli\RepositoryManager\Event\PackageConfigEvent;
+use Puli\RepositoryManager\Environment\ProjectEnvironment;
+use Puli\RepositoryManager\Event\PackageFileEvent;
 use Puli\RepositoryManager\ManagerEvents;
-use Puli\RepositoryManager\Package\Config\PackageConfig;
+use Puli\RepositoryManager\Package\PackageFile\PackageFile;
 use Puli\RepositoryManager\Plugin\PluginInterface;
-use Puli\RepositoryManager\Project\ProjectEnvironment;
 use Webmozart\Json\JsonDecoder;
 use Webmozart\PathUtil\Path;
 
@@ -43,27 +43,27 @@ class ComposerPlugin implements PluginInterface
     {
         $dispatcher = $environment->getEventDispatcher();
 
-        $dispatcher->addListener(ManagerEvents::LOAD_PACKAGE_CONFIG, array($this, 'handleLoadPackageConfig'));
-        $dispatcher->addListener(ManagerEvents::SAVE_PACKAGE_CONFIG, array($this, 'handleSavePackageConfig'));
+        $dispatcher->addListener(ManagerEvents::LOAD_PACKAGE_FILE, array($this, 'handleLoadPackageFile'));
+        $dispatcher->addListener(ManagerEvents::SAVE_PACKAGE_FILE, array($this, 'handleSavePackageFile'));
 
         // The project configuration is already loaded. Fix it.
-        $this->addComposerName($environment->getRootPackageConfig());
+        $this->addComposerName($environment->getRootPackageFile());
     }
 
-    public function handleLoadPackageConfig(PackageConfigEvent $event)
+    public function handleLoadPackageFile(PackageFileEvent $event)
     {
-        $this->addComposerName($event->getPackageConfig());
+        $this->addComposerName($event->getPackageFile());
     }
 
-    public function handleSavePackageConfig(PackageConfigEvent $event)
+    public function handleSavePackageFile(PackageFileEvent $event)
     {
-        $this->removeComposerName($event->getPackageConfig());
+        $this->removeComposerName($event->getPackageFile());
     }
 
-    private function addComposerName(PackageConfig $config)
+    private function addComposerName(PackageFile $packageFile)
     {
-        $packageRoot = Path::getDirectory($config->getPath());
-        $packageName = $config->getPackageName();
+        $packageRoot = Path::getDirectory($packageFile->getPath());
+        $packageName = $packageFile->getPackageName();
 
         // We can't do anything without a composer.json
         if (!file_exists($packageRoot.'/composer.json')) {
@@ -79,13 +79,13 @@ class ComposerPlugin implements PluginInterface
             throw $this->createNameConflictException($packageRoot, $packageName, $composerData->name);
         }
 
-        $config->setPackageName($composerData->name);
+        $packageFile->setPackageName($composerData->name);
     }
 
-    private function removeComposerName(PackageConfig $config)
+    private function removeComposerName(PackageFile $packageFile)
     {
-        $packageRoot = Path::getDirectory($config->getPath());
-        $packageName = $config->getPackageName();
+        $packageRoot = Path::getDirectory($packageFile->getPath());
+        $packageName = $packageFile->getPackageName();
 
         // We can't do anything without a composer.json
         if (!file_exists($packageRoot.'/composer.json')) {
@@ -101,7 +101,7 @@ class ComposerPlugin implements PluginInterface
             throw $this->createNameConflictException($packageRoot, $packageName, $composerData->name);
         }
 
-        $config->setPackageName(null);
+        $packageFile->setPackageName(null);
     }
 
     private function createNameConflictException($packageRoot, $jsonName, $composerName)

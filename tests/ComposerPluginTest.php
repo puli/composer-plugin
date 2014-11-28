@@ -12,11 +12,10 @@
 namespace Puli\Extension\Composer\Tests;
 
 use Puli\Extension\Composer\ComposerPlugin;
-use Puli\RepositoryManager\Config\GlobalConfig;
-use Puli\RepositoryManager\Event\PackageConfigEvent;
+use Puli\RepositoryManager\Event\PackageFileEvent;
 use Puli\RepositoryManager\ManagerEvents;
-use Puli\RepositoryManager\Package\Config\PackageConfig;
-use Puli\RepositoryManager\Package\Config\RootPackageConfig;
+use Puli\RepositoryManager\Package\PackageFile\PackageFile;
+use Puli\RepositoryManager\Package\PackageFile\RootPackageFile;
 
 /**
  * @since  1.0
@@ -36,11 +35,10 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
 
     public function testActivate()
     {
-        $globalConfig = new GlobalConfig();
-        $config = new RootPackageConfig($globalConfig, null, __DIR__.'/Fixtures/root/puli.json');
+        $packageFile = new RootPackageFile(null, __DIR__.'/Fixtures/root/puli.json');
         $dispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
-        $environment = $this->getMockBuilder('Puli\RepositoryManager\Project\ProjectEnvironment')
+        $environment = $this->getMockBuilder('Puli\RepositoryManager\Environment\ProjectEnvironment')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -48,37 +46,37 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
             ->method('getEventDispatcher')
             ->will($this->returnValue($dispatcher));
         $environment->expects($this->any())
-            ->method('getRootPackageConfig')
-            ->will($this->returnValue($config));
+            ->method('getRootPackageFile')
+            ->will($this->returnValue($packageFile));
 
         $dispatcher->expects($this->at(0))
             ->method('addListener')
-            ->with(ManagerEvents::LOAD_PACKAGE_CONFIG, array($this->plugin, 'handleLoadPackageConfig'));
+            ->with(ManagerEvents::LOAD_PACKAGE_FILE, array($this->plugin, 'handleLoadPackageFile'));
         $dispatcher->expects($this->at(1))
             ->method('addListener')
-            ->with(ManagerEvents::SAVE_PACKAGE_CONFIG, array($this->plugin, 'handleSavePackageConfig'));
+            ->with(ManagerEvents::SAVE_PACKAGE_FILE, array($this->plugin, 'handleSavePackageFile'));
 
         $this->plugin->activate($environment);
 
-        $this->assertSame('root', $config->getPackageName());
+        $this->assertSame('root', $packageFile->getPackageName());
     }
 
     public function testComposerNameAddedToConfig()
     {
-        $config = new PackageConfig(null, __DIR__.'/Fixtures/root/puli.json');
-        $event = new PackageConfigEvent($config);
+        $config = new PackageFile(null, __DIR__.'/Fixtures/root/puli.json');
+        $event = new PackageFileEvent($config);
 
-        $this->plugin->handleLoadPackageConfig($event);
+        $this->plugin->handleLoadPackageFile($event);
 
         $this->assertSame('root', $config->getPackageName());
     }
 
     public function testNoNameAddedToConfigIfNoComposerJson()
     {
-        $config = new PackageConfig(null, __DIR__.'/Fixtures/root-no-composer/puli.json');
-        $event = new PackageConfigEvent($config);
+        $config = new PackageFile(null, __DIR__.'/Fixtures/root-no-composer/puli.json');
+        $event = new PackageFileEvent($config);
 
-        $this->plugin->handleLoadPackageConfig($event);
+        $this->plugin->handleLoadPackageFile($event);
 
         $this->assertNull($config->getPackageName());
     }
@@ -89,28 +87,28 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddNameFailsIfDifferentNames()
     {
-        $config = new PackageConfig('package-name', __DIR__.'/Fixtures/root/puli.json');
-        $event = new PackageConfigEvent($config);
+        $config = new PackageFile('package-name', __DIR__.'/Fixtures/root/puli.json');
+        $event = new PackageFileEvent($config);
 
-        $this->plugin->handleLoadPackageConfig($event);
+        $this->plugin->handleLoadPackageFile($event);
     }
 
     public function testComposerNameRemovedFromJson()
     {
-        $config = new PackageConfig('root', __DIR__.'/Fixtures/root/puli.json');
-        $event = new PackageConfigEvent($config);
+        $config = new PackageFile('root', __DIR__.'/Fixtures/root/puli.json');
+        $event = new PackageFileEvent($config);
 
-        $this->plugin->handleSavePackageConfig($event);
+        $this->plugin->handleSavePackageFile($event);
 
         $this->assertNull($config->getPackageName());
     }
 
     public function testNoNameRemovedFromJsonIfNoComposerJson()
     {
-        $config = new PackageConfig('root', __DIR__.'/Fixtures/root-no-composer/puli.json');
-        $event = new PackageConfigEvent($config);
+        $config = new PackageFile('root', __DIR__.'/Fixtures/root-no-composer/puli.json');
+        $event = new PackageFileEvent($config);
 
-        $this->plugin->handleSavePackageConfig($event);
+        $this->plugin->handleSavePackageFile($event);
 
         $this->assertSame('root', $config->getPackageName());
     }
@@ -121,10 +119,10 @@ class ComposerPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveNameFailsIfDifferentNames()
     {
-        $config = new PackageConfig('package-name', __DIR__.'/Fixtures/root/puli.json');
+        $config = new PackageFile('package-name', __DIR__.'/Fixtures/root/puli.json');
 
-        $event = new PackageConfigEvent($config);
+        $event = new PackageFileEvent($config);
 
-        $this->plugin->handleSavePackageConfig($event);
+        $this->plugin->handleSavePackageFile($event);
     }
 }

@@ -19,8 +19,8 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\RepositoryManager\ManagerFactory;
+use Puli\RepositoryManager\Package\PackageFile\PackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
-use Puli\RepositoryManager\Project\ProjectConfigManager;
 use Puli\RepositoryManager\Repository\RepositoryManager;
 use Webmozart\PathUtil\Path;
 
@@ -75,9 +75,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $io = $event->getIO();
         $environment = ManagerFactory::createProjectEnvironment(getcwd());
-        $configManager = ManagerFactory::createProjectConfigManager($environment);
+        $packageFileManager = ManagerFactory::createPackageFileManager($environment);
 
-        if (!$this->installComposerPlugin($configManager, $io)) {
+        if (!$this->installComposerPlugin($packageFileManager, $io)) {
             return;
         }
 
@@ -94,11 +94,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->generateResourceRepository($repoManager, $io);
     }
 
-    private function installComposerPlugin(ProjectConfigManager $configManager, IOInterface $io)
+    private function installComposerPlugin(PackageFileManager $packageFileManager, IOInterface $io)
     {
         $pluginClass = __NAMESPACE__.'\ComposerPlugin';
 
-        if ($configManager->isPluginClassInstalled($pluginClass)) {
+        if ($packageFileManager->isPluginClassInstalled($pluginClass)) {
             return true;
         }
 
@@ -107,11 +107,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             return false;
         }
 
-        $configManager->installPluginClass($pluginClass);
+        $packageFileManager->installPluginClass($pluginClass);
 
         $io->write(sprintf(
             'Wrote <comment>%s</comment>',
-            $configManager->getEnvironment()->getRootPackageConfig()->getPath()
+            $packageFileManager->getPackageFile()->getPath()
         ));
 
         return true;

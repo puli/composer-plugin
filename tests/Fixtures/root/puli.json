@@ -2,8 +2,10 @@
     "resources": {
         "/root": "res"
     },
-    "package-repository": "packages.json",
-    "resource-repository": "resource-repository.php",
+    "config": {
+        "install-file": "packages.json",
+        "repo-dump-file": "resource-repository.php"
+    },
     "plugins": [
         "Puli\\Extension\\Composer\\ComposerPlugin"
     ]
