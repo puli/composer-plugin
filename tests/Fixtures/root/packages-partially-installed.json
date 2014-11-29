@@ -1,0 +1,6 @@
+[
+    {
+        "installPath": "package",
+        "installer": "Composer"
+    }
+]

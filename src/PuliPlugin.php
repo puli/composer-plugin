@@ -36,6 +36,11 @@ use Webmozart\PathUtil\Path;
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
 {
     /**
+     * The name of the installer.
+     */
+    const INSTALLER_NAME = 'Composer';
+
+    /**
      * @var bool
      */
     private $firstRun = true;
@@ -85,9 +90,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $environment = ManagerFactory::createProjectEnvironment(getcwd());
         $packageManager = ManagerFactory::createPackageManager($environment);
 
+        $this->removeRemovedPackages($packageManager, $io, $event->getComposer());
         $this->installNewPackages($packageManager, $io, $event->getComposer());
-
-        // TODO uninstall removed packages
 
         $repoManager = ManagerFactory::createRepositoryManager($environment, $packageManager);
 
@@ -144,7 +148,39 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->installPackage($installPath);
+            $packageManager->installPackage($installPath, self::INSTALLER_NAME);
+        }
+    }
+
+    private function removeRemovedPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
+    {
+        $io->write('<info>Looking for removed Puli packages</info>');
+
+        $repositoryManager = $composer->getRepositoryManager();
+        $packages = $repositoryManager->getLocalRepository()->getPackages();
+        $packageNames = array();
+        $rootDir = $packageManager->getRootPackage()->getInstallPath();
+
+        foreach ($packages as $package) {
+            if ($package instanceof AliasPackage) {
+                $package = $package->getAliasOf();
+            }
+
+            $packageNames[$package->getName()] = true;
+        }
+
+        foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME) as $package) {
+            if (!isset($packageNames[$package->getName()])) {
+                $installPath = $package->getInstallPath();
+
+                $io->write(sprintf(
+                    'Removing <info>%s</info> (<comment>%s</comment>)',
+                    $package->getName(),
+                    Path::makeRelative($installPath, $rootDir)
+                ));
+
+                $packageManager->removePackage($package->getName());
+            }
         }
     }
 
