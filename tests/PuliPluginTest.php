@@ -204,7 +204,12 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('Puli\Repository\ResourceRepositoryInterface', $repo);
         $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
-        $this->assertFileEquals($this->tempDir.'/packages-all-installed.json', $this->tempDir.'/packages.json');
+
+        if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
+            $this->assertFileEquals($this->tempDir.'/packages-all-installed.json', $this->tempDir.'/packages.json');
+        } else {
+            $this->assertFileEquals($this->tempDir.'/packages-all-installed-ugly.json', $this->tempDir.'/packages.json');
+        }
     }
 
     /**
