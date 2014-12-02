@@ -34,7 +34,7 @@ $repo = require __DIR__.'/vendor/resource-repository.php';
 echo $repo->get('/acme/blog/config/config.yml')->getContents();
 ```
 
-Read the [Puli at a Glance] if you want to learn more about Puli.
+Read [Puli at a Glance] if you want to learn more about Puli.
 
 Authors
 -------
