@@ -1,14 +1,14 @@
 Composer Plugin for Puli
 ========================
 
-[![Build Status](https://travis-ci.org/puli/puli-composer-plugin.png?branch=master)](https://travis-ci.org/puli/puli-composer-plugin)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/puli-composer-plugin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/puli-composer-plugin/?branch=master)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/f81f1e8d-1eeb-4d5a-b0ab-342cf6c726a2/mini.png)](https://insight.sensiolabs.com/projects/f81f1e8d-1eeb-4d5a-b0ab-342cf6c726a2)
-[![Latest Stable Version](https://poser.pugx.org/puli/puli-composer-plugin/v/stable.png)](https://packagist.org/packages/puli/puli-composer-plugin)
-[![Total Downloads](https://poser.pugx.org/puli/puli-composer-plugin/downloads.png)](https://packagist.org/packages/puli/puli-composer-plugin)
-[![Dependency Status](https://www.versioneye.com/php/puli:puli-composer-plugin/1.0.0/badge.png)](https://www.versioneye.com/php/puli:puli-composer-plugin/1.0.0)
+[![Build Status](https://travis-ci.org/puli/composer-plugin.png?branch=master)](https://travis-ci.org/puli/composer-plugin)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/composer-plugin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/composer-plugin/?branch=master)
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/2c283cc0-acfd-4761-99d1-6b503f8b152f/mini.png)](https://insight.sensiolabs.com/projects/2c283cc0-acfd-4761-99d1-6b503f8b152f)
+[![Latest Stable Version](https://poser.pugx.org/puli/composer-plugin/v/stable.png)](https://packagist.org/packages/puli/composer-plugin)
+[![Total Downloads](https://poser.pugx.org/puli/composer-plugin/downloads.png)](https://packagist.org/packages/puli/composer-plugin)
+[![Dependency Status](https://www.versioneye.com/php/puli:composer-plugin/1.0.0/badge.png)](https://www.versioneye.com/php/puli:composer-plugin/1.0.0)
 
-Latest release: [1.0.0-alpha1](https://packagist.org/packages/puli/puli-composer-plugin#1.0.0-alpha1)
+Latest release: [1.0.0-alpha1](https://packagist.org/packages/puli/composer-plugin#1.0.0-alpha1)
 
 PHP >= 5.3.9
 
@@ -72,13 +72,13 @@ License
 All contents of this package are licensed under the [MIT license].
 
 [Bernhard Schussek]: http://webmozarts.com
-[The Community Contributors]: https://github.com/puli/puli-composer-plugin/graphs/contributors
-[Puli Repository Manager]: https://github.com/puli/puli-repository-manager
+[The Community Contributors]: https://github.com/puli/composer-plugin/graphs/contributors
+[Puli Repository Manager]: https://github.com/puli/repository-manager
 [Composer]: https://getcomposer.org
 [Getting Started]: http://puli.readthedocs.org/en/latest/getting-started.html
 [Puli Documentation]: http://puli.readthedocs.org/en/latest/index.html
 [Puli at a Glance]: http://puli.readthedocs.org/en/latest/at-a-glance.html
 [issue tracker]: https://github.com/puli/puli/issues
-[Git repository]: https://github.com/puli/puli-composer-plugin
+[Git repository]: https://github.com/puli/composer-plugin
 [@webmozart]: https://twitter.com/webmozart
 [MIT license]: LICENSE

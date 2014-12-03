@@ -1,5 +1,5 @@
 {
-    "name": "puli/puli-composer-plugin",
+    "name": "puli/composer-plugin",
     "type": "composer-plugin",
     "description": "Integrates Composer into the Puli package manager.",
     "license": "MIT",
@@ -11,8 +11,8 @@
     ],
     "require": {
         "composer-plugin-api": "1.0.0",
-        "puli/puli": "~1.0@dev",
-        "puli/puli-repository-manager": "~1.0@dev",
+        "puli/repository": "~1.0@dev",
+        "puli/repository-manager": "~1.0@dev",
         "webmozart/json": "~1.0@dev",
         "webmozart/path-util": "~1.0"
     },

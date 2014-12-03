@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Puli Composer Plugin.
+ * This file is part of the puli/composer-plugin package.
  *
  * (c) Bernhard Schussek <bschussek@gmail.com>
  *
