@@ -30,9 +30,9 @@ use Webmozart\PathUtil\Path;
  */
 class ComposerPlugin implements PluginInterface
 {
-    const VERSION = '@package_version@';
+    const VERSION = '1.0.0-alpha2';
 
-    const RELEASE_DATE = '@release_date@';
+    const RELEASE_DATE = '2014-12-03';
 
     /**
      * Activates the plugin.

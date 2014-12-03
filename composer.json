@@ -20,7 +20,7 @@
         "composer/composer": "~1.0@dev",
         "symfony/filesystem": "~2.3"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "alpha",
     "autoload": {
         "psr-4": {
             "Puli\\Extension\\Composer\\": "src/"
