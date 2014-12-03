@@ -11,15 +11,16 @@
     ],
     "require": {
         "composer-plugin-api": "1.0.0",
-        "puli/repository": "~1.0@dev",
-        "puli/repository-manager": "~1.0@dev",
-        "webmozart/json": "~1.0@dev",
+        "puli/repository": "~1.0",
+        "puli/repository-manager": "~1.0",
+        "webmozart/json": "~1.0",
         "webmozart/path-util": "~1.0"
     },
     "require-dev": {
         "composer/composer": "~1.0@dev",
         "symfony/filesystem": "~2.3"
     },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Puli\\Extension\\Composer\\": "src/"
