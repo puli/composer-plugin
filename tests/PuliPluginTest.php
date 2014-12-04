@@ -116,8 +116,8 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
         $this->rootPackage = $this->getMock('Composer\Package\RootPackageInterface');
 
         $this->localRepository = new TestLocalRepository(array(
-            new Package('package', '1.0', '1.0'),
-            new Package('package-no-config', '1.0', '1.0'),
+            new Package('package1', '1.0', '1.0'),
+            new Package('package2', '1.0', '1.0'),
         ));
 
         $this->repositoryManager = new RepositoryManager($this->io, $this->config);
@@ -188,10 +188,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package</info> (<comment>package</comment>)');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('Installing <info>package-no-config</info> (<comment>package-no-config</comment>)');
+            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(4))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -243,8 +243,77 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package-no-config</info> (<comment>package-no-config</comment>)');
+            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testInstallPackagesWithoutComposerJson()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array(
+            new Package('package-no-composer', '1.0', '1.0'),
+        ));
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for removed Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('Installing <info>package-no-composer</info> (<comment>package-no-composer</comment>)');
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testInstallPackagesWithoutPuliJson()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array(
+            new Package('package-no-puli', '1.0', '1.0'),
+        ));
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for removed Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('Installing <info>package-no-puli</info> (<comment>package-no-puli</comment>)');
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('<info>Generating Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDoNotInstallPackagesWithoutPuliNorComposerJson()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array(
+            new Package('package-nothing', '1.0', '1.0'),
+        ));
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for removed Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
 
@@ -255,7 +324,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        $package = new Package('package', '1.0', '1.0');
+        $package = new Package('package1', '1.0', '1.0');
 
         $this->localRepository->setPackages(array(
             // Package is not listed in installed packages
@@ -270,7 +339,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package</info> (<comment>package</comment>)');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -282,7 +351,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        $package = new Package('package', '1.0', '1.0');
+        $package = new Package('package1', '1.0', '1.0');
 
         $this->localRepository->setPackages(array(
             // This time the package is returned here as well
@@ -298,7 +367,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package</info> (<comment>package</comment>)');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');
@@ -319,7 +388,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for removed Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('Removing <info>package</info> (<comment>package</comment>)');
+            ->with('Removing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Looking for new Puli packages</info>');
@@ -388,10 +457,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(4))
             ->method('write')
-            ->with('Installing <info>package</info> (<comment>package</comment>)');
+            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(5))
             ->method('write')
-            ->with('Installing <info>package-no-config</info> (<comment>package-no-config</comment>)');
+            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(6))
             ->method('write')
             ->with('<info>Generating Puli resource repository</info>');

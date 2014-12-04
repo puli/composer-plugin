@@ -142,6 +142,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
+            if (!file_exists($installPath.'/puli.json') && !file_exists($installPath.'/composer.json')) {
+                continue;
+            }
+
             $io->write(sprintf(
                 'Installing <info>%s</info> (<comment>%s</comment>)',
                 $package->getName(),

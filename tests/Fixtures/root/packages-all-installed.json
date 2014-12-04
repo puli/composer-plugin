@@ -1,11 +1,11 @@
 [
     {
-        "installPath": "package",
+        "installPath": "package1",
         "new": true,
         "installer": "Composer"
     },
     {
-        "installPath": "package-no-config",
+        "installPath": "package2",
         "new": true,
         "installer": "Composer"
     }
