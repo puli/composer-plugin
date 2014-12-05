@@ -1,6 +1,6 @@
 [
     {
         "installPath": "package1",
-        "new": true
+        "name": "package1"
     }
 ]

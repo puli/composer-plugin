@@ -80,14 +80,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $io = $event->getIO();
         $environment = ManagerFactory::createProjectEnvironment(getcwd());
-        $packageFileManager = ManagerFactory::createPackageFileManager($environment);
-
-        if (!$this->installComposerPlugin($packageFileManager, $io)) {
-            return;
-        }
-
-        // Reload environment with the installed plugin
-        $environment = ManagerFactory::createProjectEnvironment(getcwd());
         $packageManager = ManagerFactory::createPackageManager($environment);
 
         $this->removeRemovedPackages($packageManager, $io, $event->getComposer());
@@ -96,29 +88,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $repoManager = ManagerFactory::createRepositoryManager($environment, $packageManager);
 
         $this->generateResourceRepository($repoManager, $io);
-    }
-
-    private function installComposerPlugin(PackageFileManager $packageFileManager, IOInterface $io)
-    {
-        $pluginClass = __NAMESPACE__.'\ComposerPlugin';
-
-        if ($packageFileManager->isPluginClassInstalled($pluginClass)) {
-            return true;
-        }
-
-        if (!$io->askConfirmation('<info>The Composer plugin for Puli is not installed. Install now? (yes/no)</info> [<comment>yes</comment>]: ', true)) {
-            // No Puli support desired for now - quit
-            return false;
-        }
-
-        $packageFileManager->installPluginClass($pluginClass);
-
-        $io->write(sprintf(
-            'Wrote <comment>%s</comment>',
-            $packageFileManager->getPackageFile()->getPath()
-        ));
-
-        return true;
     }
 
     private function installNewPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
@@ -142,17 +111,13 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            if (!file_exists($installPath.'/puli.json') && !file_exists($installPath.'/composer.json')) {
-                continue;
-            }
-
             $io->write(sprintf(
                 'Installing <info>%s</info> (<comment>%s</comment>)',
                 $package->getName(),
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->installPackage($installPath, self::INSTALLER_NAME);
+            $packageManager->installPackage($installPath, $package->getName(), self::INSTALLER_NAME);
         }
     }
 

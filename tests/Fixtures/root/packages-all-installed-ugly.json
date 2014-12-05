@@ -1,1 +1,1 @@
-[{"installPath":"package1","new":true,"installer":"Composer"},{"installPath":"package2","new":true,"installer":"Composer"}]
+[{"installPath":"package1","name":"package1","installer":"Composer"},{"installPath":"package2","name":"package2","installer":"Composer"}]

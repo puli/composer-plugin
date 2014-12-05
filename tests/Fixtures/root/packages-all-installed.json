@@ -1,12 +1,12 @@
 [
     {
         "installPath": "package1",
-        "new": true,
+        "name": "package1",
         "installer": "Composer"
     },
     {
         "installPath": "package2",
-        "new": true,
+        "name": "package2",
         "installer": "Composer"
     }
 ]
