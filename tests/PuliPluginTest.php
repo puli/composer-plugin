@@ -21,6 +21,7 @@ use Composer\Package\RootPackage;
 use Composer\Repository\RepositoryManager;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
+use PHPUnit_Framework_MockObject_MockObject;
 use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
 use Puli\RepositoryManager\Package\PackageFile\Reader\PackageJsonReader;
@@ -36,7 +37,7 @@ class PuliPluginTest extends JsonWriterTestCase
     const PLUGIN_CLASS = 'Puli\Extension\Composer\ComposerPlugin';
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var PHPUnit_Framework_MockObject_MockObject
      */
     private $dumper;
 
@@ -51,7 +52,7 @@ class PuliPluginTest extends JsonWriterTestCase
     private $composer;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|IOInterface
+     * @var PHPUnit_Framework_MockObject_MockObject|IOInterface
      */
     private $io;
 
@@ -66,7 +67,7 @@ class PuliPluginTest extends JsonWriterTestCase
     private $repositoryManager;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|InstallationManager
+     * @var PHPUnit_Framework_MockObject_MockObject|InstallationManager
      */
     private $installationManager;
 
