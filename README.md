@@ -1,12 +1,12 @@
 Composer Plugin for Puli
 ========================
 
-[![Build Status](https://travis-ci.org/puli/composer-plugin.png?branch=master)](https://travis-ci.org/puli/composer-plugin)
+[![Build Status](https://travis-ci.org/puli/composer-plugin.svg?branch=master)](https://travis-ci.org/puli/composer-plugin)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/composer-plugin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/composer-plugin/?branch=master)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/2c283cc0-acfd-4761-99d1-6b503f8b152f/mini.png)](https://insight.sensiolabs.com/projects/2c283cc0-acfd-4761-99d1-6b503f8b152f)
-[![Latest Stable Version](https://poser.pugx.org/puli/composer-plugin/v/stable.png)](https://packagist.org/packages/puli/composer-plugin)
-[![Total Downloads](https://poser.pugx.org/puli/composer-plugin/downloads.png)](https://packagist.org/packages/puli/composer-plugin)
-[![Dependency Status](https://www.versioneye.com/php/puli:composer-plugin/1.0.0/badge.png)](https://www.versioneye.com/php/puli:composer-plugin/1.0.0)
+[![Latest Stable Version](https://poser.pugx.org/puli/composer-plugin/v/stable.svg)](https://packagist.org/packages/puli/composer-plugin)
+[![Total Downloads](https://poser.pugx.org/puli/composer-plugin/downloads.svg)](https://packagist.org/packages/puli/composer-plugin)
+[![Dependency Status](https://www.versioneye.com/php/puli:composer-plugin/1.0.0/badge.svg)](https://www.versioneye.com/php/puli:composer-plugin/1.0.0)
 
 Latest release: [1.0.0-alpha2](https://packagist.org/packages/puli/composer-plugin#1.0.0-alpha2)
 
