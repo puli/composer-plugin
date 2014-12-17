@@ -4,5 +4,10 @@
     },
     "config": {
         "write-repo": "resource-repository.php"
+    },
+    "packages": {
+        "package1": {
+            "installPath": "package1"
+        }
     }
 }

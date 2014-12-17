@@ -1,0 +1,14 @@
+{
+    "resources": {
+        "/root": "res"
+    },
+    "config": {
+        "write-repo": "resource-repository.php"
+    },
+    "packages": {
+        "package1": {
+            "installPath": "package1",
+            "installer": "Composer"
+        }
+    }
+}

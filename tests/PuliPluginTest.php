@@ -24,13 +24,14 @@ use Composer\Script\ScriptEvents;
 use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
 use Puli\RepositoryManager\Package\PackageFile\Reader\PackageJsonReader;
+use Puli\RepositoryManager\Tests\JsonWriterTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class PuliPluginTest extends \PHPUnit_Framework_TestCase
+class PuliPluginTest extends JsonWriterTestCase
 {
     const PLUGIN_CLASS = 'Puli\Extension\Composer\ComposerPlugin';
 
@@ -202,14 +203,10 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $repo = include $this->tempDir.'/resource-repository.php';
 
-        $this->assertInstanceOf('Puli\Repository\ResourceRepositoryInterface', $repo);
+        $this->assertInstanceOf('Puli\Repository\ResourceRepository', $repo);
         $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
 
-        if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
-            $this->assertFileEquals($this->tempDir.'/packages-all-installed.json', $this->tempDir.'/packages.json');
-        } else {
-            $this->assertFileEquals($this->tempDir.'/packages-all-installed-ugly.json', $this->tempDir.'/packages.json');
-        }
+        $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
 
     /**
@@ -233,7 +230,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/packages-partially-installed.json', $this->tempDir.'/packages.json');
+        copy($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
 
         $this->io->expects($this->at(0))
             ->method('write')
@@ -310,7 +307,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/packages-partially-installed.json', $this->tempDir.'/packages.json');
+        copy($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
 
         $this->localRepository->setPackages(array());
 
@@ -333,7 +330,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $repo = include $this->tempDir.'/resource-repository.php';
 
-        $this->assertInstanceOf('Puli\Repository\ResourceRepositoryInterface', $repo);
+        $this->assertInstanceOf('Puli\Repository\ResourceRepository', $repo);
         $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
     }
 
@@ -341,7 +338,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/packages-other-installer.json', $this->tempDir.'/packages.json');
+        copy($this->tempDir.'/puli-other-installer.json', $this->tempDir.'/puli.json');
 
         $this->localRepository->setPackages(array());
 
@@ -361,7 +358,7 @@ class PuliPluginTest extends \PHPUnit_Framework_TestCase
 
         $repo = include $this->tempDir.'/resource-repository.php';
 
-        $this->assertInstanceOf('Puli\Repository\ResourceRepositoryInterface', $repo);
+        $this->assertInstanceOf('Puli\Repository\ResourceRepository', $repo);
         $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
     }
 }

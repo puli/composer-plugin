@@ -1,9 +1,0 @@
-{
-    "resources": {
-        "/root": "res"
-    },
-    "config": {
-        "install-file": "packages.json",
-        "repo-dump-file": "resource-repository.php"
-    }
-}
