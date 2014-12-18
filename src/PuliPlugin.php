@@ -19,7 +19,6 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use Puli\RepositoryManager\ManagerFactory;
-use Puli\RepositoryManager\Package\PackageFile\PackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Repository\RepositoryManager;
 use Webmozart\PathUtil\Path;
