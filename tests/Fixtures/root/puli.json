@@ -3,6 +3,12 @@
         "/root": "res"
     },
     "config": {
-        "write-repo": "resource-repository.php"
+        "factory": {
+            "file": "PuliFactory.php"
+        },
+        "repository": {
+            "type": "filesystem",
+            "path": "repository"
+        }
     }
 }

@@ -3,15 +3,21 @@
         "/root": "res"
     },
     "config": {
-        "write-repo": "resource-repository.php"
+        "factory": {
+            "file": "PuliFactory.php"
+        },
+        "repository": {
+            "type": "filesystem",
+            "path": "repository"
+        }
     },
     "packages": {
         "package1": {
-            "installPath": "package1",
+            "install-path": "package1",
             "installer": "Composer"
         },
         "package2": {
-            "installPath": "package2",
+            "install-path": "package2",
             "installer": "Composer"
         }
     }

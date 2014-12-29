@@ -30,6 +30,8 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @runTestsInSeparateProcesses
  */
 class PuliPluginTest extends JsonWriterTestCase
 {
@@ -86,6 +88,11 @@ class PuliPluginTest extends JsonWriterTestCase
 
     private $previousWd;
 
+    public function getInstallPath(Package $package)
+    {
+        return $this->tempDir.'/'.$package->getName();
+    }
+
     protected function setUp()
     {
         while (false === mkdir($this->tempDir = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_root'.rand(10000, 99999), 0777, true)) {}
@@ -107,12 +114,9 @@ class PuliPluginTest extends JsonWriterTestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $tempDir = $this->tempDir;
         $this->installationManager->expects($this->any())
             ->method('getInstallPath')
-            ->will($this->returnCallback(function (Package $package) use ($tempDir) {
-                return $tempDir.'/'.$package->getName();
-            }));
+            ->will($this->returnCallback(array($this, 'getInstallPath')));
 
         $this->rootPackage = $this->getMock('Composer\Package\RootPackageInterface');
 
@@ -195,16 +199,12 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(4))
             ->method('write')
-            ->with('<info>Generating Puli resource repository</info>');
+            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->$listener($event);
 
-        $this->assertFileExists($this->tempDir.'/resource-repository.php');
-
-        $repo = include $this->tempDir.'/resource-repository.php';
-
-        $this->assertInstanceOf('Puli\Repository\ResourceRepository', $repo);
-        $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
+        $this->assertFileExists($this->tempDir.'/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
@@ -243,7 +243,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('Installing <info>package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('<info>Generating Puli resource repository</info>');
+            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -270,7 +270,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('<info>Generating Puli resource repository</info>');
+            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -298,7 +298,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('Installing <info>package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('<info>Generating Puli resource repository</info>');
+            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -322,16 +322,11 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('<info>Generating Puli resource repository</info>');
+            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/resource-repository.php');
-
-        $repo = include $this->tempDir.'/resource-repository.php';
-
-        $this->assertInstanceOf('Puli\Repository\ResourceRepository', $repo);
-        $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
+        $this->assertFileExists($this->tempDir.'/PuliFactory.php');
     }
 
     public function testDoNotRemovePackagesFromOtherInstaller()
@@ -350,15 +345,10 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('<info>Generating Puli resource repository</info>');
+            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/resource-repository.php');
-
-        $repo = include $this->tempDir.'/resource-repository.php';
-
-        $this->assertInstanceOf('Puli\Repository\ResourceRepository', $repo);
-        $this->assertSame($this->tempDir.'/res/file', $repo->get('/root/file')->getLocalPath());
+        $this->assertFileExists($this->tempDir.'/PuliFactory.php');
     }
 }

@@ -154,8 +154,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function generateResourceRepository(RepositoryManager $repositoryManager, IOInterface $io)
     {
-        $io->write('<info>Generating Puli resource repository</info>');
+        $io->write('<info>Building Puli resource repository</info>');
 
-        $repositoryManager->dumpRepository();
+        $repositoryManager->buildRepository();
     }
 }
