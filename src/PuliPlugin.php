@@ -18,6 +18,7 @@ use Composer\Package\AliasPackage;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
+use Puli\RepositoryManager\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\ManagerFactory;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Repository\RepositoryManager;
@@ -84,9 +85,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->removeRemovedPackages($packageManager, $io, $event->getComposer());
         $this->installNewPackages($packageManager, $io, $event->getComposer());
 
+        // TODO inject logger
         $repoManager = ManagerFactory::createRepositoryManager($environment, $packageManager);
+        $discoveryManager = ManagerFactory::createDiscoveryManager($environment, $packageManager);
 
-        $this->generateResourceRepository($repoManager, $io);
+        $this->buildRepository($repoManager, $io);
+        $this->buildDiscovery($discoveryManager, $io);
     }
 
     private function installNewPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
@@ -152,10 +156,19 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    private function generateResourceRepository(RepositoryManager $repositoryManager, IOInterface $io)
+    private function buildRepository(RepositoryManager $repositoryManager, IOInterface $io)
     {
         $io->write('<info>Building Puli resource repository</info>');
 
+        $repositoryManager->clearRepository();
         $repositoryManager->buildRepository();
+    }
+
+    private function buildDiscovery(DiscoveryManager $discoveryManager, IOInterface $io)
+    {
+        $io->write('<info>Building Puli resource discovery</info>');
+
+        $discoveryManager->clearDiscovery();
+        $discoveryManager->buildDiscovery();
     }
 }

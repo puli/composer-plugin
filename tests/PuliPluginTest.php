@@ -244,6 +244,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -271,6 +274,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -299,6 +305,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -323,6 +332,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
 
@@ -346,6 +358,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
 
