@@ -88,8 +88,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
     private $previousWd;
 
+    private $installPaths;
+
     public function getInstallPath(Package $package)
     {
+        if (isset($this->installPaths[$package->getName()])) {
+            return $this->installPaths[$package->getName()];
+        }
+
         return $this->tempDir.'/'.$package->getName();
     }
 
@@ -127,6 +133,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->repositoryManager = new RepositoryManager($this->io, $this->config);
         $this->repositoryManager->setLocalRepository($this->localRepository);
+        $this->installPaths = array();
 
         $this->composer = new Composer();
         $this->composer->setRepositoryManager($this->repositoryManager);
@@ -245,6 +252,33 @@ class PuliPluginTest extends JsonWriterTestCase
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
         $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Building Puli resource discovery</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    // meta packages have no install path
+    public function testDoNotInstallPackagesWithoutInstallPath()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array(
+            new Package('package1', '1.0', '1.0'),
+        ));
+
+        $this->installPaths['package1'] = '';
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for removed Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Looking for new Puli packages</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Building Puli resource repository</info>');
+        $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
