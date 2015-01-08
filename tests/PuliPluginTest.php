@@ -115,7 +115,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin = new PuliPlugin($this->dumper);
         $this->io = $this->getMock('Composer\IO\IOInterface');
-        $this->config = new Config();
+        $this->config = new Config(false, $this->tempDir);
         $this->config->merge(array('config' => array('vendor-dir' => 'the-vendor')));
 
         $this->installationManager = $this->getMockBuilder('Composer\Installer\InstallationManager')

@@ -116,7 +116,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $environment = ManagerFactory::createProjectEnvironment($rootDir);
         $puliConfig = $environment->getConfig();
         $compConfig = $event->getComposer()->getConfig();
-        $vendorDir = Path::makeAbsolute(ltrim($compConfig->get('vendor-dir'), '/'), $rootDir);
+        $vendorDir = $compConfig->get('vendor-dir'); // returns absolute path
         $autoloadFile = $vendorDir.'/autoload.php';
         $classMapFile = $vendorDir.'/composer/autoload_classmap.php';
 
