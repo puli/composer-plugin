@@ -4,7 +4,8 @@
     },
     "config": {
         "factory": {
-            "file": "PuliFactory.php"
+            "class": "My\\PuliFactory",
+            "file": "My/PuliFactory.php"
         },
         "repository": {
             "type": "filesystem",

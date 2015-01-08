@@ -17,11 +17,14 @@ use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
+use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\ManagerFactory;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Repository\RepositoryManager;
+use RuntimeException;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -43,7 +46,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     /**
      * @var bool
      */
-    private $firstRun = true;
+    private $runPostInstall = true;
+
+    /**
+     * @var bool
+     */
+    private $runPostAutoloadDump = true;
 
     /**
      * {@inheritdoc}
@@ -53,6 +61,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         return array(
             ScriptEvents::POST_INSTALL_CMD => 'postInstall',
             ScriptEvents::POST_UPDATE_CMD => 'postInstall',
+            ScriptEvents::POST_AUTOLOAD_DUMP => 'postAutoloadDump',
         );
     }
 
@@ -72,11 +81,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     public function postInstall(CommandEvent $event)
     {
         // This method is called twice. Run it only once.
-        if (!$this->firstRun) {
+        if (!$this->runPostInstall) {
             return;
         }
 
-        $this->firstRun = false;
+        $this->runPostInstall = false;
 
         $io = $event->getIO();
         $environment = ManagerFactory::createProjectEnvironment(getcwd());
@@ -91,6 +100,31 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $this->buildRepository($repoManager, $io);
         $this->buildDiscovery($discoveryManager, $io);
+    }
+
+    public function postAutoloadDump(Event $event)
+    {
+        // This method is called twice. Run it only once.
+        if (!$this->runPostAutoloadDump) {
+            return;
+        }
+
+        $this->runPostAutoloadDump = false;
+
+        $io = $event->getIO();
+        $rootDir = getcwd();
+        $environment = ManagerFactory::createProjectEnvironment($rootDir);
+        $puliConfig = $environment->getConfig();
+        $compConfig = $event->getComposer()->getConfig();
+        $vendorDir = Path::makeAbsolute(ltrim($compConfig->get('vendor-dir'), '/'), $rootDir);
+        $autoloadFile = $vendorDir.'/autoload.php';
+        $classMapFile = $vendorDir.'/composer/autoload_classmap.php';
+
+        $factoryClass = $puliConfig->get(Config::FACTORY_CLASS);
+        $factoryFile = Path::makeAbsolute($puliConfig->get(Config::FACTORY_FILE), $rootDir);
+
+        $this->insertFactoryClassConstant($io, $autoloadFile, $factoryClass);
+        $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);
     }
 
     private function installNewPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
@@ -170,5 +204,57 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $discoveryManager->clearDiscovery();
         $discoveryManager->buildDiscovery();
+    }
+
+    private function insertFactoryClassConstant(IOInterface $io, $autoloadFile, $factoryClass)
+    {
+        if (!file_exists($autoloadFile)) {
+            throw new PuliPluginException(sprintf(
+                'Could not adjust autoloader: The file %s was not found.',
+                $autoloadFile
+            ));
+        }
+
+        $io->write('<info>Generating PULI_FACTORY_CLASS constant</info>');
+
+        $contents = file_get_contents($autoloadFile);
+        $escFactoryClass = var_export($factoryClass, true);
+        $constant = "define('PULI_FACTORY_CLASS', $escFactoryClass);\n\n";
+
+        // Regex modifiers:
+        // "m": \s matches newlines
+        // "D": $ matches at EOF only
+        // Translation: insert before the last "return" in the file
+        $contents = preg_replace('/\n(?=return [^;]+;\s*$)/mD', "\n".$constant,
+            $contents);
+
+        file_put_contents($autoloadFile, $contents);
+    }
+
+    private function insertFactoryClassMap(IOInterface $io, $classMapFile, $vendorDir, $factoryClass, $factoryFile)
+    {
+        if (!file_exists($classMapFile)) {
+            throw new PuliPluginException(sprintf(
+                'Could not adjust autoloader: The file %s was not found.',
+                $classMapFile
+            ));
+        }
+
+        $io->write("<info>Registering $factoryClass with the class-map autoloader</info>");
+
+        $relFactoryFile = Path::makeRelative($factoryFile, $vendorDir);
+        $escFactoryClass = var_export($factoryClass, true);
+        $escFactoryFile = var_export('/'.$relFactoryFile, true);
+        $classMap = "\n    $escFactoryClass => \$vendorDir . $escFactoryFile,";
+
+        $contents = file_get_contents($classMapFile);
+
+        // Regex modifiers:
+        // "m": \s matches newlines
+        // "D": $ matches at EOF only
+        // Translation: insert before the last ");" in the file
+        $contents = preg_replace('/\n(?=\);\s*$)/mD', "\n".$classMap, $contents);
+
+        file_put_contents($classMapFile, $contents);
     }
 }

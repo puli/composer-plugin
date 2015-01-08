@@ -26,6 +26,7 @@ use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
 use Puli\RepositoryManager\Tests\JsonWriterTestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Webmozart\PathUtil\Path;
 
 /**
  * @since  1.0
@@ -115,6 +116,7 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->plugin = new PuliPlugin($this->dumper);
         $this->io = $this->getMock('Composer\IO\IOInterface');
         $this->config = new Config();
+        $this->config->merge(array('config' => array('vendor-dir' => 'the-vendor')));
 
         $this->installationManager = $this->getMockBuilder('Composer\Installer\InstallationManager')
             ->disableOriginalConstructor()
@@ -172,7 +174,7 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->plugin->activate($this->composer, $this->io);
     }
 
-    public function provideEventNames()
+    public function getInstallEventNames()
     {
         return array(
             array(ScriptEvents::POST_INSTALL_CMD),
@@ -181,7 +183,7 @@ class PuliPluginTest extends JsonWriterTestCase
     }
 
     /**
-     * @dataProvider provideEventNames
+     * @dataProvider getInstallEventNames
      */
     public function testInstallNewPuliPackages($eventName)
     {
@@ -210,14 +212,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->$listener($event);
 
-        $this->assertFileExists($this->tempDir.'/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
 
     /**
-     * @dataProvider provideEventNames
+     * @dataProvider getInstallEventNames
      * @depends testInstallNewPuliPackages
      */
     public function testEventListenersOnlyProcessedOnFirstCall($eventName)
@@ -372,7 +374,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
     }
 
     public function testDoNotRemovePackagesFromOtherInstaller()
@@ -398,6 +400,121 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+    }
+
+    public function testInsertFactoryClassIntoClassMap()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Registering My\\PuliFactory with the class-map autoloader</info>');
+
+        $this->plugin->$listener($event);
+
+        $this->assertFileExists($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
+
+        $classMap = require $this->tempDir.'/the-vendor/composer/autoload_classmap.php';
+
+        $this->assertInternalType('array', $classMap);
+        $this->assertArrayHasKey('My\\PuliFactory', $classMap);
+        $this->assertSame($this->tempDir.'/My/PuliFactory.php', Path::canonicalize($classMap['My\\PuliFactory']));
+    }
+
+    /**
+     * @expectedException \Puli\Extension\Composer\PuliPluginException
+     * @expectedExceptionMessage autoload_classmap.php
+     */
+    public function testFailIfClassMapFileNotFound()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->once())
+            ->method('write')
+            ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
+
+        unlink($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
+
+        $this->plugin->$listener($event);
+    }
+
+    /**
+     * @runInSeparateProcess
+     */
+    public function testInsertFactoryConstantIntoAutoload()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Registering My\\PuliFactory with the class-map autoloader</info>');
+
+        $this->plugin->$listener($event);
+
+        $this->assertFileExists($this->tempDir.'/the-vendor/autoload.php');
+
+        require $this->tempDir.'/the-vendor/autoload.php';
+
+        $this->assertTrue(defined('PULI_FACTORY_CLASS'));
+        $this->assertSame('My\\PuliFactory', PULI_FACTORY_CLASS);
+    }
+
+    /**
+     * @expectedException \Puli\Extension\Composer\PuliPluginException
+     * @expectedExceptionMessage autoload.php
+     */
+    public function testFailIfAutoloadFileNotFound()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->never())
+            ->method('write');
+
+        unlink($this->tempDir.'/the-vendor/autoload.php');
+
+        $this->plugin->$listener($event);
+    }
+
+    public function testRunPostAutoloadDumpOnlyOnce()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->exactly(2))
+            ->method('write');
+
+        $this->plugin->$listener($event);
+        $this->plugin->$listener($event);
     }
 }
