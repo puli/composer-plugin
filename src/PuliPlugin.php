@@ -116,7 +116,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $environment = ManagerFactory::createProjectEnvironment($rootDir);
         $puliConfig = $environment->getConfig();
         $compConfig = $event->getComposer()->getConfig();
-        $vendorDir = $compConfig->get('vendor-dir'); // returns absolute path
+        $vendorDir = $compConfig->get('vendor-dir');
+
+        // On TravisCI, $vendorDir is a relative path. Probably an old Composer
+        // build or something. Usually, $vendorDir should be absolute already.
+        $vendorDir = Path::makeAbsolute($vendorDir, $rootDir);
+
         $autoloadFile = $vendorDir.'/autoload.php';
         $classMapFile = $vendorDir.'/composer/autoload_classmap.php';
 
