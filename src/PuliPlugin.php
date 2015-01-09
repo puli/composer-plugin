@@ -21,6 +21,7 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
+use Puli\RepositoryManager\Environment\ProjectEnvironment;
 use Puli\RepositoryManager\ManagerFactory;
 use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
@@ -45,6 +46,16 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     const INSTALLER_NAME = 'Composer';
 
     /**
+     * @var ManagerFactory
+     */
+    private $managerFactory;
+
+    /**
+     * @var ProjectEnvironment
+     */
+    private $projectEnvironment;
+
+    /**
      * @var bool
      */
     private $runPostInstall = true;
@@ -53,6 +64,14 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      * @var bool
      */
     private $runPostAutoloadDump = true;
+
+    /**
+     * Creates the plugin.
+     */
+    public function __construct()
+    {
+        $this->managerFactory = new ManagerFactory();
+    }
 
     /**
      * {@inheritdoc}
@@ -89,16 +108,16 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostInstall = false;
 
         $io = $event->getIO();
-        $environment = ManagerFactory::createProjectEnvironment(getcwd());
-        $packageManager = ManagerFactory::createPackageManager($environment);
+        $environment = $this->getProjectEnvironment();
+        $packageManager = $this->managerFactory->createPackageManager($environment);
 
         $this->removeRemovedPackages($packageManager, $io, $event->getComposer());
         $this->installNewPackages($packageManager, $io, $event->getComposer());
 
         // TODO inject logger
-        $packageFileManager = ManagerFactory::createRootPackageFileManager($environment);
-        $repoManager = ManagerFactory::createRepositoryManager($environment, $packageManager);
-        $discoveryManager = ManagerFactory::createDiscoveryManager($environment, $packageManager);
+        $packageFileManager = $this->managerFactory->createRootPackageFileManager($environment);
+        $repoManager = $this->managerFactory->createRepositoryManager($environment, $packageManager);
+        $discoveryManager = $this->managerFactory->createDiscoveryManager($environment, $packageManager);
 
         $this->copyComposerName($packageFileManager, $event->getComposer());
         $this->buildRepository($repoManager, $io);
@@ -116,7 +135,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $io = $event->getIO();
         $rootDir = getcwd();
-        $environment = ManagerFactory::createProjectEnvironment($rootDir);
+        $environment = $this->getProjectEnvironment();
         $puliConfig = $environment->getConfig();
         $compConfig = $event->getComposer()->getConfig();
         $vendorDir = $compConfig->get('vendor-dir');
@@ -269,5 +288,19 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $contents = preg_replace('/\n(?=\);\s*$)/mD', "\n".$classMap, $contents);
 
         file_put_contents($classMapFile, $contents);
+    }
+
+    /**
+     * Returns Puli's project environment.
+     *
+     * @return ProjectEnvironment The project environment.
+     */
+    private function getProjectEnvironment()
+    {
+        if (!$this->projectEnvironment) {
+            $this->projectEnvironment = $this->managerFactory->createProjectEnvironment(getcwd());
+        }
+
+        return $this->projectEnvironment;
     }
 }
