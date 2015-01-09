@@ -14,7 +14,7 @@
         }
     },
     "packages": {
-        "package1": {
+        "vendor/package1": {
             "install-path": "package1"
         }
     }

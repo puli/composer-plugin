@@ -98,7 +98,7 @@ class PuliPluginTest extends JsonWriterTestCase
             return $this->installPaths[$package->getName()];
         }
 
-        return $this->tempDir.'/'.$package->getName();
+        return $this->tempDir.'/'.basename($package->getName());
     }
 
     protected function setUp()
@@ -127,11 +127,11 @@ class PuliPluginTest extends JsonWriterTestCase
             ->method('getInstallPath')
             ->will($this->returnCallback(array($this, 'getInstallPath')));
 
-        $this->rootPackage = new RootPackage('root', '1.0', '1.0');
+        $this->rootPackage = new RootPackage('vendor/root', '1.0', '1.0');
 
         $this->localRepository = new TestLocalRepository(array(
-            new Package('package1', '1.0', '1.0'),
-            new Package('package2', '1.0', '1.0'),
+            new Package('vendor/package1', '1.0', '1.0'),
+            new Package('vendor/package2', '1.0', '1.0'),
         ));
 
         $this->repositoryManager = new RepositoryManager($this->io, $this->config);
@@ -203,10 +203,10 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
+            ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(4))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -250,7 +250,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package2</info> (<comment>package2</comment>)');
+            ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -267,10 +267,10 @@ class PuliPluginTest extends JsonWriterTestCase
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
         $this->localRepository->setPackages(array(
-            new Package('package1', '1.0', '1.0'),
+            new Package('vendor/package1', '1.0', '1.0'),
         ));
 
-        $this->installPaths['package1'] = '';
+        $this->installPaths['vendor/package1'] = '';
 
         $this->io->expects($this->at(0))
             ->method('write')
@@ -292,7 +292,7 @@ class PuliPluginTest extends JsonWriterTestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        $package = new Package('package1', '1.0', '1.0');
+        $package = new Package('vendor/package1', '1.0', '1.0');
 
         $this->localRepository->setPackages(array(
             // Package is not listed in installed packages
@@ -307,7 +307,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -322,7 +322,7 @@ class PuliPluginTest extends JsonWriterTestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        $package = new Package('package1', '1.0', '1.0');
+        $package = new Package('vendor/package1', '1.0', '1.0');
 
         $this->localRepository->setPackages(array(
             // This time the package is returned here as well
@@ -338,7 +338,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for new Puli packages</info>');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>package1</info> (<comment>package1</comment>)');
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -362,7 +362,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for removed Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('Removing <info>package3</info> (<comment>package3</comment>)');
+            ->with('Removing <info>vendor/package3</info> (<comment>package3</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Looking for new Puli packages</info>');
@@ -415,7 +415,7 @@ class PuliPluginTest extends JsonWriterTestCase
         $decoder = new JsonDecoder();
         $data = $decoder->decodeFile($this->tempDir.'/puli.json');
 
-        $this->assertSame('root', $data->name);
+        $this->assertSame('vendor/root', $data->name);
     }
 
     public function testInsertFactoryClassIntoClassMap()

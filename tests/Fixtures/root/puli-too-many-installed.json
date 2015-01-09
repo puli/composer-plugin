@@ -14,7 +14,7 @@
         }
     },
     "packages": {
-        "package3": {
+        "vendor/package3": {
             "install-path": "package3",
             "installer": "composer"
         }

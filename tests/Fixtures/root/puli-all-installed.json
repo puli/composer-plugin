@@ -1,6 +1,6 @@
 {
     "version": "1.0",
-    "name": "root",
+    "name": "vendor/root",
     "resources": {
         "/root": "res"
     },
@@ -15,11 +15,11 @@
         }
     },
     "packages": {
-        "package1": {
+        "vendor/package1": {
             "install-path": "package1",
             "installer": "composer"
         },
-        "package2": {
+        "vendor/package2": {
             "install-path": "package2",
             "installer": "composer"
         }
