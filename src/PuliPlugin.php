@@ -22,6 +22,7 @@ use Composer\Script\ScriptEvents;
 use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\ManagerFactory;
+use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Repository\RepositoryManager;
 use RuntimeException;
@@ -95,9 +96,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->installNewPackages($packageManager, $io, $event->getComposer());
 
         // TODO inject logger
+        $packageFileManager = ManagerFactory::createRootPackageFileManager($environment);
         $repoManager = ManagerFactory::createRepositoryManager($environment, $packageManager);
         $discoveryManager = ManagerFactory::createDiscoveryManager($environment, $packageManager);
 
+        $this->copyComposerName($packageFileManager, $event->getComposer());
         $this->buildRepository($repoManager, $io);
         $this->buildDiscovery($discoveryManager, $io);
     }
@@ -193,6 +196,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 $packageManager->removePackage($package->getName());
             }
         }
+    }
+
+    private function copyComposerName(RootPackageFileManager $packageFileManager, Composer $composer)
+    {
+        $packageFileManager->setPackageName($composer->getPackage()->getName());
     }
 
     private function buildRepository(RepositoryManager $repositoryManager, IOInterface $io)

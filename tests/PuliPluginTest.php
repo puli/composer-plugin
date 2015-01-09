@@ -26,6 +26,7 @@ use Puli\Extension\Composer\PuliPlugin;
 use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
 use Puli\RepositoryManager\Tests\JsonWriterTestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Webmozart\Json\JsonDecoder;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -126,7 +127,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->method('getInstallPath')
             ->will($this->returnCallback(array($this, 'getInstallPath')));
 
-        $this->rootPackage = $this->getMock('Composer\Package\RootPackageInterface');
+        $this->rootPackage = new RootPackage('root', '1.0', '1.0');
 
         $this->localRepository = new TestLocalRepository(array(
             new Package('package1', '1.0', '1.0'),
@@ -401,6 +402,20 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->plugin->postInstall($event);
 
         $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+    }
+
+    public function testCopyComposerPackageNameToPuli()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->plugin->postInstall($event);
+
+        $this->assertFileExists($this->tempDir.'/puli.json');
+
+        $decoder = new JsonDecoder();
+        $data = $decoder->decodeFile($this->tempDir.'/puli.json');
+
+        $this->assertSame('root', $data->name);
     }
 
     public function testInsertFactoryClassIntoClassMap()
