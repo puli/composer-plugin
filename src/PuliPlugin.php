@@ -44,7 +44,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     /**
      * The name of the installer.
      */
-    const INSTALLER_NAME = 'Composer';
+    const INSTALLER_NAME = 'composer';
 
     /**
      * @var ManagerFactory
@@ -110,6 +110,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $io = $event->getIO();
         $environment = $this->getProjectEnvironment();
+
+        // TODO inject logger
         $packageManager = $this->managerFactory->createPackageManager($environment);
 
         $this->removeRemovedPackages($packageManager, $io, $event->getComposer());

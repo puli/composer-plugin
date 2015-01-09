@@ -17,11 +17,11 @@
     "packages": {
         "package1": {
             "install-path": "package1",
-            "installer": "Composer"
+            "installer": "composer"
         },
         "package2": {
             "install-path": "package2",
-            "installer": "Composer"
+            "installer": "composer"
         }
     }
 }
