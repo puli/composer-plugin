@@ -353,7 +353,7 @@ class PuliPluginTest extends JsonWriterTestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
+        copy($this->tempDir.'/puli-too-many-installed.json', $this->tempDir.'/puli.json');
 
         $this->localRepository->setPackages(array());
 
@@ -362,7 +362,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for removed Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('Removing <info>package1</info> (<comment>package1</comment>)');
+            ->with('Removing <info>package3</info> (<comment>package3</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Looking for new Puli packages</info>');

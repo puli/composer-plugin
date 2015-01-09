@@ -25,6 +25,7 @@ use Puli\RepositoryManager\Environment\ProjectEnvironment;
 use Puli\RepositoryManager\ManagerFactory;
 use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
+use Puli\RepositoryManager\Package\PackageState;
 use Puli\RepositoryManager\Repository\RepositoryManager;
 use RuntimeException;
 use Webmozart\PathUtil\Path;
@@ -189,31 +190,18 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $io->write('<info>Looking for removed Puli packages</info>');
 
-        $repositoryManager = $composer->getRepositoryManager();
-        $packages = $repositoryManager->getLocalRepository()->getPackages();
-        $packageNames = array();
-        $rootDir = $packageManager->getRootPackage()->getInstallPath();
+        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packages as $package) {
-            if ($package instanceof AliasPackage) {
-                $package = $package->getAliasOf();
-            }
+        foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME, PackageState::NOT_FOUND) as $package) {
+            $installPath = $package->getInstallPath();
 
-            $packageNames[$package->getName()] = true;
-        }
+            $io->write(sprintf(
+                'Removing <info>%s</info> (<comment>%s</comment>)',
+                $package->getName(),
+                Path::makeRelative($installPath, $rootDir)
+            ));
 
-        foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME) as $package) {
-            if (!isset($packageNames[$package->getName()])) {
-                $installPath = $package->getInstallPath();
-
-                $io->write(sprintf(
-                    'Removing <info>%s</info> (<comment>%s</comment>)',
-                    $package->getName(),
-                    Path::makeRelative($installPath, $rootDir)
-                ));
-
-                $packageManager->removePackage($package->getName());
-            }
+            $packageManager->removePackage($package->getName());
         }
     }
 
