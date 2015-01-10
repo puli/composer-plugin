@@ -40,6 +40,6 @@
         "class": "Puli\\Extension\\Composer\\PuliPlugin"
     },
     "support": {
-        "issues": "https://github.com/puli/puli/issues"
+        "issues": "https://github.com/puli/issues/issues"
     }
 }
