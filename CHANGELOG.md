@@ -1,7 +1,7 @@
 Changelog
 =========
 
-* 1.0.0-alpha3 (@release_date@)
+* 1.0.0-beta (2015-01-12)
 
  * removed `ComposerPlugin`. You need to remove the plugin from your puli.json
    file, otherwise you'll have an exception. The package names are now set
