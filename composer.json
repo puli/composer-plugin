@@ -24,12 +24,12 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "Puli\\Extension\\Composer\\": "src/"
+            "Puli\\ComposerPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Puli\\Extension\\Composer\\Tests\\": "tests/",
+            "Puli\\ComposerPlugin\\Tests\\": "tests/",
             "Puli\\RepositoryManager\\Tests\\": "vendor/puli/repository-manager/tests/"
         }
     },
@@ -37,7 +37,7 @@
         "branch-alias": {
             "dev-master": "1.0-dev"
         },
-        "class": "Puli\\Extension\\Composer\\PuliPlugin"
+        "class": "Puli\\ComposerPlugin\\PuliPlugin"
     },
     "support": {
         "issues": "https://github.com/puli/issues/issues"

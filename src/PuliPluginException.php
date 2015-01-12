@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Extension\Composer;
+namespace Puli\ComposerPlugin;
 
 use RuntimeException;
 

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Extension\Composer\Tests;
+namespace Puli\ComposerPlugin\Tests;
 
 use Composer\Composer;
 use Composer\Config;
@@ -22,8 +22,8 @@ use Composer\Repository\RepositoryManager;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use PHPUnit_Framework_MockObject_MockObject;
-use Puli\Extension\Composer\PuliPlugin;
-use Puli\Extension\Composer\Tests\Fixtures\TestLocalRepository;
+use Puli\ComposerPlugin\PuliPlugin;
+use Puli\ComposerPlugin\Tests\Fixtures\TestLocalRepository;
 use Puli\RepositoryManager\Tests\JsonWriterTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Json\JsonDecoder;
@@ -37,13 +37,6 @@ use Webmozart\PathUtil\Path;
  */
 class PuliPluginTest extends JsonWriterTestCase
 {
-    const PLUGIN_CLASS = 'Puli\Extension\Composer\ComposerPlugin';
-
-    /**
-     * @var PHPUnit_Framework_MockObject_MockObject
-     */
-    private $dumper;
-
     /**
      * @var PuliPlugin
      */
@@ -110,11 +103,7 @@ class PuliPluginTest extends JsonWriterTestCase
         $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
         $filesystem->mirror(__DIR__.'/Fixtures/home', $this->tempHome);
 
-        $this->dumper = $this->getMockBuilder('Puli\Extension\Composer\RepositoryDumper\RepositoryDumper')
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->plugin = new PuliPlugin($this->dumper);
+        $this->plugin = new PuliPlugin();
         $this->io = $this->getMock('Composer\IO\IOInterface');
         $this->config = new Config(false, $this->tempDir);
         $this->config->merge(array('config' => array('vendor-dir' => 'the-vendor')));
@@ -446,7 +435,7 @@ class PuliPluginTest extends JsonWriterTestCase
     }
 
     /**
-     * @expectedException \Puli\Extension\Composer\PuliPluginException
+     * @expectedException \Puli\ComposerPlugin\PuliPluginException
      * @expectedExceptionMessage autoload_classmap.php
      */
     public function testFailIfClassMapFileNotFound()
@@ -497,7 +486,7 @@ class PuliPluginTest extends JsonWriterTestCase
     }
 
     /**
-     * @expectedException \Puli\Extension\Composer\PuliPluginException
+     * @expectedException \Puli\ComposerPlugin\PuliPluginException
      * @expectedExceptionMessage autoload.php
      */
     public function testFailIfAutoloadFileNotFound()

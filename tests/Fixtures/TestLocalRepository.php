@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Puli\Extension\Composer\Tests\Fixtures;
+namespace Puli\ComposerPlugin\Tests\Fixtures;
 
 use Composer\Package\PackageInterface;
 use Composer\Repository\WritableRepositoryInterface;
