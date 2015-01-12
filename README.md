@@ -1,5 +1,5 @@
-Composer Plugin for Puli
-========================
+The Puli Plugin for Composer
+============================
 
 [![Build Status](https://travis-ci.org/puli/composer-plugin.svg?branch=master)](https://travis-ci.org/puli/composer-plugin)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/composer-plugin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/composer-plugin/?branch=master)
@@ -12,9 +12,9 @@ Latest release: [1.0.0-alpha2](https://packagist.org/packages/puli/composer-plug
 
 PHP >= 5.3.9
 
-This plugin integrates [Composer] into the [Puli Repository Manager]. Whenever you
-install or update your Composer dependencies, a Puli repository is generated 
-from the puli.json files of the installed packages:
+This plugin integrates [Composer] with the [Puli Repository Manager]. Whenever
+you install or update your Composer dependencies, a [Puli resource repository] 
+and [discovery] are built from the puli.json files of all installed packages:
 
 ```json
 {
@@ -24,17 +24,28 @@ from the puli.json files of the installed packages:
 }
 ```
 
-You can include the generated repository in your code and access all exported
-resources by their Puli paths:
+You can load the built repository/discovery in your code:
 
 ```php
-$repo = require __DIR__.'/vendor/resource-repository.php';
+$factoryClass = PULI_FACTORY_CLASS;
+$factory = new $factoryClass();
 
-// /path/to/project/vendor/acme/blog/resources/config/config.yml
-echo $repo->get('/acme/blog/config/config.yml')->getContents();
+// Fetch resources from the repository
+$repo = $factory->createRepository();
+
+echo $repo->get('/acme/blog/config/config.yml')->getBody();
+
+// Find resources by binding type
+$discovery = $factory->createFactory($repo);
+
+foreach ($discovery->find('doctrine/xml-mapping') as $binding) {
+    foreach ($binding->getResources() as $resource) {
+        // do something...
+    }
+}
 ```
 
-Read [Puli at a Glance] if you want to learn more about Puli.
+Read [Puli at a Glance] to learn more about Puli.
 
 Authors
 -------
@@ -50,7 +61,7 @@ Follow the [Getting Started] guide to install Puli in your project.
 Documentation
 -------------
 
-Read the [Puli Documentation] if you want to learn more about Puli.
+Read the [Puli Documentation] to learn more about Puli.
 
 Contribute
 ----------
@@ -74,6 +85,8 @@ All contents of this package are licensed under the [MIT license].
 [Bernhard Schussek]: http://webmozarts.com
 [The Community Contributors]: https://github.com/puli/composer-plugin/graphs/contributors
 [Puli Repository Manager]: https://github.com/puli/repository-manager
+[Puli resource repository]: https://github.com/puli/repository
+[discovery]: https://github.com/puli/discovery
 [Composer]: https://getcomposer.org
 [Getting Started]: http://docs.puli.io/en/latest/getting-started.html
 [Puli Documentation]: http://docs.puli.io/en/latest/index.html
