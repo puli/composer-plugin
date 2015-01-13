@@ -186,17 +186,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(3))
-            ->method('write')
             ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
-        $this->io->expects($this->at(4))
+        $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
 
@@ -233,17 +230,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
+            ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
-        $this->io->expects($this->at(3))
-            ->method('write')
             ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
+        $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
@@ -263,14 +257,11 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
-        $this->io->expects($this->at(2))
-            ->method('write')
             ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(3))
+        $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
@@ -290,17 +281,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(3))
-            ->method('write')
             ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
+        $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
@@ -321,17 +309,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(3))
-            ->method('write')
             ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
+        $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
@@ -348,17 +333,14 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Removing <info>vendor/package3</info> (<comment>package3</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
             ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
+        $this->io->expects($this->at(3))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
@@ -377,20 +359,73 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for removed Puli packages</info>');
+            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Looking for new Puli packages</info>');
-        $this->io->expects($this->at(2))
-            ->method('write')
             ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(3))
+        $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
 
         $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+    }
+
+    public function testReinstallPackagesWithInstallPathMovedToSubPath()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
+
+        // Package was moved to sub-path (PSR-0 -> PSR-4)
+        // Such a package is not recognized as removed, because the path still
+        // exists. Hence we need to explicitly reinstall it.
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1/sub/path';
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Reinstalling <info>vendor/package1</info> (<comment>package1/sub/path</comment>)');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Building Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/repository');
+
+        $this->assertJsonFileEquals($this->tempDir.'/puli-moved-package.json', $this->tempDir.'/puli.json');
+    }
+
+    public function testReinstallPackagesWithInstallPathMovedToParentPath()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-moved-package.json', $this->tempDir.'/puli.json');
+
+        // Package was moved to parent path (PSR-4 -> PSR-0)
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1';
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Reinstalling <info>vendor/package1</info> (<comment>package1</comment>)');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Building Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/repository');
+
+        $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
 
     public function testCopyComposerPackageNameToPuli()

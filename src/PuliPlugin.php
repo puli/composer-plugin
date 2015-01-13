@@ -114,6 +114,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         // TODO inject logger
         $packageManager = $this->managerFactory->createPackageManager($environment);
 
+        $io->write('<info>Looking for updated Puli packages</info>');
+        $this->reinstallMovedPackages($packageManager, $io, $event->getComposer());
         $this->removeRemovedPackages($packageManager, $io, $event->getComposer());
         $this->installNewPackages($packageManager, $io, $event->getComposer());
 
@@ -159,8 +161,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function installNewPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
     {
-        $io->write('<info>Looking for new Puli packages</info>');
-
         $repositoryManager = $composer->getRepositoryManager();
         $installationManager = $composer->getInstallationManager();
         $packages = $repositoryManager->getLocalRepository()->getPackages();
@@ -188,10 +188,44 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
+    private function reinstallMovedPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
+    {
+        $repositoryManager = $composer->getRepositoryManager();
+        $installationManager = $composer->getInstallationManager();
+        $packages = $repositoryManager->getLocalRepository()->getPackages();
+        $rootDir = $packageManager->getRootPackage()->getInstallPath();
+
+        foreach ($packages as $package) {
+            if ($package instanceof AliasPackage) {
+                $package = $package->getAliasOf();
+            }
+
+            $packageName = $package->getName();
+            $installPath = $installationManager->getInstallPath($package);
+
+            // We are only interested in existing packages
+            if (!$packageManager->hasPackage($packageName)) {
+                continue;
+            }
+
+            // Check whether the install path has changed
+            if ($installPath === $packageManager->getPackage($packageName)->getInstallPath()) {
+                continue;
+            }
+
+            $io->write(sprintf(
+                'Reinstalling <info>%s</info> (<comment>%s</comment>)',
+                $package->getName(),
+                Path::makeRelative($installPath, $rootDir)
+            ));
+
+            $packageManager->removePackage($packageName);
+            $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
+        }
+    }
+
     private function removeRemovedPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
     {
-        $io->write('<info>Looking for removed Puli packages</info>');
-
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
         foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME, PackageState::NOT_FOUND) as $package) {
