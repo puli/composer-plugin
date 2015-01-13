@@ -454,7 +454,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<warning>Warning: Could not install package "vendor/package1" (at ./package2): NameConflictException: Cannot load package "vendor/package1" at ./package2: The package at ./package1 has the same name.</warning>');
+            ->with('<warning>Warning: Could not install package "vendor/package1" (at package2): NameConflictException: Cannot load package "vendor/package1" at package2: The package at package1 has the same name.</warning>');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -484,7 +484,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('Installing <info>vendor/package2</info> (<comment>not-loadable</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('<warning>Warning: Could not install package "vendor/package2" (at ./not-loadable): UnsupportedVersionException: Cannot read package file ./not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
+            ->with('<warning>Warning: Could not install package "vendor/package2" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
         $this->io->expects($this->at(4))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -510,7 +510,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<warning>Warning: Could not load package "vendor/package1" (at ./not-loadable): UnsupportedVersionException: Cannot read package file ./not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
+            ->with('<warning>Warning: Could not load package "vendor/package1" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -536,7 +536,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<warning>Warning: Could not load package "vendor/package1" (at ./foobar): FileNotFoundException: The file ./foobar does not exist.</warning>');
+            ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -565,7 +565,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<warning>Warning: Could not load package "vendor/package1" (at ./foobar): FileNotFoundException: The file ./foobar does not exist.</warning>');
+            ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');

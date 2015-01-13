@@ -396,11 +396,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath, Exception $error, $rootDir)
     {
         $io->write(sprintf(
-            '<warning>Warning: %s (at ./%s): %s: %s</warning>',
+            '<warning>Warning: %s (at %s): %s: %s</warning>',
             sprintf($message, $packageName),
             Path::makeRelative($installPath, $rootDir),
             $this->getShortClassName(get_class($error)),
-            str_replace($rootDir, '.', $error->getMessage())
+            str_replace($rootDir.'/', '', $error->getMessage())
         ));
     }
 
