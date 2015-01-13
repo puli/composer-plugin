@@ -122,6 +122,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->removeRemovedPackages($composerPackages, $packageManager, $io);
         $this->reinstallMovedPackages($composerPackages, $packageManager, $io, $event->getComposer());
         $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
+        $this->checkForLoadErrors($packageManager, $io);
 
         $packageFileManager = $this->managerFactory->createRootPackageFileManager($environment);
         $repoManager = $this->managerFactory->createRepositoryManager($environment, $packageManager);
@@ -241,6 +242,24 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             ));
 
             $this->removePackage($packageManager, $packageName);
+        }
+    }
+
+    private function checkForLoadErrors(PackageManager $packageManager, IOInterface $io)
+    {
+        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
+
+        foreach ($packageManager->getPackages(PackageState::NOT_LOADABLE) as $package) {
+            $loadError = $package->getLoadError();
+
+            $io->write(sprintf(
+                '<warning>Warning: Could not load %s (%s): %s: %s</warning>',
+                $package->getName(),
+                Path::makeRelative($package->getInstallPath(), $rootDir),
+                $this->getShortClassName(get_class($loadError)),
+                str_replace($rootDir.'/', '', $loadError->getMessage())
+            ));
+
         }
     }
 
@@ -378,4 +397,5 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         return false === $pos ? $className : substr($className, $pos + 1);
     }
+
 }

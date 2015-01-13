@@ -7,6 +7,8 @@ Changelog
  * added `IOLogger`
  * errors happening during package installation are logged to the screen now 
    instead of causing Composer to abort
+ * errors happening during package loading are logged to the screen now instead
+   of being silently ignored
 
 * 1.0.0-beta (2015-01-13)
 
