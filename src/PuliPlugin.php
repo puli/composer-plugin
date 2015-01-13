@@ -15,6 +15,7 @@ use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
 use Composer\Package\AliasPackage;
+use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\Event;
@@ -27,7 +28,6 @@ use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Package\PackageState;
 use Puli\RepositoryManager\Repository\RepositoryManager;
-use RuntimeException;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -111,15 +111,15 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $io = $event->getIO();
         $environment = $this->getProjectEnvironment();
 
-        // TODO inject logger
         $packageManager = $this->managerFactory->createPackageManager($environment);
 
         $io->write('<info>Looking for updated Puli packages</info>');
-        $this->reinstallMovedPackages($packageManager, $io, $event->getComposer());
-        $this->removeRemovedPackages($packageManager, $io, $event->getComposer());
-        $this->installNewPackages($packageManager, $io, $event->getComposer());
 
-        // TODO inject logger
+        $composerPackages = $this->loadComposerPackages($event->getComposer());
+        $this->removeRemovedPackages($composerPackages, $packageManager, $io, $event->getComposer());
+        $this->reinstallMovedPackages($composerPackages, $packageManager, $io, $event->getComposer());
+        $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
+
         $packageFileManager = $this->managerFactory->createRootPackageFileManager($environment);
         $repoManager = $this->managerFactory->createRepositoryManager($environment, $packageManager);
         $discoveryManager = $this->managerFactory->createDiscoveryManager($environment, $packageManager);
@@ -159,14 +159,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);
     }
 
-    private function installNewPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
+    private function installNewPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
     {
-        $repositoryManager = $composer->getRepositoryManager();
         $installationManager = $composer->getInstallationManager();
-        $packages = $repositoryManager->getLocalRepository()->getPackages();
-        $rootDir = $packageManager->getRootPackage()->getInstallPath();
+        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packages as $package) {
+        foreach ($composerPackages as $packageName => $package) {
             if ($package instanceof AliasPackage) {
                 $package = $package->getAliasOf();
             }
@@ -180,27 +178,24 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
             $io->write(sprintf(
                 'Installing <info>%s</info> (<comment>%s</comment>)',
-                $package->getName(),
+                $packageName,
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->installPackage($installPath, $package->getName(), self::INSTALLER_NAME);
+            $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
         }
     }
 
-    private function reinstallMovedPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
+    private function reinstallMovedPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
     {
-        $repositoryManager = $composer->getRepositoryManager();
         $installationManager = $composer->getInstallationManager();
-        $packages = $repositoryManager->getLocalRepository()->getPackages();
-        $rootDir = $packageManager->getRootPackage()->getInstallPath();
+        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packages as $package) {
+        foreach ($composerPackages as $packageName => $package) {
             if ($package instanceof AliasPackage) {
                 $package = $package->getAliasOf();
             }
 
-            $packageName = $package->getName();
             $installPath = $installationManager->getInstallPath($package);
 
             // We are only interested in existing packages
@@ -215,7 +210,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
             $io->write(sprintf(
                 'Reinstalling <info>%s</info> (<comment>%s</comment>)',
-                $package->getName(),
+                $packageName,
                 Path::makeRelative($installPath, $rootDir)
             ));
 
@@ -224,20 +219,25 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    private function removeRemovedPackages(PackageManager $packageManager, IOInterface $io, Composer $composer)
+    private function removeRemovedPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME, PackageState::NOT_FOUND) as $package) {
+        foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME, PackageState::NOT_FOUND) as $packageName => $package) {
+            // Check whether package was only moved
+            if (isset($composerPackages[$packageName])) {
+                continue;
+            }
+
             $installPath = $package->getInstallPath();
 
             $io->write(sprintf(
                 'Removing <info>%s</info> (<comment>%s</comment>)',
-                $package->getName(),
+                $packageName,
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->removePackage($package->getName());
+            $packageManager->removePackage($packageName);
         }
     }
 
@@ -326,5 +326,24 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         return $this->projectEnvironment;
+    }
+
+    /**
+     * Loads Composer's currently installed packages.
+     *
+     * @param Composer $composer The Composer instance.
+     *
+     * @return PackageInterface[] The installed packages indexed by their names.
+     */
+    private function loadComposerPackages(Composer $composer)
+    {
+        $repository = $composer->getRepositoryManager()->getLocalRepository();
+        $packages = array();
+
+        foreach ($repository->getPackages() as $package) {
+            $packages[$package->getName()] = $package;
+        }
+
+        return $packages;
     }
 }

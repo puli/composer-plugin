@@ -327,16 +327,22 @@ class PuliPluginTest extends JsonWriterTestCase
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-too-many-installed.json', $this->tempDir.'/puli.json');
+        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
 
-        $this->localRepository->setPackages(array());
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->tempDir.'/package2');
+
+        $this->localRepository->setPackages(array(
+            new Package('vendor/package1', '1.0', '1.0'),
+            // no more package2
+        ));
 
         $this->io->expects($this->at(0))
             ->method('write')
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('Removing <info>vendor/package3</info> (<comment>package3</comment>)');
+            ->with('Removing <info>vendor/package2</info> (<comment>package2</comment>)');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
