@@ -1,5 +1,6 @@
 {
     "version": "1.0",
+    "name": "vendor/root",
     "resources": {
         "/root": "res"
     },

@@ -434,6 +434,36 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
 
+    public function testWarnIfPackageNotLoadable()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->installPaths['vendor/package2'] = $this->tempDir.'/not-loadable';
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('Installing <info>vendor/package2</info> (<comment>not-loadable</comment>)');
+        $this->io->expects($this->at(3))
+            ->method('write')
+            ->with('<warning>Warning: Could not install vendor/package2 (not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
+        $this->io->expects($this->at(4))
+            ->method('write')
+            ->with('<info>Building Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/repository');
+
+        $this->assertJsonFileEquals($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
+    }
+
     public function testCopyComposerPackageNameToPuli()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);

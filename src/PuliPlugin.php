@@ -20,6 +20,7 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Exception;
 use Puli\ComposerPlugin\Logger\IOLogger;
 use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
@@ -118,7 +119,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $io->write('<info>Looking for updated Puli packages</info>');
 
         $composerPackages = $this->loadComposerPackages($event->getComposer());
-        $this->removeRemovedPackages($composerPackages, $packageManager, $io, $event->getComposer());
+        $this->removeRemovedPackages($composerPackages, $packageManager, $io);
         $this->reinstallMovedPackages($composerPackages, $packageManager, $io, $event->getComposer());
         $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
 
@@ -184,7 +185,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
+            $this->installPackage($packageManager, $installPath, $packageName, $io);
         }
     }
 
@@ -216,12 +217,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->removePackage($packageName);
-            $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
+            $this->removePackage($packageManager, $packageName);
+            $this->installPackage($packageManager, $installPath, $packageName, $io);
         }
     }
 
-    private function removeRemovedPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
+    private function removeRemovedPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io)
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
@@ -239,7 +240,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 Path::makeRelative($installPath, $rootDir)
             ));
 
-            $packageManager->removePackage($packageName);
+            $this->removePackage($packageManager, $packageName);
         }
     }
 
@@ -347,5 +348,34 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         return $packages;
+    }
+
+    private function installPackage(PackageManager $packageManager, $installPath, $packageName, IOInterface $io)
+    {
+        try {
+            $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
+        } catch (Exception $e) {
+            $rootDir = $packageManager->getEnvironment()->getRootDirectory();
+
+            $io->write(sprintf(
+                '<warning>Warning: Could not install %s (%s): %s: %s</warning>',
+                $packageName,
+                Path::makeRelative($installPath, $rootDir),
+                $this->getShortClassName(get_class($e)),
+                str_replace($rootDir.'/', '', $e->getMessage())
+            ));
+        }
+    }
+
+    private function removePackage(PackageManager $packageManager, $packageName)
+    {
+        $packageManager->removePackage($packageName);
+    }
+
+    private function getShortClassName($className)
+    {
+        $pos = strrpos($className, '\\');
+
+        return false === $pos ? $className : substr($className, $pos + 1);
     }
 }

@@ -5,6 +5,8 @@ Changelog
 
  * fixed: packages with a moved install path are reinstalled now
  * added `IOLogger`
+ * errors happening during package installation are logged to the screen now 
+   instead of causing Composer to abort
 
 * 1.0.0-beta (2015-01-13)
 
