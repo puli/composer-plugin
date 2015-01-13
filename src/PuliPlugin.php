@@ -121,7 +121,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $composerPackages = $this->loadComposerPackages($event->getComposer());
         $this->removeRemovedPackages($composerPackages, $packageManager, $io);
-        $this->reinstallMovedPackages($composerPackages, $packageManager, $io, $event->getComposer());
         $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
         $this->checkForLoadErrors($packageManager, $io);
 
@@ -176,52 +175,37 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
             $installPath = $installationManager->getInstallPath($package);
 
-            // Already installed?
-            if ($packageManager->isPackageInstalled($installPath)) {
+            // Skip meta packages
+            if ('' === $installPath) {
                 continue;
             }
 
-            $io->write(sprintf(
-                'Installing <info>%s</info> (<comment>%s</comment>)',
-                $packageName,
-                Path::makeRelative($installPath, $rootDir)
-            ));
+            if ($packageManager->hasPackage($packageName)) {
+                $package = $packageManager->getPackage($packageName);
 
-            $this->installPackage($packageManager, $installPath, $packageName, $io);
-        }
-    }
+                // Only proceed if the install path has changed
+                if ($installPath === $package->getInstallPath()) {
+                    continue;
+                }
 
-    private function reinstallMovedPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
-    {
-        $installationManager = $composer->getInstallationManager();
-        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
+                // Only remove packages installed by Composer
+                if (self::INSTALLER_NAME === $package->getInstallInfo()->getInstaller()) {
+                    $io->write(sprintf(
+                        'Reinstalling <info>%s</info> (<comment>%s</comment>)',
+                        $packageName,
+                        Path::makeRelative($installPath, $rootDir)
+                    ));
 
-        foreach ($composerPackages as $packageName => $package) {
-            if ($package instanceof AliasPackage) {
-                $package = $package->getAliasOf();
+                    $this->removePackage($packageManager, $packageName);
+                }
+            } else {
+                $io->write(sprintf(
+                    'Installing <info>%s</info> (<comment>%s</comment>)',
+                    $packageName,
+                    Path::makeRelative($installPath, $rootDir)
+                ));
             }
 
-            $installPath = $installationManager->getInstallPath($package);
-
-            // We are only interested in existing packages
-            if (!$packageManager->hasPackage($packageName)) {
-                continue;
-            }
-
-            // Check whether the install path has changed
-            if ($installPath === $packageManager->getPackage($packageName)->getInstallPath()) {
-                continue;
-            }
-
-            // TODO package must have been installed by Composer
-
-            $io->write(sprintf(
-                'Reinstalling <info>%s</info> (<comment>%s</comment>)',
-                $packageName,
-                Path::makeRelative($installPath, $rootDir)
-            ));
-
-            $this->removePackage($packageManager, $packageName);
             $this->installPackage($packageManager, $installPath, $packageName, $io);
         }
     }
@@ -412,11 +396,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath, Exception $error, $rootDir)
     {
         $io->write(sprintf(
-            '<warning>Warning: %s (at %s): %s: %s</warning>',
+            '<warning>Warning: %s (at ./%s): %s: %s</warning>',
             sprintf($message, $packageName),
             Path::makeRelative($installPath, $rootDir),
             $this->getShortClassName(get_class($error)),
-            str_replace($rootDir.'/', '', $error->getMessage())
+            str_replace($rootDir, '.', $error->getMessage())
         ));
     }
 

@@ -9,6 +9,8 @@ Changelog
    instead of causing Composer to abort
  * errors happening during package loading are logged to the screen now instead
    of being silently ignored
+ * fixed: packages installed by the user are not overwritten if a package with
+   the same name but a different path is loaded through Composer
 
 * 1.0.0-beta (2015-01-13)
 
