@@ -4,6 +4,7 @@ Changelog
 * 1.0.0-next (@release_date@)
 
  * fixed: packages with a moved install path are reinstalled now
+ * added `IOLogger`
 
 * 1.0.0-beta (2015-01-13)
 

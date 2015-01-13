@@ -20,6 +20,7 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Puli\ComposerPlugin\Logger\IOLogger;
 use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\Environment\ProjectEnvironment;
@@ -111,6 +112,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $io = $event->getIO();
         $environment = $this->getProjectEnvironment();
 
+        $logger = new IOLogger($io);
         $packageManager = $this->managerFactory->createPackageManager($environment);
 
         $io->write('<info>Looking for updated Puli packages</info>');
@@ -122,7 +124,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $packageFileManager = $this->managerFactory->createRootPackageFileManager($environment);
         $repoManager = $this->managerFactory->createRepositoryManager($environment, $packageManager);
-        $discoveryManager = $this->managerFactory->createDiscoveryManager($environment, $packageManager);
+        $discoveryManager = $this->managerFactory->createDiscoveryManager($environment, $packageManager, $logger);
 
         $this->copyComposerName($packageFileManager, $event->getComposer());
         $this->buildRepository($repoManager, $io);
