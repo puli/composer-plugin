@@ -189,7 +189,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 }
 
                 // Only remove packages installed by Composer
-                if (self::INSTALLER_NAME === $package->getInstallInfo()->getInstaller()) {
+                if (self::INSTALLER_NAME === $package->getInstallInfo()->getInstallerName()) {
                     $io->write(sprintf(
                         'Reinstalling <info>%s</info> (<comment>%s</comment>)',
                         $packageName,
