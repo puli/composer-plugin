@@ -1,0 +1,26 @@
+{
+    "version": "1.0",
+    "name": "vendor/root",
+    "resources": {
+        "/root": "res"
+    },
+    "config": {
+        "factory": {
+            "class": "My\\PuliFactory",
+            "file": "My/PuliFactory.php"
+        },
+        "repository": {
+            "type": "filesystem",
+            "path": "repository"
+        }
+    },
+    "packages": {
+        "vendor/package1": {
+            "install-path": "foobar"
+        },
+        "vendor/package2": {
+            "install-path": "package2",
+            "installer": "composer"
+        }
+    }
+}

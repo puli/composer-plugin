@@ -451,7 +451,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('Installing <info>vendor/package2</info> (<comment>not-loadable</comment>)');
         $this->io->expects($this->at(3))
             ->method('write')
-            ->with('<warning>Warning: Could not install vendor/package2 (not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
+            ->with('<warning>Warning: Could not install package "vendor/package2" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
         $this->io->expects($this->at(4))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -477,7 +477,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<warning>Warning: Could not load vendor/package1 (not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
+            ->with('<warning>Warning: Could not load package "vendor/package1" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Building Puli resource repository</info>');
@@ -488,6 +488,61 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-not-loadable.json', $this->tempDir.'/puli.json');
+    }
+
+    public function testWarnIfPackageInstalledByComposerNotFound()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-not-found.json', $this->tempDir.'/puli.json');
+
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/foobar';
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Building Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/repository');
+
+        $this->assertJsonFileEquals($this->tempDir.'/puli-not-found.json', $this->tempDir.'/puli.json');
+    }
+
+    public function testWarnIfPackageInstalledByUserNotFound()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-user-not-found.json', $this->tempDir.'/puli.json');
+
+        $this->localRepository->setPackages(array(
+            // package1 is installed by the user
+            new Package('package2', '1.0', '1.0'),
+        ));
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Building Puli resource repository</info>');
+
+        $this->plugin->postInstall($event);
+
+        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/repository');
+
+        $this->assertJsonFileEquals($this->tempDir.'/puli-user-not-found.json', $this->tempDir.'/puli.json');
     }
 
     public function testCopyComposerPackageNameToPuli()

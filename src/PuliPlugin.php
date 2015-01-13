@@ -26,6 +26,7 @@ use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\Environment\ProjectEnvironment;
 use Puli\RepositoryManager\ManagerFactory;
+use Puli\RepositoryManager\Package\Package;
 use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Package\PackageState;
@@ -212,6 +213,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
+            // TODO package must have been installed by Composer
+
             $io->write(sprintf(
                 'Reinstalling <info>%s</info> (<comment>%s</comment>)',
                 $packageName,
@@ -249,17 +252,26 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packageManager->getPackages(PackageState::NOT_LOADABLE) as $package) {
-            $loadError = $package->getLoadError();
-
-            $io->write(sprintf(
-                '<warning>Warning: Could not load %s (%s): %s: %s</warning>',
+        foreach ($packageManager->getPackages(PackageState::NOT_FOUND) as $package) {
+            $this->printPackageWarning(
+                $io,
+                'Could not load package "%s"',
                 $package->getName(),
-                Path::makeRelative($package->getInstallPath(), $rootDir),
-                $this->getShortClassName(get_class($loadError)),
-                str_replace($rootDir.'/', '', $loadError->getMessage())
-            ));
+                $package->getInstallPath(),
+                $package->getLoadError(),
+                $rootDir
+            );
+        }
 
+        foreach ($packageManager->getPackages(PackageState::NOT_LOADABLE) as $package) {
+            $this->printPackageWarning(
+                $io,
+                'Could not load package "%s"',
+                $package->getName(),
+                $package->getInstallPath(),
+                $package->getLoadError(),
+                $rootDir
+            );
         }
     }
 
@@ -374,15 +386,14 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         try {
             $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
         } catch (Exception $e) {
-            $rootDir = $packageManager->getEnvironment()->getRootDirectory();
-
-            $io->write(sprintf(
-                '<warning>Warning: Could not install %s (%s): %s: %s</warning>',
+            $this->printPackageWarning(
+                $io,
+                'Could not install package "%s"',
                 $packageName,
-                Path::makeRelative($installPath, $rootDir),
-                $this->getShortClassName(get_class($e)),
-                str_replace($rootDir.'/', '', $e->getMessage())
-            ));
+                $installPath,
+                $e,
+                $packageManager->getEnvironment()->getRootDirectory()
+            );
         }
     }
 
@@ -396,6 +407,17 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $pos = strrpos($className, '\\');
 
         return false === $pos ? $className : substr($className, $pos + 1);
+    }
+
+    private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath, Exception $error, $rootDir)
+    {
+        $io->write(sprintf(
+            '<warning>Warning: %s (at %s): %s: %s</warning>',
+            sprintf($message, $packageName),
+            Path::makeRelative($installPath, $rootDir),
+            $this->getShortClassName(get_class($error)),
+            str_replace($rootDir.'/', '', $error->getMessage())
+        ));
     }
 
 }
