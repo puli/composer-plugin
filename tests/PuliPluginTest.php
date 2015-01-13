@@ -464,7 +464,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
-        $this->assertJsonFileEquals($this->tempDir.'/puli-other-installer.json', $this->tempDir.'/puli.json');
+        // File not modified. Use assertFileEquals() instead of
+        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
+        $this->assertFileEquals($this->tempDir.'/puli-other-installer.json', $this->tempDir.'/puli.json');
     }
 
     public function testWarnIfPackageNotInstallable()
@@ -520,7 +522,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
-        $this->assertJsonFileEquals($this->tempDir.'/puli-not-loadable.json', $this->tempDir.'/puli.json');
+        // File not modified. Use assertFileEquals() instead of
+        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
+        $this->assertFileEquals($this->tempDir.'/puli-not-loadable.json', $this->tempDir.'/puli.json');
     }
 
     public function testWarnIfPackageInstalledByComposerNotFound()
@@ -546,7 +550,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
-        $this->assertJsonFileEquals($this->tempDir.'/puli-not-found.json', $this->tempDir.'/puli.json');
+        // File not modified. Use assertFileEquals() instead of
+        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
+        $this->assertFileEquals($this->tempDir.'/puli-not-found.json', $this->tempDir.'/puli.json');
     }
 
     public function testWarnIfPackageInstalledByUserNotFound()
@@ -575,7 +581,9 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
-        $this->assertJsonFileEquals($this->tempDir.'/puli-user-not-found.json', $this->tempDir.'/puli.json');
+        // File not modified. Use assertFileEquals() instead of
+        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
+        $this->assertFileEquals($this->tempDir.'/puli-user-not-found.json', $this->tempDir.'/puli.json');
     }
 
     public function testCopyComposerPackageNameToPuli()
