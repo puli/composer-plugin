@@ -26,7 +26,6 @@ use Puli\RepositoryManager\Config\Config;
 use Puli\RepositoryManager\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\Environment\ProjectEnvironment;
 use Puli\RepositoryManager\ManagerFactory;
-use Puli\RepositoryManager\Package\Package;
 use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
 use Puli\RepositoryManager\Package\PackageManager;
 use Puli\RepositoryManager\Package\PackageState;
