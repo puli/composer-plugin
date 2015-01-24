@@ -22,14 +22,13 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Exception;
 use Puli\ComposerPlugin\Logger\IOLogger;
-use Puli\RepositoryManager\Config\Config;
-use Puli\RepositoryManager\Discovery\DiscoveryManager;
-use Puli\RepositoryManager\Environment\ProjectEnvironment;
-use Puli\RepositoryManager\ManagerFactory;
-use Puli\RepositoryManager\Package\PackageFile\RootPackageFileManager;
-use Puli\RepositoryManager\Package\PackageManager;
-use Puli\RepositoryManager\Package\PackageState;
-use Puli\RepositoryManager\Repository\RepositoryManager;
+use Puli\RepositoryManager\Api\Config\Config;
+use Puli\RepositoryManager\Api\Discovery\DiscoveryManager;
+use Puli\RepositoryManager\Api\Package\PackageManager;
+use Puli\RepositoryManager\Api\Package\PackageState;
+use Puli\RepositoryManager\Api\Package\RootPackageFileManager;
+use Puli\RepositoryManager\Api\Repository\RepositoryManager;
+use Puli\RepositoryManager\Puli;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -49,14 +48,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     const INSTALLER_NAME = 'composer';
 
     /**
-     * @var ManagerFactory
+     * @var Puli
      */
-    private $managerFactory;
-
-    /**
-     * @var ProjectEnvironment
-     */
-    private $projectEnvironment;
+    private $puli;
 
     /**
      * @var bool
@@ -73,7 +67,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function __construct()
     {
-        $this->managerFactory = new ManagerFactory();
+        $this->puli = new Puli(getcwd());
     }
 
     /**
@@ -111,10 +105,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostInstall = false;
 
         $io = $event->getIO();
-        $environment = $this->getProjectEnvironment();
+        $this->puli->setLogger(new IOLogger($io));
 
-        $logger = new IOLogger($io);
-        $packageManager = $this->managerFactory->createPackageManager($environment);
+        $packageManager = $this->puli->getPackageManager();
 
         $io->write('<info>Looking for updated Puli packages</info>');
 
@@ -123,9 +116,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
         $this->checkForLoadErrors($packageManager, $io);
 
-        $packageFileManager = $this->managerFactory->createRootPackageFileManager($environment);
-        $repoManager = $this->managerFactory->createRepositoryManager($environment, $packageManager);
-        $discoveryManager = $this->managerFactory->createDiscoveryManager($environment, $packageManager, $logger);
+        $packageFileManager = $this->puli->getRootPackageFileManager();
+        $repoManager = $this->puli->getRepositoryManager();
+        $discoveryManager = $this->puli->getDiscoveryManager();
 
         $this->copyComposerName($packageFileManager, $event->getComposer());
         $this->buildRepository($repoManager, $io);
@@ -142,9 +135,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostAutoloadDump = false;
 
         $io = $event->getIO();
-        $rootDir = getcwd();
-        $environment = $this->getProjectEnvironment();
-        $puliConfig = $environment->getConfig();
+        $this->puli->setLogger(new IOLogger($io));
+
+        $rootDir = $this->puli->getEnvironment()->getRootDirectory();
+        $puliConfig = $this->puli->getEnvironment()->getConfig();
         $compConfig = $event->getComposer()->getConfig();
         $vendorDir = $compConfig->get('vendor-dir');
 
@@ -329,20 +323,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $contents = preg_replace('/\n(?=\);\s*$)/mD', "\n".$classMap, $contents);
 
         file_put_contents($classMapFile, $contents);
-    }
-
-    /**
-     * Returns Puli's project environment.
-     *
-     * @return ProjectEnvironment The project environment.
-     */
-    private function getProjectEnvironment()
-    {
-        if (!$this->projectEnvironment) {
-            $this->projectEnvironment = $this->managerFactory->createProjectEnvironment(getcwd());
-        }
-
-        return $this->projectEnvironment;
     }
 
     /**

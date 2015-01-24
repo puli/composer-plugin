@@ -103,7 +103,6 @@ class PuliPluginTest extends JsonWriterTestCase
         $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
         $filesystem->mirror(__DIR__.'/Fixtures/home', $this->tempHome);
 
-        $this->plugin = new PuliPlugin();
         $this->io = $this->getMock('Composer\IO\IOInterface');
         $this->config = new Config(false, $this->tempDir);
         $this->config->merge(array('config' => array('vendor-dir' => 'the-vendor')));
@@ -137,6 +136,8 @@ class PuliPluginTest extends JsonWriterTestCase
 
         chdir($this->tempDir);
         putenv('PULI_HOME='.$this->tempHome);
+
+        $this->plugin = new PuliPlugin();
     }
 
     protected function tearDown()
