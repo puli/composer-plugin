@@ -63,14 +63,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private $runPostAutoloadDump = true;
 
     /**
-     * Creates the plugin.
-     */
-    public function __construct()
-    {
-        $this->puli = new Puli(getcwd());
-    }
-
-    /**
      * {@inheritdoc}
      */
     public static function getSubscribedEvents()
@@ -105,9 +97,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostInstall = false;
 
         $io = $event->getIO();
-        $this->puli->setLogger(new IOLogger($io));
+        $puli = $this->getPuli();
+        $puli->setLogger(new IOLogger($io));
 
-        $packageManager = $this->puli->getPackageManager();
+        $packageManager = $puli->getPackageManager();
 
         $io->write('<info>Looking for updated Puli packages</info>');
 
@@ -116,9 +109,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
         $this->checkForLoadErrors($packageManager, $io);
 
-        $packageFileManager = $this->puli->getRootPackageFileManager();
-        $repoManager = $this->puli->getRepositoryManager();
-        $discoveryManager = $this->puli->getDiscoveryManager();
+        $packageFileManager = $puli->getRootPackageFileManager();
+        $repoManager = $puli->getRepositoryManager();
+        $discoveryManager = $puli->getDiscoveryManager();
 
         $this->copyComposerName($packageFileManager, $event->getComposer());
         $this->buildRepository($repoManager, $io);
@@ -135,10 +128,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostAutoloadDump = false;
 
         $io = $event->getIO();
-        $this->puli->setLogger(new IOLogger($io));
+        $puli = $this->getPuli();
+        $puli->setLogger(new IOLogger($io));
 
-        $rootDir = $this->puli->getEnvironment()->getRootDirectory();
-        $puliConfig = $this->puli->getEnvironment()->getConfig();
+        $rootDir = $puli->getEnvironment()->getRootDirectory();
+        $puliConfig = $puli->getEnvironment()->getConfig();
         $compConfig = $event->getComposer()->getConfig();
         $vendorDir = $compConfig->get('vendor-dir');
 
@@ -154,6 +148,15 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $this->insertFactoryClassConstant($io, $autoloadFile, $factoryClass);
         $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);
+    }
+
+    private function getPuli()
+    {
+        if (!$this->puli) {
+            $this->puli = new Puli(getcwd());
+        }
+
+        return $this->puli;
     }
 
     private function installNewPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
