@@ -235,7 +235,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 'Could not load package "%s"',
                 $package->getName(),
                 $package->getInstallPath(),
-                $package->getLoadError(),
+                $package->getLoadErrors(),
                 $rootDir
             );
         }
@@ -246,7 +246,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 'Could not load package "%s"',
                 $package->getName(),
                 $package->getInstallPath(),
-                $package->getLoadError(),
+                $package->getLoadErrors(),
                 $rootDir
             );
         }
@@ -354,7 +354,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 'Could not install package "%s"',
                 $packageName,
                 $installPath,
-                $e,
+                array($e),
                 $packageManager->getEnvironment()->getRootDirectory()
             );
         }
@@ -372,8 +372,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         return false === $pos ? $className : substr($className, $pos + 1);
     }
 
-    private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath, Exception $error, $rootDir)
+    private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath, array $errors, $rootDir)
     {
+        // Print the first error
+        $error = reset($errors);
+
         $io->write(sprintf(
             '<warning>Warning: %s (at %s): %s: %s</warning>',
             sprintf($message, $packageName),
