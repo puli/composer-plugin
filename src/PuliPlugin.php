@@ -27,8 +27,8 @@ use Puli\RepositoryManager\Api\Discovery\DiscoveryManager;
 use Puli\RepositoryManager\Api\Package\PackageManager;
 use Puli\RepositoryManager\Api\Package\PackageState;
 use Puli\RepositoryManager\Api\Package\RootPackageFileManager;
+use Puli\RepositoryManager\Api\Puli;
 use Puli\RepositoryManager\Api\Repository\RepositoryManager;
-use Puli\RepositoryManager\Puli;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -97,8 +97,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostInstall = false;
 
         $io = $event->getIO();
-        $puli = $this->getPuli();
-        $puli->setLogger(new IOLogger($io));
+        $puli = $this->getPuli($io);
 
         $packageManager = $puli->getPackageManager();
 
@@ -128,8 +127,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostAutoloadDump = false;
 
         $io = $event->getIO();
-        $puli = $this->getPuli();
-        $puli->setLogger(new IOLogger($io));
+        $puli = $this->getPuli($io);
 
         $rootDir = $puli->getEnvironment()->getRootDirectory();
         $puliConfig = $puli->getEnvironment()->getConfig();
@@ -150,10 +148,19 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);
     }
 
-    private function getPuli()
+    private function getPuli(IOInterface $io)
     {
         if (!$this->puli) {
             $this->puli = new Puli(getcwd());
+            $this->puli->setLogger(new IOLogger($io));
+
+            // Classes from the current project are not available, because
+            // Composer does not add them to the autoloader during update/
+            // autoloader generation. Hence we need to disable Puli plugins,
+            // which may load classes from the current project.
+            $this->puli->disablePlugins();
+
+            $this->puli->start();
         }
 
         return $this->puli;
