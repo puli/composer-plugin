@@ -24,11 +24,13 @@ use Exception;
 use Puli\ComposerPlugin\Logger\IOLogger;
 use Puli\RepositoryManager\Api\Config\Config;
 use Puli\RepositoryManager\Api\Discovery\DiscoveryManager;
+use Puli\RepositoryManager\Api\Package\Package;
 use Puli\RepositoryManager\Api\Package\PackageManager;
 use Puli\RepositoryManager\Api\Package\PackageState;
 use Puli\RepositoryManager\Api\Package\RootPackageFileManager;
 use Puli\RepositoryManager\Api\Puli;
 use Puli\RepositoryManager\Api\Repository\RepositoryManager;
+use Webmozart\Criteria\Criterion;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -217,7 +219,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packageManager->getPackagesByInstaller(self::INSTALLER_NAME, PackageState::NOT_FOUND) as $packageName => $package) {
+        $criteria = Criterion::same(Package::INSTALLER, self::INSTALLER_NAME)
+            ->andSame(Package::STATE, PackageState::NOT_FOUND);
+
+        foreach ($packageManager->findPackages($criteria) as $packageName => $package) {
             // Check whether package was only moved
             if (isset($composerPackages[$packageName])) {
                 continue;
@@ -239,7 +244,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        foreach ($packageManager->getPackages(PackageState::NOT_FOUND) as $package) {
+        $notFoundCriteria = Criterion::same(Package::STATE, PackageState::NOT_FOUND);
+        $notLoadableCriteria = Criterion::same(Package::STATE, PackageState::NOT_LOADABLE);
+
+        foreach ($packageManager->findPackages($notFoundCriteria) as $package) {
             $this->printPackageWarning(
                 $io,
                 'Could not load package "%s"',
@@ -250,7 +258,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             );
         }
 
-        foreach ($packageManager->getPackages(PackageState::NOT_LOADABLE) as $package) {
+        foreach ($packageManager->findPackages($notLoadableCriteria) as $package) {
             $this->printPackageWarning(
                 $io,
                 'Could not load package "%s"',
