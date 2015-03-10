@@ -304,7 +304,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $contents = file_get_contents($autoloadFile);
         $escFactoryClass = var_export($factoryClass, true);
-        $constant = "define('PULI_FACTORY_CLASS', $escFactoryClass);\n\n";
+        $constant = "if (!defined('PULI_FACTORY_CLASS')) {\n";
+        $constant .= "    define('PULI_FACTORY_CLASS', $escFactoryClass);\n";
+        $constant .= "}\n\n";
 
         // Regex modifiers:
         // "m": \s matches newlines
