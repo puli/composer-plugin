@@ -6,8 +6,8 @@
     },
     "config": {
         "factory": {
-            "class": "My\\PuliFactory",
-            "file": "My/PuliFactory.php"
+            "class": "Puli\\MyFactory",
+            "file": "My/Factory.php"
         },
         "repository": {
             "type": "filesystem",

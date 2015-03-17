@@ -200,7 +200,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->$listener($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
@@ -353,7 +353,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
     }
 
     public function testDoNotRemovePackagesFromOtherInstaller()
@@ -376,7 +376,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
     }
 
     public function testReinstallPackagesWithInstallPathMovedToSubPath()
@@ -402,7 +402,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-moved-package.json', $this->tempDir.'/puli.json');
@@ -429,7 +429,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
@@ -462,7 +462,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
@@ -494,7 +494,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
@@ -520,7 +520,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
@@ -548,7 +548,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
@@ -579,7 +579,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->plugin->postInstall($event);
 
-        $this->assertFileExists($this->tempDir.'/My/PuliFactory.php');
+        $this->assertFileExists($this->tempDir.'/My/Factory.php');
         $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
@@ -615,7 +615,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Registering My\\PuliFactory with the class-map autoloader</info>');
+            ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
 
         $this->plugin->$listener($event);
 
@@ -624,8 +624,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $classMap = require $this->tempDir.'/the-vendor/composer/autoload_classmap.php';
 
         $this->assertInternalType('array', $classMap);
-        $this->assertArrayHasKey('My\\PuliFactory', $classMap);
-        $this->assertSame($this->tempDir.'/My/PuliFactory.php', Path::canonicalize($classMap['My\\PuliFactory']));
+        $this->assertArrayHasKey('Puli\\MyFactory', $classMap);
+        $this->assertSame($this->tempDir.'/My/Factory.php', Path::canonicalize($classMap['Puli\\MyFactory']));
     }
 
     /**
@@ -667,7 +667,7 @@ class PuliPluginTest extends JsonWriterTestCase
             ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Registering My\\PuliFactory with the class-map autoloader</info>');
+            ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
 
         $this->plugin->$listener($event);
 
@@ -676,7 +676,7 @@ class PuliPluginTest extends JsonWriterTestCase
         require $this->tempDir.'/the-vendor/autoload.php';
 
         $this->assertTrue(defined('PULI_FACTORY_CLASS'));
-        $this->assertSame('My\\PuliFactory', PULI_FACTORY_CLASS);
+        $this->assertSame('Puli\\MyFactory', PULI_FACTORY_CLASS);
     }
 
     /**
