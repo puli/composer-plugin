@@ -24,7 +24,7 @@ use Composer\Script\ScriptEvents;
 use PHPUnit_Framework_MockObject_MockObject;
 use Puli\ComposerPlugin\PuliPlugin;
 use Puli\ComposerPlugin\Tests\Fixtures\TestLocalRepository;
-use Puli\RepositoryManager\Tests\JsonWriterTestCase;
+use Puli\Manager\Tests\JsonWriterTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Json\JsonDecoder;
 use Webmozart\PathUtil\Path;

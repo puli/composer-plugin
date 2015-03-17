@@ -13,7 +13,7 @@
     "require": {
         "composer-plugin-api": "1.0.0",
         "puli/repository": "1.0.*",
-        "puli/repository-manager": "~1.0",
+        "puli/manager": "~1.0",
         "webmozart/json": "~1.0",
         "webmozart/path-util": "~1.0"
     },
@@ -30,7 +30,7 @@
     "autoload-dev": {
         "psr-4": {
             "Puli\\ComposerPlugin\\Tests\\": "tests/",
-            "Puli\\RepositoryManager\\Tests\\": "vendor/puli/repository-manager/tests/"
+            "Puli\\Manager\\Tests\\": "vendor/puli/manager/tests/"
         }
     },
     "extra": {
