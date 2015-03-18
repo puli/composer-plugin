@@ -22,6 +22,7 @@ use Composer\Repository\RepositoryManager;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use PHPUnit_Framework_MockObject_MockObject;
+use Puli\ComposerPlugin\Process\PhpProcessLauncher;
 use Puli\ComposerPlugin\PuliPlugin;
 use Puli\ComposerPlugin\Tests\Fixtures\TestLocalRepository;
 use Puli\Manager\Tests\JsonWriterTestCase;
@@ -32,8 +33,6 @@ use Webmozart\PathUtil\Path;
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @runTestsInSeparateProcesses
  */
 class PuliPluginTest extends JsonWriterTestCase
 {
@@ -66,6 +65,11 @@ class PuliPluginTest extends JsonWriterTestCase
      * @var PHPUnit_Framework_MockObject_MockObject|InstallationManager
      */
     private $installationManager;
+
+    /**
+     * @var PHPUnit_Framework_MockObject_MockObject|PhpProcessLauncher
+     */
+    private $processLauncher;
 
     /**
      * @var Config
@@ -132,12 +136,16 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->composer->setConfig($this->config);
         $this->composer->setPackage($this->rootPackage);
 
+        $this->processLauncher = $this->getMockBuilder('Puli\ComposerPlugin\Process\PhpProcessLauncher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->previousWd = getcwd();
 
         chdir($this->tempDir);
         putenv('PULI_HOME='.$this->tempHome);
 
-        $this->plugin = new PuliPlugin();
+        $this->plugin = new PuliPlugin($this->processLauncher);
     }
 
     protected function tearDown()
@@ -194,17 +202,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(4))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->$listener($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
@@ -238,15 +237,6 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
-            ->method('write')
-            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -265,15 +255,6 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(0))
             ->method('write')
             ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -295,15 +276,6 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
-            ->method('write')
-            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -326,15 +298,6 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
-            ->method('write')
-            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
     }
@@ -359,19 +322,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Removing <info>vendor/package2</info> (<comment>package2</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(4))
-            ->method('write')
-            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
     }
 
     public function testDoNotRemovePackagesFromOtherInstaller()
@@ -385,19 +337,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(0))
             ->method('write')
             ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource discovery</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
     }
 
     public function testReinstallPackagesWithInstallPathMovedToSubPath()
@@ -417,17 +358,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Reinstalling <info>vendor/package1</info> (<comment>package1/sub/path</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-moved-package.json', $this->tempDir.'/puli.json');
     }
@@ -447,17 +379,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Reinstalling <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
     }
@@ -483,17 +406,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<warning>Warning: Could not install package "vendor/package1" (at package2): NameConflictException: Cannot load package "vendor/package1" at package2: The package at package1 has the same name.</warning>');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
         // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
@@ -518,17 +432,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(3))
             ->method('write')
             ->with('<warning>Warning: Could not install package "vendor/package2" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
-        $this->io->expects($this->at(4))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(5))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         $this->assertJsonFileEquals($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
     }
@@ -547,17 +452,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<warning>Warning: Could not load package "vendor/package1" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
         // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
@@ -578,17 +474,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
         // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
@@ -612,17 +499,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('<info>Regenerating the Puli factory class</info>');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<info>Building Puli resource repository</info>');
 
         $this->plugin->postInstall($event);
-
-        $this->assertFileExists($this->tempDir.'/My/Factory.php');
-        $this->assertFileExists($this->tempDir.'/repository');
 
         // File not modified. Use assertFileEquals() instead of
         // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
@@ -641,6 +519,86 @@ class PuliPluginTest extends JsonWriterTestCase
         $data = $decoder->decodeFile($this->tempDir.'/puli.json');
 
         $this->assertSame('vendor/root', $data->name);
+    }
+
+    public function testRunPuliBuildWithColors()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
+
+        $this->composer->getConfig()->merge(array('bin-dir' => $this->tempDir.'/bin'));
+
+        $this->io->expects($this->any())
+            ->method('isDecorated')
+            ->willReturn(true);
+
+        $this->processLauncher->expects($this->once())
+            ->method('isSupported')
+            ->willReturn(true);
+
+        $this->processLauncher->expects($this->once())
+            ->method('launchProcess')
+            ->with($this->tempDir.'/the-vendor/bin/puli build --force --ansi');
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Running "puli build"</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testRunPuliBuildWithoutColors()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
+
+        $this->composer->getConfig()->merge(array('bin-dir' => $this->tempDir.'/bin'));
+
+        $this->io->expects($this->any())
+            ->method('isDecorated')
+            ->willReturn(false);
+
+        $this->processLauncher->expects($this->once())
+            ->method('isSupported')
+            ->willReturn(true);
+
+        $this->processLauncher->expects($this->once())
+            ->method('launchProcess')
+            ->with($this->tempDir.'/the-vendor/bin/puli build --force --no-ansi');
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Running "puli build"</info>');
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDoNotRunPuliBuildIfProcessLauncherNotSupported()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
+
+        $this->processLauncher->expects($this->once())
+            ->method('isSupported')
+            ->willReturn(false);
+
+        $this->processLauncher->expects($this->never())
+            ->method('launchProcess');
+
+        $this->io->expects($this->once())
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+
+        $this->plugin->postInstall($event);
     }
 
     public function testInsertFactoryClassIntoClassMap()
@@ -692,9 +650,6 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->plugin->$listener($event);
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testInsertFactoryConstantIntoAutoload()
     {
         $listeners = $this->plugin->getSubscribedEvents();
