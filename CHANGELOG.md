@@ -1,6 +1,13 @@
 Changelog
 =========
 
+* 1.0.0-beta3 (2015-03-19)
+
+ * fixed error: Constant PULI_FACTORY_CLASS already defined
+ * disabled plugins during Composer hook to fix error "PluginClass not found"
+ * the Puli factory is now automatically regenerated after composer update/install
+ * enabled plugins during "puli build" in the Composer hook
+
 * 1.0.0-beta2 (2015-01-27)
 
  * fixed: packages with a moved install path are reinstalled now
