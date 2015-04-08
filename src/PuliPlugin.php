@@ -417,7 +417,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $ansi = $io->isDecorated() ? '--ansi' : '--no-ansi';
 
         $this->processLauncher->launchProcess(sprintf(
-            '%s build --force %s',
+            '%s build %s',
             $puli,
             $ansi
         ));

@@ -539,7 +539,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->processLauncher->expects($this->once())
             ->method('launchProcess')
-            ->with($this->tempDir.'/the-vendor/bin/puli build --force --ansi');
+            ->with($this->tempDir.'/the-vendor/bin/puli build --ansi');
 
         $this->io->expects($this->at(0))
             ->method('write')
@@ -569,7 +569,7 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->processLauncher->expects($this->once())
             ->method('launchProcess')
-            ->with($this->tempDir.'/the-vendor/bin/puli build --force --no-ansi');
+            ->with($this->tempDir.'/the-vendor/bin/puli build --no-ansi');
 
         $this->io->expects($this->at(0))
             ->method('write')
