@@ -659,12 +659,14 @@ class PuliPluginTest extends JsonWriterTestCase
         $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
+        copy($this->tempDir.'/puli-factory-in.json', $this->tempDir.'/puli.json');
+
         $this->io->expects($this->at(0))
             ->method('write')
             ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
+            ->with('<info>Registering Puli\\MyFactoryIn with the class-map autoloader</info>');
 
         $this->plugin->$listener($event);
 
@@ -673,7 +675,7 @@ class PuliPluginTest extends JsonWriterTestCase
         require $this->tempDir.'/the-vendor/autoload.php';
 
         $this->assertTrue(defined('PULI_FACTORY_CLASS'));
-        $this->assertSame('Puli\\MyFactory', PULI_FACTORY_CLASS);
+        $this->assertSame('Puli\\MyFactoryIn', PULI_FACTORY_CLASS);
     }
 
     /**

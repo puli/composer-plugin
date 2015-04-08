@@ -117,8 +117,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $autoloadFile = $vendorDir.'/autoload.php';
         $classMapFile = $vendorDir.'/composer/autoload_classmap.php';
 
-        $factoryClass = $puliConfig->get(Config::FACTORY_CLASS);
-        $factoryFile = Path::makeAbsolute($puliConfig->get(Config::FACTORY_FILE), $rootDir);
+        $factoryClass = $puliConfig->get(Config::FACTORY_IN_CLASS);
+        $factoryFile = Path::makeAbsolute($puliConfig->get(Config::FACTORY_IN_FILE), $rootDir);
 
         $this->insertFactoryClassConstant($io, $autoloadFile, $factoryClass);
         $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);

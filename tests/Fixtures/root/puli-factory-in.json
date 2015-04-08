@@ -6,8 +6,12 @@
     "config": {
         "factory": {
             "out": {
-                "class": "Puli\\MyFactory",
-                "file": "My/Factory.php"
+                "class": "Puli\\MyFactoryOut",
+                "file": "My/FactoryOut.php"
+            },
+            "in": {
+                "class": "Puli\\MyFactoryIn",
+                "file": "My/FactoryIn.php"
             }
         },
         "repository": {
