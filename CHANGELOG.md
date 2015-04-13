@@ -1,6 +1,11 @@
 Changelog
 =========
 
+* 1.0.0-beta4 (2015-04-13)
+
+ * removed usage of the --force option when calling "puli build"
+ * updated use of changed Config constants
+
 * 1.0.0-beta3 (2015-03-19)
 
  * fixed error: Constant PULI_FACTORY_CLASS already defined
