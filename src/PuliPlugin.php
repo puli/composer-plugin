@@ -223,8 +223,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        $expr = Expr::same(Package::INSTALLER, self::INSTALLER_NAME)
-            ->andSame(Package::STATE, PackageState::NOT_FOUND);
+        $expr = Expr::same(self::INSTALLER_NAME, Package::INSTALLER)
+            ->andSame(PackageState::NOT_FOUND, Package::STATE);
 
         foreach ($packageManager->findPackages($expr) as $packageName => $package) {
             // Check whether package was only moved
@@ -248,8 +248,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
-        $notFoundExpr = Expr::same(Package::STATE, PackageState::NOT_FOUND);
-        $notLoadableExpr = Expr::same(Package::STATE, PackageState::NOT_LOADABLE);
+        $notFoundExpr = Expr::same(PackageState::NOT_FOUND, Package::STATE);
+        $notLoadableExpr = Expr::same(PackageState::NOT_LOADABLE, Package::STATE);
 
         foreach ($packageManager->findPackages($notFoundExpr) as $package) {
             $this->printPackageWarning(
