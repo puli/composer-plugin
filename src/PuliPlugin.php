@@ -20,16 +20,8 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
-use Exception;
-use Puli\ComposerPlugin\Logger\IOLogger;
-use Puli\ComposerPlugin\Process\PhpProcessLauncher;
-use Puli\Manager\Api\Config\Config;
-use Puli\Manager\Api\Package\Package;
-use Puli\Manager\Api\Package\PackageManager;
-use Puli\Manager\Api\Package\PackageState;
-use Puli\Manager\Api\Package\RootPackageFileManager;
-use Puli\Manager\Api\Puli;
-use Webmozart\Expression\Expr;
+use Puli\ComposerPlugin\Process\PuliRunner;
+use RuntimeException;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -49,14 +41,14 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     const INSTALLER_NAME = 'composer';
 
     /**
-     * @var PhpProcessLauncher
+     * @var PuliRunner
      */
-    private $processLauncher;
+    private $puliRunner;
 
     /**
-     * @var Puli
+     * @var string
      */
-    private $puli;
+    private $rootDir;
 
     /**
      * @var bool
@@ -80,9 +72,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         );
     }
 
-    public function __construct(PhpProcessLauncher $processLauncher = null)
+    public function __construct(PuliRunner $puliLauncher = null)
     {
-        $this->processLauncher = $processLauncher ?: new PhpProcessLauncher();
+        $this->puliRunner = $puliLauncher;
+        $this->rootDir = getcwd();
     }
 
     /**
@@ -90,6 +83,19 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function activate(Composer $composer, IOInterface $io)
     {
+        if ($this->puliRunner) {
+            try {
+                // Add Composer's bin directory in case the "puli" executable is
+                // installed with Composer
+                $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
+            } catch (RuntimeException $e) {
+                $io->writeError('<warn>'.$e->getMessage().'</warn>');
+
+                // Don't activate the plugin if Puli cannot be run
+                return;
+            }
+        }
+
         $composer->getEventDispatcher()->addSubscriber($this);
     }
 
@@ -103,22 +109,20 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostAutoloadDump = false;
 
         $io = $event->getIO();
-        $puli = $this->getPuli($io);
 
-        $rootDir = $puli->getEnvironment()->getRootDirectory();
-        $puliConfig = $puli->getEnvironment()->getConfig();
         $compConfig = $event->getComposer()->getConfig();
         $vendorDir = $compConfig->get('vendor-dir');
 
         // On TravisCI, $vendorDir is a relative path. Probably an old Composer
         // build or something. Usually, $vendorDir should be absolute already.
-        $vendorDir = Path::makeAbsolute($vendorDir, $rootDir);
+        $vendorDir = Path::makeAbsolute($vendorDir, $this->rootDir);
 
         $autoloadFile = $vendorDir.'/autoload.php';
         $classMapFile = $vendorDir.'/composer/autoload_classmap.php';
 
-        $factoryClass = $puliConfig->get(Config::FACTORY_IN_CLASS);
-        $factoryFile = Path::makeAbsolute($puliConfig->get(Config::FACTORY_IN_FILE), $rootDir);
+        $factoryClass = trim($this->puliRunner->run('config factory.in.class --parsed'));
+        $factoryFile = trim($this->puliRunner->run('config factory.in.file --parsed'));
+        $factoryFile = Path::makeAbsolute($factoryFile, $this->rootDir);
 
         $this->insertFactoryClassConstant($io, $autoloadFile, $factoryClass);
         $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);
@@ -139,43 +143,28 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->runPostInstall = false;
 
         $io = $event->getIO();
-        $puli = $this->getPuli($io);
-
-        $packageManager = $puli->getPackageManager();
-        $packageFileManager = $puli->getRootPackageFileManager();
 
         $io->write('<info>Looking for updated Puli packages</info>');
 
         $composerPackages = $this->loadComposerPackages($event->getComposer());
-        $this->removeRemovedPackages($composerPackages, $packageManager, $io);
-        $this->installNewPackages($composerPackages, $packageManager, $io, $event->getComposer());
-        $this->checkForLoadErrors($packageManager, $io);
-        $this->copyComposerName($packageFileManager, $event->getComposer());
-        $this->buildPuli($io, $event->getComposer());
+        $puliPackages = $this->loadPuliPackages();
+
+        $this->removeRemovedPackages($composerPackages, $puliPackages, $io);
+        $this->installNewPackages($composerPackages, $puliPackages, $io, $event->getComposer());
+        $this->checkForLoadErrors($puliPackages, $io);
+//        $this->copyComposerName($puliPackages, $event->getComposer());
+        $this->buildPuli($io);
     }
 
-    private function getPuli(IOInterface $io)
-    {
-        if (!$this->puli) {
-            $this->puli = new Puli(getcwd());
-            $this->puli->setLogger(new IOLogger($io));
-
-            // Classes from the current project are not available, because
-            // Composer does not add them to the autoloader during update/
-            // autoloader generation. Hence we need to disable Puli plugins,
-            // which may load classes from the current project.
-            $this->puli->disablePlugins();
-
-            $this->puli->start();
-        }
-
-        return $this->puli;
-    }
-
-    private function installNewPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io, Composer $composer)
+    /**
+     * @param PackageInterface[] $composerPackages
+     * @param PuliPackage[]      $puliPackages
+     * @param IOInterface        $io
+     * @param Composer           $composer
+     */
+    private function installNewPackages(array $composerPackages, array $puliPackages, IOInterface $io, Composer $composer)
     {
         $installationManager = $composer->getInstallationManager();
-        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
 
         foreach ($composerPackages as $packageName => $package) {
             if ($package instanceof AliasPackage) {
@@ -189,95 +178,94 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 continue;
             }
 
-            if ($packageManager->hasPackage($packageName)) {
-                $package = $packageManager->getPackage($packageName);
-
+            if (isset($puliPackages[$packageName])) {
                 // Only proceed if the install path has changed
-                if ($installPath === $package->getInstallPath()) {
+                if ($installPath === $puliPackages[$packageName]->getInstallPath()) {
                     continue;
                 }
 
-                // Only remove packages installed by Composer
-                if (self::INSTALLER_NAME === $package->getInstallInfo()->getInstallerName()) {
-                    $io->write(sprintf(
-                        'Reinstalling <info>%s</info> (<comment>%s</comment>)',
-                        $packageName,
-                        Path::makeRelative($installPath, $rootDir)
-                    ));
+                $io->write(sprintf(
+                    'Reinstalling <info>%s</info> (<comment>%s</comment>)',
+                    $packageName,
+                    Path::makeRelative($installPath, $this->rootDir)
+                ));
 
-                    $this->removePackage($packageManager, $packageName);
-                }
+                $this->removePackage($packageName);
             } else {
                 $io->write(sprintf(
                     'Installing <info>%s</info> (<comment>%s</comment>)',
                     $packageName,
-                    Path::makeRelative($installPath, $rootDir)
+                    Path::makeRelative($installPath, $this->rootDir)
                 ));
             }
 
-            $this->installPackage($packageManager, $installPath, $packageName, $io);
+            $this->installPackage($installPath, $packageName, $io);
         }
     }
 
-    private function removeRemovedPackages(array $composerPackages, PackageManager $packageManager, IOInterface $io)
+    /**
+     * @param PackageInterface[] $composerPackages
+     * @param PuliPackage[]      $puliPackages
+     * @param IOInterface        $io
+     */
+    private function removeRemovedPackages(array $composerPackages, array $puliPackages, IOInterface $io)
     {
-        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
+        /** @var PuliPackage[] $puliPackages */
+        $puliPackages = array_filter($puliPackages, function (PuliPackage $package) {
+            return PuliPackage::STATE_NOT_FOUND === $package->getState();
+        });
 
-        $expr = Expr::same(self::INSTALLER_NAME, Package::INSTALLER)
-            ->andSame(PackageState::NOT_FOUND, Package::STATE);
-
-        foreach ($packageManager->findPackages($expr) as $packageName => $package) {
+        foreach ($puliPackages as $packageName => $package) {
             // Check whether package was only moved
             if (isset($composerPackages[$packageName])) {
                 continue;
             }
 
-            $installPath = $package->getInstallPath();
-
             $io->write(sprintf(
                 'Removing <info>%s</info> (<comment>%s</comment>)',
                 $packageName,
-                Path::makeRelative($installPath, $rootDir)
+                Path::makeRelative($package->getInstallPath(), $this->rootDir)
             ));
 
-            $this->removePackage($packageManager, $packageName);
+            $this->removePackage($packageName);
         }
     }
 
-    private function checkForLoadErrors(PackageManager $packageManager, IOInterface $io)
+    private function checkForLoadErrors(array $puliPackages, IOInterface $io)
     {
-        $rootDir = $packageManager->getEnvironment()->getRootDirectory();
+        /** @var PuliPackage[] $notFoundPackages */
+        $notFoundPackages = array_filter($puliPackages, function (PuliPackage $package) {
+            return PuliPackage::STATE_NOT_FOUND === $package->getState();
+        });
 
-        $notFoundExpr = Expr::same(PackageState::NOT_FOUND, Package::STATE);
-        $notLoadableExpr = Expr::same(PackageState::NOT_LOADABLE, Package::STATE);
-
-        foreach ($packageManager->findPackages($notFoundExpr) as $package) {
+        foreach ($notFoundPackages as $package) {
             $this->printPackageWarning(
                 $io,
                 'Could not load package "%s"',
                 $package->getName(),
-                $package->getInstallPath(),
-                $package->getLoadErrors(),
-                $rootDir
+                $package->getInstallPath()
             );
         }
 
-        foreach ($packageManager->findPackages($notLoadableExpr) as $package) {
+        /** @var PuliPackage[] $notLoadablePackages */
+        $notLoadablePackages = array_filter($puliPackages, function (PuliPackage $package) {
+            return PuliPackage::STATE_NOT_LOADABLE === $package->getState();
+        });
+
+        foreach ($notLoadablePackages as $package) {
             $this->printPackageWarning(
                 $io,
                 'Could not load package "%s"',
                 $package->getName(),
-                $package->getInstallPath(),
-                $package->getLoadErrors(),
-                $rootDir
+                $package->getInstallPath()
             );
         }
     }
 
-    private function copyComposerName(RootPackageFileManager $packageFileManager, Composer $composer)
-    {
-        $packageFileManager->setPackageName($composer->getPackage()->getName());
-    }
+//    private function copyComposerName(RootPackageFileManager $packageFileManager, Composer $composer)
+//    {
+//        $packageFileManager->setPackageName($composer->getPackage()->getName());
+//    }
 
     private function insertFactoryClassConstant(IOInterface $io, $autoloadFile, $factoryClass)
     {
@@ -346,80 +334,71 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $packages = array();
 
         foreach ($repository->getPackages() as $package) {
+            /** @var PackageInterface $package */
             $packages[$package->getName()] = $package;
         }
 
         return $packages;
     }
 
-    private function installPackage(PackageManager $packageManager, $installPath, $packageName, IOInterface $io)
+    /**
+     * @return PuliPackage[]
+     */
+    private function loadPuliPackages()
     {
-        try {
-            $packageManager->installPackage($installPath, $packageName, self::INSTALLER_NAME);
-        } catch (Exception $e) {
-            $this->printPackageWarning(
-                $io,
-                'Could not install package "%s"',
-                $packageName,
-                $installPath,
-                array($e),
-                $packageManager->getEnvironment()->getRootDirectory()
+        $packages = array();
+
+        $output = $this->puliRunner->run(
+            'package list'.
+            '--format "%name%;%installer%;%install_path%;%state"'.
+            '--installer '.escapeshellarg(self::INSTALLER_NAME)
+        );
+
+        foreach (explode("\n", $output) as $packageLine) {
+            $packageParts = explode(';', $packageLine);
+
+            $packages[$packageParts[0]] = new PuliPackage(
+                $packageParts[0],
+                $packageParts[1],
+                $packageParts[2],
+                $packageParts[3]
             );
         }
+
+        return $packages;
     }
 
-    private function removePackage(PackageManager $packageManager, $packageName)
+    private function installPackage($installPath, $packageName)
     {
-        $packageManager->removePackage($packageName);
-    }
-
-    private function getShortClassName($className)
-    {
-        $pos = strrpos($className, '\\');
-
-        return false === $pos ? $className : substr($className, $pos + 1);
-    }
-
-    private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath, array $errors, $rootDir)
-    {
-        // Print the first error
-        $error = reset($errors);
-
-        $io->write(sprintf(
-            '<warning>Warning: %s (at %s): %s: %s</warning>',
-            sprintf($message, $packageName),
-            Path::makeRelative($installPath, $rootDir),
-            $this->getShortClassName(get_class($error)),
-            str_replace($rootDir.'/', '', $error->getMessage())
+        $this->puliRunner->run(sprintf(
+            'package install %s %s --installer %s',
+            escapeshellarg($installPath),
+            escapeshellarg($packageName),
+            escapeshellarg(self::INSTALLER_NAME)
         ));
     }
 
-    private function buildPuli(IOInterface $io, Composer $composer)
+    private function removePackage($packageName)
     {
-        // The "puli build" command is called via a sub-process rather than via
-        // the manager interfaces to enable plugins. In the current Puli
-        // environment, all Puli plugins are disabled. This is necessary because
-        // classes of the current project are not available during Composer
-        // update, but the current project might be a Puli plugin that loads
-        // itself in puli.json.
+        $this->puliRunner->run(sprintf(
+            'package remove %s',
+            escapeshellarg($packageName)
+        ));
+    }
 
-        $binDir = $composer->getConfig()->get('bin-dir');
-        $puli = $binDir.'/puli';
+    private function printPackageWarning(IOInterface $io, $message, $packageName, $installPath)
+    {
+        $io->write(sprintf(
+            '<warning>Warning: %s (at %s)</warning>',
+            sprintf($message, $packageName),
+            Path::makeRelative($installPath, $this->rootDir)
+        ));
+    }
 
-        if (!$this->processLauncher->isSupported() || !is_file($puli)) {
-            return;
-        }
-
+    private function buildPuli(IOInterface $io)
+    {
         $io->write('<info>Running "puli build"</info>');
 
-        // We need to force colorization in the sub-process
-        // By default, the sub-process would not be colorized
-        $ansi = $io->isDecorated() ? '--ansi' : '--no-ansi';
-
-        $this->processLauncher->launchProcess(sprintf(
-            '%s build %s',
-            $puli,
-            $ansi
-        ));
+        $this->puliRunner->run('build');
     }
 }

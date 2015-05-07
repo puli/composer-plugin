@@ -12,11 +12,9 @@
     ],
     "require": {
         "composer-plugin-api": "1.0.0",
-        "puli/repository": "1.0.*",
-        "puli/manager": "~1.0",
-        "webmozart/json": "~1.0",
+        "symfony/process": "~2.3",
         "webmozart/path-util": "~1.0",
-        "symfony/process": "~2.3"
+        "webmozart/assert": "~1.0"
     },
     "require-dev": {
         "composer/composer": "~1.0@dev",
@@ -30,8 +28,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Puli\\ComposerPlugin\\Tests\\": "tests/",
-            "Puli\\Manager\\Tests\\": "vendor/puli/manager/tests/"
+            "Puli\\ComposerPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {
