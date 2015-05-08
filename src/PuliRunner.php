@@ -71,7 +71,7 @@ class PuliRunner
         $process = new Process($fullCommand);
         $process->run();
 
-        if (0 !== $process->getStatus()) {
+        if (!$process->isSuccessful()) {
             throw PuliRunnerException::forProcess($process);
         }
 
