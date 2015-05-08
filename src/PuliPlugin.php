@@ -499,7 +499,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         if (!$exception) {
             $reasonPhrase = '';
         } elseif ($io->isVerbose()) {
-            $reasonPhrase = $exception->getLongError();
+            $reasonPhrase = $exception->getFullError();
         } else {
             $reasonPhrase = $exception->getShortError();
         }

@@ -35,38 +35,33 @@ class PuliRunnerException extends RuntimeException
     /**
      * @var string
      */
-    private $output;
-
-    /**
-     * @var string
-     */
     private $shortError;
 
     /**
      * @var string
      */
-    private $longError;
+    private $fullError;
 
     public static function forProcess(Process $process)
     {
-        $shortError = $longError = trim($process->getErrorOutput());
+        $shortError = $fullError = $process->getErrorOutput();
 
         if (preg_match('~^fatal: (.+)$~', $shortError, $matches)) {
             $shortError = trim($matches[1]);
-        } elseif (preg_match('~^\s+\[([\w\\]+)?(\w+)\]\s+(.+)\nException trace:\n~', $shortError, $matches)) {
+        } elseif (preg_match('~^\s+\[([\w\\\\]+\\\\)?(\w+)\]\s+(.+)\n\n\S~s', $shortError, $matches)) {
             $shortError = trim($matches[2]).': '.trim($matches[3]);
         }
 
-        return new static($process->getCommandLine(), $process->getStatus(), $shortError, $longError);
+        return new static($process->getCommandLine(), $process->getStatus(), $shortError, $fullError);
     }
 
     /**
      * @param string $command
      * @param int    $status
      * @param string $shortError
-     * @param string $longError
+     * @param string $fullError
      */
-    public function __construct($command, $status, $shortError, $longError)
+    public function __construct($command, $status, $shortError, $fullError)
     {
         parent::__construct(sprintf(
             "An error occurred while running: %s (status %s): %s",
@@ -78,7 +73,7 @@ class PuliRunnerException extends RuntimeException
         $this->command = $command;
         $this->status = $status;
         $this->shortError = $shortError;
-        $this->longError = $longError;
+        $this->fullError = $fullError;
     }
 
     /**
@@ -98,14 +93,6 @@ class PuliRunnerException extends RuntimeException
     }
 
     /**
-     * @return \Exception
-     */
-    public function getOutput()
-    {
-        return $this->output;
-    }
-
-    /**
      * @return string
      */
     public function getShortError()
@@ -116,8 +103,8 @@ class PuliRunnerException extends RuntimeException
     /**
      * @return string
      */
-    public function getLongError()
+    public function getFullError()
     {
-        return $this->longError;
+        return $this->fullError;
     }
 }
