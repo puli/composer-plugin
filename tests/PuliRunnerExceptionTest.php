@@ -30,7 +30,7 @@ class PuliRunnerExceptionTest extends PHPUnit_Framework_TestCase
             ->method('getCommandLine')
             ->willReturn('puli do something');
         $process->expects($this->any())
-            ->method('getStatus')
+            ->method('getExitCode')
             ->willReturn(1);
         $process->expects($this->any())
             ->method('getErrorOutput')
@@ -39,7 +39,7 @@ class PuliRunnerExceptionTest extends PHPUnit_Framework_TestCase
         $exception = PuliRunnerException::forProcess($process);
 
         $this->assertSame('puli do something', $exception->getCommand());
-        $this->assertSame(1, $exception->getStatus());
+        $this->assertSame(1, $exception->getExitCode());
         $this->assertSame('SomeException: Some message', $exception->getShortError());
         $this->assertSame("fatal: SomeException: Some message\n", $exception->getFullError());
     }
@@ -54,7 +54,7 @@ class PuliRunnerExceptionTest extends PHPUnit_Framework_TestCase
             ->method('getCommandLine')
             ->willReturn('puli do something');
         $process->expects($this->any())
-            ->method('getStatus')
+            ->method('getExitCode')
             ->willReturn(1);
         $process->expects($this->any())
             ->method('getErrorOutput')
@@ -75,7 +75,7 @@ EOF
         $exception = PuliRunnerException::forProcess($process);
 
         $this->assertSame('puli do something', $exception->getCommand());
-        $this->assertSame(1, $exception->getStatus());
+        $this->assertSame(1, $exception->getExitCode());
         $this->assertSame('ErrorException: preg_match(): Compilation failed', $exception->getShortError());
         $this->assertSame($output, $exception->getFullError());
     }
@@ -90,7 +90,7 @@ EOF
             ->method('getCommandLine')
             ->willReturn('puli do something');
         $process->expects($this->any())
-            ->method('getStatus')
+            ->method('getExitCode')
             ->willReturn(1);
         $process->expects($this->any())
             ->method('getErrorOutput')
@@ -112,7 +112,7 @@ EOF
         $exception = PuliRunnerException::forProcess($process);
 
         $this->assertSame('puli do something', $exception->getCommand());
-        $this->assertSame(1, $exception->getStatus());
+        $this->assertSame(1, $exception->getExitCode());
         $this->assertSame('ErrorException: preg_match(): Compilation failed', $exception->getShortError());
         $this->assertSame($output, $exception->getFullError());
     }

@@ -30,7 +30,7 @@ class PuliRunnerException extends RuntimeException
     /**
      * @var int
      */
-    private $status;
+    private $exitCode;
 
     /**
      * @var string
@@ -52,26 +52,26 @@ class PuliRunnerException extends RuntimeException
             $shortError = trim($matches[2]).': '.trim($matches[3]);
         }
 
-        return new static($process->getCommandLine(), $process->getStatus(), $shortError, $fullError);
+        return new static($process->getCommandLine(), $process->getExitCode(), $shortError, $fullError);
     }
 
     /**
      * @param string $command
-     * @param int    $status
+     * @param int    $exitCode
      * @param string $shortError
      * @param string $fullError
      */
-    public function __construct($command, $status, $shortError, $fullError)
+    public function __construct($command, $exitCode, $shortError, $fullError)
     {
         parent::__construct(sprintf(
             "An error occurred while running: %s (status %s): %s",
             $command,
-            $status,
+            $exitCode,
             $shortError
         ));
 
         $this->command = $command;
-        $this->status = $status;
+        $this->exitCode = $exitCode;
         $this->shortError = $shortError;
         $this->fullError = $fullError;
     }
@@ -87,9 +87,9 @@ class PuliRunnerException extends RuntimeException
     /**
      * @return int
      */
-    public function getStatus()
+    public function getExitCode()
     {
-        return $this->status;
+        return $this->exitCode;
     }
 
     /**
