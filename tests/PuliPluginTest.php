@@ -22,19 +22,19 @@ use Composer\Repository\RepositoryManager;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
 use PHPUnit_Framework_MockObject_MockObject;
-use Puli\ComposerPlugin\Process\PuliRunner;
+use PHPUnit_Framework_TestCase;
 use Puli\ComposerPlugin\PuliPlugin;
+use Puli\ComposerPlugin\PuliRunner;
+use Puli\ComposerPlugin\PuliRunnerException;
 use Puli\ComposerPlugin\Tests\Fixtures\TestLocalRepository;
-use Puli\Manager\Tests\JsonWriterTestCase;
 use Symfony\Component\Filesystem\Filesystem;
-use Webmozart\Json\JsonDecoder;
 use Webmozart\PathUtil\Path;
 
 /**
  * @since  1.0
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class PuliPluginTest extends JsonWriterTestCase
+class PuliPluginTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @var PuliPlugin
@@ -69,7 +69,7 @@ class PuliPluginTest extends JsonWriterTestCase
     /**
      * @var PHPUnit_Framework_MockObject_MockObject|PuliRunner
      */
-    private $processLauncher;
+    private $puliRunner;
 
     /**
      * @var Config
@@ -82,8 +82,6 @@ class PuliPluginTest extends JsonWriterTestCase
     private $rootPackage;
 
     private $tempDir;
-
-    private $tempHome;
 
     private $previousWd;
 
@@ -101,11 +99,9 @@ class PuliPluginTest extends JsonWriterTestCase
     protected function setUp()
     {
         while (false === mkdir($this->tempDir = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_root'.rand(10000, 99999), 0777, true)) {}
-        while (false === mkdir($this->tempHome = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_home'.rand(10000, 99999), 0777, true)) {}
 
         $filesystem = new Filesystem();
         $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
-        $filesystem->mirror(__DIR__.'/Fixtures/home', $this->tempHome);
 
         $this->io = $this->getMock('Composer\IO\IOInterface');
         $this->config = new Config(false, $this->tempDir);
@@ -136,26 +132,23 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->composer->setConfig($this->config);
         $this->composer->setPackage($this->rootPackage);
 
-        $this->processLauncher = $this->getMockBuilder('Puli\ComposerPlugin\Process\PhpProcessLauncher')
+        $this->puliRunner = $this->getMockBuilder('Puli\ComposerPlugin\PuliRunner')
             ->disableOriginalConstructor()
             ->getMock();
 
         $this->previousWd = getcwd();
 
         chdir($this->tempDir);
-        putenv('PULI_HOME='.$this->tempHome);
 
-        $this->plugin = new PuliPlugin($this->processLauncher);
+        $this->plugin = new PuliPlugin($this->puliRunner);
     }
 
     protected function tearDown()
     {
         chdir($this->previousWd);
-        putenv('PULI_HOME');
 
         $filesystem = new Filesystem();
         $filesystem->remove($this->tempDir);
-        $filesystem->remove($this->tempHome);
     }
 
     public function testActivate()
@@ -203,9 +196,26 @@ class PuliPluginTest extends JsonWriterTestCase
             ->method('write')
             ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
 
-        $this->plugin->$listener($event);
+        $this->io->expects($this->never())
+            ->method('writeError');
 
-        $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->$listener($event);
     }
 
     /**
@@ -225,23 +235,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->plugin->$listener($event);
     }
 
-    public function testDoNotReinstallExistingPuliPackages()
-    {
-        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('Installing <info>vendor/package2</info> (<comment>package2</comment>)');
-
-        $this->plugin->postInstall($event);
-    }
-
     // meta packages have no install path
+
     public function testDoNotInstallPackagesWithoutInstallPath()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
@@ -252,9 +247,18 @@ class PuliPluginTest extends JsonWriterTestCase
 
         $this->installPaths['vendor/package1'] = '';
 
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
     }
@@ -270,12 +274,25 @@ class PuliPluginTest extends JsonWriterTestCase
             new AliasPackage($package, '1.0', '1.0'),
         ));
 
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
     }
@@ -292,104 +309,63 @@ class PuliPluginTest extends JsonWriterTestCase
             new AliasPackage($package, '1.0', '1.0'),
         ));
 
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
 
-        $this->plugin->postInstall($event);
-    }
+        $this->io->expects($this->never())
+            ->method('writeError');
 
-    public function testRemoveRemovedPackages()
-    {
-        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
-
-        $filesystem = new Filesystem();
-        $filesystem->remove($this->tempDir.'/package2');
-
-        $this->localRepository->setPackages(array(
-            new Package('vendor/package1', '1.0', '1.0'),
-            // no more package2
-        ));
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('Removing <info>vendor/package2</info> (<comment>package2</comment>)');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
     }
 
-    public function testDoNotRemovePackagesFromOtherInstaller()
+    public function testWarnIfInstallFails()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-other-installer.json', $this->tempDir.'/puli.json');
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not install package "vendor/package1" (at ./package1): UnsupportedVersionException: Cannot read package file /home/bernhard/Entwicklung/Web/puli/cli/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
 
-        $this->localRepository->setPackages(array());
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
+            ->willThrowException(new PuliRunnerException(
+                "/path/to/php /path/to/puli.phar package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
+                1,
+                'UnsupportedVersionException: Cannot read package file /home/bernhard/Entwicklung/Web/puli/cli/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.',
+                'Exception trace...'
+            ));
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
     }
 
-    public function testReinstallPackagesWithInstallPathMovedToSubPath()
+    public function testWarnIfOverwritingPackagesInstalledByOtherInstaller()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
-
-        // Package was moved to sub-path (PSR-0 -> PSR-4)
-        // Such a package is not recognized as removed, because the path still
-        // exists. Hence we need to explicitly reinstall it.
-        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1/sub/path';
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('Reinstalling <info>vendor/package1</info> (<comment>package1/sub/path</comment>)');
-
-        $this->plugin->postInstall($event);
-
-        $this->assertJsonFileEquals($this->tempDir.'/puli-moved-package.json', $this->tempDir.'/puli.json');
-    }
-
-    public function testReinstallPackagesWithInstallPathMovedToParentPath()
-    {
-        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-moved-package.json', $this->tempDir.'/puli.json');
-
-        // Package was moved to parent path (PSR-4 -> PSR-0)
-        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1';
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('Reinstalling <info>vendor/package1</info> (<comment>package1</comment>)');
-
-        $this->plugin->postInstall($event);
-
-        $this->assertJsonFileEquals($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
-    }
-
-    public function testDoNotReinstallPackagesInstalledByUser()
-    {
-        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-other-installer.json', $this->tempDir.'/puli.json');
 
         // User installed "vendor/package1"
         // Package added to Composer with different path, but Composer shouldn't
@@ -400,203 +376,488 @@ class PuliPluginTest extends JsonWriterTestCase
             new Package('vendor/package1', '1.0', '1.0'),
         ));
 
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<warning>Warning: Could not install package "vendor/package1" (at package2): NameConflictException: Cannot load package "vendor/package1" at package2: The package at package1 has the same name.</warning>');
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not install package "vendor/package1" (at ./package2): NameConflictException: A package with the name "vendor/package1" exists already.</warning>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;spock;{$this->tempDir}/package1;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'")
+            ->willThrowException(new PuliRunnerException(
+                "/path/to/php /path/to/puli.phar package install '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'",
+                1,
+                'NameConflictException: A package with the name "vendor/package1" exists already.',
+                'Exception trace...'
+            ));
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
-
-        // File not modified. Use assertFileEquals() instead of
-        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
-        $this->assertFileEquals($this->tempDir.'/puli-other-installer.json', $this->tempDir.'/puli.json');
     }
 
-    public function testWarnIfPackageNotInstallable()
+    public function testWarnIfPackageLoadingFails()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        $this->installPaths['vendor/package2'] = $this->tempDir.'/not-loadable';
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>)');
-        $this->io->expects($this->at(2))
-            ->method('write')
-            ->with('Installing <info>vendor/package2</info> (<comment>not-loadable</comment>)');
-        $this->io->expects($this->at(3))
-            ->method('write')
-            ->with('<warning>Warning: Could not install package "vendor/package2" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
-
-        $this->plugin->postInstall($event);
-
-        $this->assertJsonFileEquals($this->tempDir.'/puli-partially-installed.json', $this->tempDir.'/puli.json');
-    }
-
-    public function testWarnIfPackageNotLoadable()
-    {
-        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-not-loadable.json', $this->tempDir.'/puli.json');
 
         $this->installPaths['vendor/package1'] = $this->tempDir.'/not-loadable';
 
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<warning>Warning: Could not load package "vendor/package1" (at not-loadable): UnsupportedVersionException: Cannot read package file not-loadable/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.</warning>');
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not load Puli packages: FileNotFoundException: The file foobar does not exist.</warning>');
+
+        $this->puliRunner->expects($this->once())
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willThrowException(new PuliRunnerException(
+                "package --format '%name%;%installer%;%install_path%;%state%'",
+                1,
+                'FileNotFoundException: The file foobar does not exist.',
+                'Exception trace...'
+            ));
 
         $this->plugin->postInstall($event);
+    }
 
-        // File not modified. Use assertFileEquals() instead of
-        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
-        $this->assertFileEquals($this->tempDir.'/puli-not-loadable.json', $this->tempDir.'/puli.json');
+    public function testWarnIfPackageInstalledByComposerNotLoadable()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: The package "vendor/package1" (at ./package1) could not be loaded.</warning>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1;not-loadable\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDoNotWarnIfPackageInstalledByUserNotLoadable()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;spock;{$this->tempDir}/package1;not-loadable\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
     }
 
     public function testWarnIfPackageInstalledByComposerNotFound()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-not-found.json', $this->tempDir.'/puli.json');
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: The package "vendor/package1" (at ./package1) could not be found.</warning>');
 
-        $this->installPaths['vendor/package1'] = $this->tempDir.'/foobar';
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1;not-found\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
-
-        // File not modified. Use assertFileEquals() instead of
-        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
-        $this->assertFileEquals($this->tempDir.'/puli-not-found.json', $this->tempDir.'/puli.json');
     }
 
-    public function testWarnIfPackageInstalledByUserNotFound()
+    public function testDoNotWarnIfPackageInstalledByUserNotFound()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-user-not-found.json', $this->tempDir.'/puli.json');
+        $this->io->expects($this->never())
+            ->method('writeError');
 
-        $this->localRepository->setPackages(array(
-            // package1 is installed by the user
-            new Package('vendor/package2', '1.0', '1.0'),
-        ));
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<warning>Warning: Could not load package "vendor/package1" (at foobar): FileNotFoundException: The file foobar does not exist.</warning>');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;spock;{$this->tempDir}/package1;not-found\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
+    }
 
-        // File not modified. Use assertFileEquals() instead of
-        // assertJsonFileEquals(), otherwise this test fails on PHP 5.3
-        $this->assertFileEquals($this->tempDir.'/puli-user-not-found.json', $this->tempDir.'/puli.json');
+    public function testReinstallPackagesWithInstallPathMovedToSubPath()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        // Package was moved to sub-path (PSR-0 -> PSR-4)
+        // Such a package is not recognized as removed, because the path still
+        // exists. Hence we need to explicitly reinstall it.
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1/sub/path';
+
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Reinstalling <info>vendor/package1</info> (<comment>package1/sub/path</comment>)');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1;enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package remove 'vendor/package1'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1/sub/path' 'vendor/package1' --installer 'composer'");
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testReinstallPackagesWithInstallPathMovedToParentPath()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        // Package was moved to parent path (PSR-4 -> PSR-0)
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1';
+
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Reinstalling <info>vendor/package1</info> (<comment>package1</comment>)');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package remove 'vendor/package1'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDoNotReinstallExistingPuliPackages()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testWarnIfRemoveFailsDuringReinstall()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        // Package was moved to parent path (PSR-4 -> PSR-0)
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1';
+
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not remove package "vendor/package1" (at ./package1): Exception: The exception</warning>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package remove 'vendor/package1'")
+            ->willThrowException(new PuliRunnerException(
+                "package remove 'vendor/package1'",
+                1,
+                'Exception: The exception',
+                'Exception trace...'
+            ));
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testWarnIfInstallFailsDuringReinstall()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        // Package was moved to parent path (PSR-4 -> PSR-0)
+        $this->installPaths['vendor/package1'] = $this->tempDir.'/package1';
+
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not install package "vendor/package1" (at ./package1): Exception: The exception</warning>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package remove 'vendor/package1'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
+            ->willThrowException(new PuliRunnerException(
+                "package install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
+                1,
+                'Exception: The exception',
+                'Exception trace...'
+            ));
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testRemoveRemovedPackages()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array(
+            new Package('vendor/package1', '1.0', '1.0'),
+            // no more package2
+        ));
+
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Removing <info>vendor/package2</info> (<comment>package2</comment>)');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1;enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;not-found\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package remove 'vendor/package2'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDoNotRemovePackagesFromOtherInstaller()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array());
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;spock;{$this->tempDir}/package1;not-found\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testWarnIfRemoveFails()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->localRepository->setPackages(array(
+            new Package('vendor/package1', '1.0', '1.0'),
+            // no more package2
+        ));
+
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('Removing <info>vendor/package2</info> (<comment>package2</comment>)');
+
+        $this->io->expects($this->exactly(2))
+            ->method('writeError')
+            ->withConsecutive(
+                array('<warning>Warning: Could not remove package "vendor/package2" (at ./package2): Exception: The exception</warning>'),
+                array('<warning>Warning: The package "vendor/package2" (at ./package2) could not be found.</warning>')
+            );
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n".
+                "vendor/package1;composer;{$this->tempDir}/package1;enabled\n".
+                "vendor/package2;composer;{$this->tempDir}/package2;not-found\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package remove 'vendor/package2'")
+            ->willThrowException(new PuliRunnerException(
+                "package remove 'vendor/package2'",
+                1,
+                'Exception: The exception',
+                'Exception trace...'
+            ));
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
+
+        $this->plugin->postInstall($event);
     }
 
     public function testCopyComposerPackageNameToPuli()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        $this->plugin->postInstall($event);
+        $this->localRepository->setPackages(array());
 
-        $this->assertFileExists($this->tempDir.'/puli.json');
+        $this->io->expects($this->never())
+            ->method('writeError');
 
-        $decoder = new JsonDecoder();
-        $data = $decoder->decodeFile($this->tempDir.'/puli.json');
-
-        $this->assertSame('vendor/root', $data->name);
-    }
-
-    public function testRunPuliBuildWithColors()
-    {
-        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
-
-        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
-
-        $this->composer->getConfig()->merge(array('bin-dir' => $this->tempDir.'/bin'));
-
-        $this->io->expects($this->any())
-            ->method('isDecorated')
-            ->willReturn(true);
-
-        $this->processLauncher->expects($this->once())
-            ->method('isSupported')
-            ->willReturn(true);
-
-        $this->processLauncher->expects($this->once())
-            ->method('launchProcess')
-            ->with($this->tempDir.'/the-vendor/bin/puli build --ansi');
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<info>Running "puli build"</info>');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/previous;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package rename 'vendor/previous' 'vendor/root'");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
     }
 
-    public function testRunPuliBuildWithoutColors()
+    public function testDoNotCopyComposerPackageNameToPuliIfUnchanged()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
+        $this->localRepository->setPackages(array());
 
-        $this->composer->getConfig()->merge(array('bin-dir' => $this->tempDir.'/bin'));
+        $this->io->expects($this->never())
+            ->method('writeError');
 
-        $this->io->expects($this->any())
-            ->method('isDecorated')
-            ->willReturn(false);
-
-        $this->processLauncher->expects($this->once())
-            ->method('isSupported')
-            ->willReturn(true);
-
-        $this->processLauncher->expects($this->once())
-            ->method('launchProcess')
-            ->with($this->tempDir.'/the-vendor/bin/puli build --no-ansi');
-
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<info>Running "puli build"</info>');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("build");
 
         $this->plugin->postInstall($event);
     }
 
-    public function testDoNotRunPuliBuildIfProcessLauncherNotSupported()
+    public function testWarnIfRenameFails()
     {
         $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-all-installed.json', $this->tempDir.'/puli.json');
-
-        $this->processLauncher->expects($this->once())
-            ->method('isSupported')
-            ->willReturn(false);
-
-        $this->processLauncher->expects($this->never())
-            ->method('launchProcess');
+        $this->localRepository->setPackages(array());
 
         $this->io->expects($this->once())
-            ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->method('writeError')
+            ->with('<warning>Warning: Could not rename root package to "vendor/root": Exception: Some exception.</warning>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("package --format '%name%;%installer%;%install_path%;%state%'")
+            ->willReturn(
+                "vendor/previous;;{$this->tempDir};enabled\n"
+            );
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("package rename 'vendor/previous' 'vendor/root'")
+            ->willThrowException(new PuliRunnerException(
+                "package rename 'vendor/previous' 'vendor/root'",
+                1,
+                'Exception: Some exception.',
+                'Exception trace...'
+            ));
 
         $this->plugin->postInstall($event);
     }
@@ -617,6 +878,18 @@ class PuliPluginTest extends JsonWriterTestCase
             ->method('write')
             ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
 
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("config 'factory.in.class' --parsed")
+            ->willReturn("Puli\\MyFactory\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("config 'factory.in.file' --parsed")
+            ->willReturn("My/Factory.php\n");
+
         $this->plugin->$listener($event);
 
         $this->assertFileExists($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
@@ -626,6 +899,62 @@ class PuliPluginTest extends JsonWriterTestCase
         $this->assertInternalType('array', $classMap);
         $this->assertArrayHasKey('Puli\\MyFactory', $classMap);
         $this->assertSame($this->tempDir.'/My/Factory.php', Path::canonicalize($classMap['Puli\\MyFactory']));
+    }
+
+    public function testWarnIfFactoryClassCannotBeRead()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not load Puli configuration: Exception: Some exception.</warning>');
+
+        $this->puliRunner->expects($this->once())
+            ->method('run')
+            ->with("config 'factory.in.class' --parsed")
+            ->willThrowException(new PuliRunnerException(
+                "config 'factory.in.class' --parsed",
+                1,
+                'Exception: Some exception.',
+                'Exception trace...'
+            ));
+
+        $this->plugin->$listener($event);
+    }
+
+    public function testWarnIfFactoryFileCannotBeRead()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->once())
+            ->method('writeError')
+            ->with('<warning>Warning: Could not load Puli configuration: Exception: Some exception.</warning>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("config 'factory.in.class' --parsed")
+            ->willReturn("Puli\\MyFactory\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("config 'factory.in.file' --parsed")
+            ->willThrowException(new PuliRunnerException(
+                "config 'factory.in.file' --parsed",
+                1,
+                'Exception: Some exception.',
+                'Exception trace...'
+            ));
+
+        $this->plugin->$listener($event);
     }
 
     /**
@@ -641,9 +970,8 @@ class PuliPluginTest extends JsonWriterTestCase
         $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
-        $this->io->expects($this->once())
-            ->method('write')
-            ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
+        $this->io->expects($this->never())
+            ->method('writeError');
 
         unlink($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
 
@@ -659,14 +987,22 @@ class PuliPluginTest extends JsonWriterTestCase
         $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
-        copy($this->tempDir.'/puli-factory-in.json', $this->tempDir.'/puli.json');
-
         $this->io->expects($this->at(0))
             ->method('write')
             ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Registering Puli\\MyFactoryIn with the class-map autoloader</info>');
+            ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with("config 'factory.in.class' --parsed")
+            ->willReturn("Puli\\MyFactory\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with("config 'factory.in.file' --parsed")
+            ->willReturn("My/Factory.php\n");
+
 
         $this->plugin->$listener($event);
 
@@ -675,7 +1011,7 @@ class PuliPluginTest extends JsonWriterTestCase
         require $this->tempDir.'/the-vendor/autoload.php';
 
         $this->assertTrue(defined('PULI_FACTORY_CLASS'));
-        $this->assertSame('Puli\\MyFactoryIn', PULI_FACTORY_CLASS);
+        $this->assertSame('Puli\\MyFactory', PULI_FACTORY_CLASS);
     }
 
     /**

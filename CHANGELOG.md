@@ -5,6 +5,8 @@ Changelog
 
  * removed usage of the --force option when calling "puli build"
  * updated use of changed Config constants
+ * the plugin is now independent of puli/manager and uses a "puli"/"puli.phar"
+   executable instead
 
 * 1.0.0-beta3 (2015-03-19)
 
