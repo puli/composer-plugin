@@ -1,12 +1,16 @@
 Changelog
 =========
 
+* 1.0.0-next (@release_date@)
+
+ * the plugin is now independent of puli/manager and uses a "puli"/"puli.phar"
+   executable instead
+ * upgraded to webmozart/path-util 2.0
+
 * 1.0.0-beta4 (2015-04-13)
 
  * removed usage of the --force option when calling "puli build"
  * updated use of changed Config constants
- * the plugin is now independent of puli/manager and uses a "puli"/"puli.phar"
-   executable instead
 
 * 1.0.0-beta3 (2015-03-19)
 
