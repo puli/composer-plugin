@@ -18,7 +18,8 @@
     },
     "require-dev": {
         "composer/composer": "~1.0@dev",
-        "symfony/filesystem": "~2.3"
+        "symfony/filesystem": "~2.3",
+        "phpunit/phpunit": "^4.6"
     },
     "minimum-stability": "dev",
     "autoload": {
