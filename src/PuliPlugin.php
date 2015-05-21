@@ -439,7 +439,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $packages = array();
 
         $output = $this->puliRunner->run(
-            'package --format \'%name%;%installer%;%install_path%;%state%\''
+            'package --list --format \'%name%;%installer%;%install_path%;%state%\''
         );
 
         foreach (explode("\n", $output) as $packageLine) {
@@ -463,7 +463,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private function installPackage($installPath, $packageName)
     {
         $this->puliRunner->run(sprintf(
-            'package install %s %s --installer %s',
+            'package --add %s %s --installer %s',
             escapeshellarg($installPath),
             escapeshellarg($packageName),
             escapeshellarg(self::INSTALLER_NAME)
@@ -473,7 +473,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private function removePackage($packageName)
     {
         $this->puliRunner->run(sprintf(
-            'package remove %s',
+            'package --delete %s',
             escapeshellarg($packageName)
         ));
     }
@@ -488,7 +488,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private function renamePackage($name, $newName)
     {
         $this->puliRunner->run(sprintf(
-            'package rename %s %s',
+            'package --rename %s %s',
             escapeshellarg($name),
             escapeshellarg($newName)
         ));
