@@ -21,7 +21,6 @@
         "symfony/filesystem": "~2.3",
         "phpunit/phpunit": "^4.6"
     },
-    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Puli\\ComposerPlugin\\": "src/"
