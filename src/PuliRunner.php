@@ -44,10 +44,16 @@ class PuliRunner
 
         $puliFinder = new ExecutableFinder();
 
+        // Search:
+        // 1. in the current working directory
+        // 2. in Composer's "bin-dir"
+        // 3. in the system path
+        $searchPath = array_merge(array(getcwd()), (array) $binDir);
+
         // Search "puli.phar" in the PATH and the current directory
-        if (!($puli = $puliFinder->find('puli.phar', null, array(getcwd())))) {
+        if (!($puli = $puliFinder->find('puli.phar', null, $searchPath))) {
             // Search "puli" in the PATH and Composer's "bin-dir"
-            if (!($puli = $puliFinder->find('puli', null, (array) $binDir))) {
+            if (!($puli = $puliFinder->find('puli', null, $searchPath))) {
                 throw new RuntimeException('The "puli"/"puli.phar" command could not be found.');
             }
         }
