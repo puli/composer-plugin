@@ -1,7 +1,7 @@
 Changelog
 =========
 
-* 1.0.0-next (@release_date@)
+* 1.0.0-beta5 (2015-05-29)
 
  * the plugin is now independent of puli/manager and uses a "puli"/"puli.phar"
    executable instead
