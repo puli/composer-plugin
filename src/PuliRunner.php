@@ -81,6 +81,7 @@ class PuliRunner
             throw PuliRunnerException::forProcess($process);
         }
 
-        return $process->getOutput();
+        // Normalize line endings across systems
+        return str_replace("\r\n", "\n", $process->getOutput());
     }
 }
