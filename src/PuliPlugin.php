@@ -30,6 +30,7 @@ use Webmozart\PathUtil\Path;
  * packages whenever `composer install` or `composer update` is executed.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
@@ -416,7 +417,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $packages = array();
 
         foreach ($repository->getPackages() as $package) {
-            /** @var PackageInterface $package */
+            /* @var PackageInterface $package */
             $packages[$package->getName()] = $package;
         }
 

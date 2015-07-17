@@ -32,6 +32,7 @@ use Webmozart\PathUtil\Path;
 
 /**
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class PuliPluginTest extends PHPUnit_Framework_TestCase
@@ -98,7 +99,8 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        while (false === mkdir($this->tempDir = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_root'.rand(10000, 99999), 0777, true)) {}
+        while (false === mkdir($this->tempDir = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_root'.rand(10000, 99999), 0777, true)) {
+        }
 
         $filesystem = new Filesystem();
         $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
@@ -213,7 +215,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --add '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->$listener($event);
     }
@@ -258,7 +260,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -292,7 +294,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -327,7 +329,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -358,7 +360,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -398,7 +400,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -444,7 +446,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -466,7 +468,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -489,7 +491,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -511,7 +513,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -548,7 +550,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --add '{$this->tempDir}/package1/sub/path' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -583,7 +585,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -607,7 +609,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --add '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -642,7 +644,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -680,7 +682,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -714,7 +716,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --delete 'vendor/package2'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -737,7 +739,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -781,7 +783,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -806,7 +808,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --rename 'vendor/previous' 'vendor/root'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -828,7 +830,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("build");
+            ->with('build');
 
         $this->plugin->postInstall($event);
     }
@@ -1002,7 +1004,6 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->method('run')
             ->with("config 'factory.in.file' --parsed")
             ->willReturn("My/Factory.php\n");
-
 
         $this->plugin->$listener($event);
 

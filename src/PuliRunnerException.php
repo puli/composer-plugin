@@ -18,6 +18,7 @@ use Symfony\Component\Process\Process;
  * Thrown when an error occurs while running Puli.
  *
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class PuliRunnerException extends RuntimeException
@@ -64,7 +65,7 @@ class PuliRunnerException extends RuntimeException
     public function __construct($command, $exitCode, $shortError, $fullError)
     {
         parent::__construct(sprintf(
-            "An error occurred while running: %s (status %s): %s",
+            'An error occurred while running: %s (status %s): %s',
             $command,
             $exitCode,
             $shortError

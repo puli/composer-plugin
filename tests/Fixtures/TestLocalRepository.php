@@ -16,6 +16,7 @@ use Composer\Repository\WritableRepositoryInterface;
 
 /**
  * @since  1.0
+ *
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class TestLocalRepository implements WritableRepositoryInterface
@@ -34,17 +35,14 @@ class TestLocalRepository implements WritableRepositoryInterface
 
     public function hasPackage(PackageInterface $package)
     {
-
     }
 
     public function findPackage($name, $version)
     {
-
     }
 
     public function findPackages($name, $version = null)
     {
-
     }
 
     public function getPackages()
@@ -54,36 +52,29 @@ class TestLocalRepository implements WritableRepositoryInterface
 
     public function search($query, $mode = 0)
     {
-
     }
 
     public function count()
     {
-
     }
 
     public function write()
     {
-
     }
 
     public function addPackage(PackageInterface $package)
     {
-
     }
 
     public function removePackage(PackageInterface $package)
     {
-
     }
 
     public function getCanonicalPackages()
     {
-
     }
 
     public function reload()
     {
-
     }
 }
