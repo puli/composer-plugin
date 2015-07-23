@@ -133,6 +133,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $this->insertFactoryClassConstant($io, $autoloadFile, $factoryClass);
         $this->insertFactoryClassMap($io, $classMapFile, $vendorDir, $factoryClass, $factoryFile);
+        $this->setBootstrapFile($io, $autoloadFile);
     }
 
     /**
@@ -404,6 +405,22 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         file_put_contents($classMapFile, $contents);
     }
 
+    private function setBootstrapFile(IOInterface $io, $autoloadFile)
+    {
+        $bootstrapFile = $this->getConfigKey('bootstrap-file');
+
+        // Don't change user-defined bootstrap files
+        if (!empty($bootstrapFile)) {
+            return;
+        }
+
+        $relAutoloadFile = Path::makeRelative($autoloadFile, $this->rootDir);
+
+        $io->write("<info>Setting \"bootstrap-file\" to \"$relAutoloadFile\"</info>");
+
+        $this->setConfigKey('bootstrap-file', $relAutoloadFile);
+    }
+
     /**
      * Loads Composer's currently installed packages.
      *
@@ -430,6 +447,15 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             'config %s --parsed',
             escapeshellarg($key)
         )));
+    }
+
+    private function setConfigKey($key, $value)
+    {
+        $this->puliRunner->run(sprintf(
+            'config %s %s',
+            escapeshellarg($key),
+            escapeshellarg($value)
+        ));
     }
 
     /**

@@ -1036,7 +1036,31 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->plugin->$listener($event);
     }
 
-    public function testRunPostAutoloadDumpOnlyOnce()
+    public function testSetBootstrapFileToAutoloadFile()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Setting "bootstrap-file" to "the-vendor/autoload.php"</info>');
+
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("config 'bootstrap-file' --parsed")
+            ->willReturn("");
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with("config 'bootstrap-file' 'the-vendor/autoload.php'");
+
+        $this->plugin->$listener($event);
+    }
+
+    public function testDoNotSetBootstrapFileIfAlreadySet()
     {
         $listeners = $this->plugin->getSubscribedEvents();
 
@@ -1046,6 +1070,28 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->exactly(2))
+            ->method('write');
+
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with("config 'bootstrap-file' --parsed")
+            ->willReturn("my/bootstrap-file.php\n");
+        $this->puliRunner->expects($this->exactly(3))
+            ->method('run');
+
+        $this->plugin->$listener($event);
+    }
+
+    public function testRunPostAutoloadDumpOnlyOnce()
+    {
+        $listeners = $this->plugin->getSubscribedEvents();
+
+        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
+
+        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->exactly(3))
             ->method('write');
 
         $this->plugin->$listener($event);
