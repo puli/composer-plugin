@@ -1052,7 +1052,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with("config 'bootstrap-file' --parsed")
-            ->willReturn("");
+            ->willReturn('');
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with("config 'bootstrap-file' 'the-vendor/autoload.php'");
