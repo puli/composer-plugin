@@ -224,7 +224,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             }
 
             try {
-                $this->installPackage($installPath, $packageName, $io);
+                $this->installPackage($installPath, $packageName);
             } catch (PuliRunnerException $e) {
                 $this->printPackageWarning($io, 'Could not install package "%s" (at ./%s)', $packageName, $installPath, $e);
 
