@@ -365,7 +365,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $contents = file_get_contents($autoloadFile);
         $escFactoryClass = var_export($factoryClass, true);
         $constant = "if (!defined('PULI_FACTORY_CLASS')) {\n";
-        $constant .= "    define('PULI_FACTORY_CLASS', $escFactoryClass);\n";
+        $constant .= sprintf("    define('PULI_FACTORY_CLASS', %s);\n", $escFactoryClass);
         $constant .= "}\n\n";
 
         // Regex modifiers:
@@ -387,12 +387,12 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             ));
         }
 
-        $io->write("<info>Registering $factoryClass with the class-map autoloader</info>");
+        $io->write(sprintf('<info>Registering %s with the class-map autoloader</info>', $factoryClass));
 
         $relFactoryFile = Path::makeRelative($factoryFile, $vendorDir);
         $escFactoryClass = var_export($factoryClass, true);
         $escFactoryFile = var_export('/'.$relFactoryFile, true);
-        $classMap = "\n    $escFactoryClass => \$vendorDir . $escFactoryFile,";
+        $classMap = sprintf("\n    %s => \$vendorDir . %s,", $escFactoryClass, $escFactoryFile);
 
         $contents = file_get_contents($classMapFile);
 
@@ -416,7 +416,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $relAutoloadFile = Path::makeRelative($autoloadFile, $this->rootDir);
 
-        $io->write("<info>Setting \"bootstrap-file\" to \"$relAutoloadFile\"</info>");
+        $io->write(sprintf('<info>Setting "bootstrap-file" to "%s"</info>', $relAutoloadFile));
 
         $this->setConfigKey('bootstrap-file', $relAutoloadFile);
     }
