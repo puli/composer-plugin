@@ -15,6 +15,7 @@ use RuntimeException;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
+use Webmozart\PathUtil\Path;
 
 /**
  * Executes the "puli" command.
@@ -59,7 +60,11 @@ class PuliRunner
             }
         }
 
-        $this->puli = $php.' '.$puli;
+        if (Path::hasExtension($puli, '.bat')) {
+            $this->puli = $puli;
+        } else {
+            $this->puli = $php.' '.$puli;
+        }
     }
 
     /**
