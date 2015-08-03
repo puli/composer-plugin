@@ -75,7 +75,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     public function __construct(PuliRunner $puliRunner = null)
     {
         $this->puliRunner = $puliRunner;
-        $this->rootDir = getcwd();
+        $this->rootDir = Path::canonicalize(getcwd());
     }
 
     /**
@@ -466,10 +466,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $packages = array();
 
         $output = $this->puliRunner->run(
-            'package --list --format \'%name%;%installer%;%install_path%;%state%\''
+            'package --list --format "%name%;%installer%;%install_path%;%state%"'
         );
 
-        foreach (explode("\n", $output) as $packageLine) {
+        foreach (explode(PHP_EOL, $output) as $packageLine) {
             if (!$packageLine) {
                 continue;
             }
