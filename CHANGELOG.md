@@ -1,9 +1,13 @@
 Changelog
 =========
 
-* 1.0.0-beta6 (@release_date@)
+* 1.0.0-beta6 (2015-08-12)
 
  * added Puli components as dependencies
+ * fixed handling of line endings on Windows
+ * the config key "bootstrap-file" is now automatically set to "autoload.php",
+   if not set by the user
+ * fixed running of .bat scripts on Windows
 
 * 1.0.0-beta5 (2015-05-29)
 
