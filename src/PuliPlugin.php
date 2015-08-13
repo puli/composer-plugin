@@ -466,7 +466,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $packages = array();
 
         $output = $this->puliRunner->run(
-            'package --list --format \'%name%;%installer%;%install_path%;%state%\''
+            'package --list --format %name%;%installer%;%install_path%;%state%'
         );
 
         foreach (explode("\n", $output) as $packageLine) {
