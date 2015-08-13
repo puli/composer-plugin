@@ -60,7 +60,7 @@ class PuliRunner
             }
         }
 
-        if (Path::hasExtension($puli, '.bat')) {
+        if (Path::hasExtension(strtolower($puli), '.bat')) {
             $this->puli = $puli;
         } else {
             $this->puli = $php.' '.$puli;
