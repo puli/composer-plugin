@@ -470,7 +470,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             'package --list --format "%name%;%installer%;%install_path%;%state%"'
         );
 
-        foreach (explode("\n", $output) as $packageLine) {
+        foreach (explode(PHP_EOL, $output) as $packageLine) {
             if (!$packageLine) {
                 continue;
             }
