@@ -75,7 +75,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     public function __construct(PuliRunner $puliRunner = null)
     {
         $this->puliRunner = $puliRunner;
-        $this->rootDir = getcwd();
+        $this->rootDir = Path::normalize(getcwd());
     }
 
     /**
