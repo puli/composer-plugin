@@ -27,6 +27,7 @@ use Puli\ComposerPlugin\PuliPlugin;
 use Puli\ComposerPlugin\PuliRunner;
 use Puli\ComposerPlugin\PuliRunnerException;
 use Puli\ComposerPlugin\Tests\Fixtures\TestLocalRepository;
+use Puli\Repository\Tests\TestUtil;
 use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\PathUtil\Path;
 
@@ -99,8 +100,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        while (false === mkdir($this->tempDir = sys_get_temp_dir().'/puli-plugin/PuliPluginTest_root'.rand(10000, 99999), 0777, true)) {
-        }
+        $this->tempDir = TestUtil::makeTempDir('puli-composer-plugin', __CLASS__);
 
         $filesystem = new Filesystem();
         $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
