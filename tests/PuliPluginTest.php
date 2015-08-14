@@ -203,7 +203,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n"
             );
@@ -254,7 +254,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n"
             );
@@ -285,7 +285,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n"
             );
@@ -320,7 +320,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n"
             );
@@ -344,7 +344,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package2;composer;{$this->tempDir}/package2;enabled\n"
@@ -384,7 +384,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;enabled\n"
@@ -417,9 +417,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->once())
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willThrowException(new PuliRunnerException(
-                "package --list --format %name%;%installer%;%install_path%;%state%",
+                "package --list --format \"%name%;%installer%;%install_path%;%state%\"",
                 1,
                 'FileNotFoundException: The file foobar does not exist.',
                 'Exception trace...'
@@ -438,7 +438,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;not-loadable\n".
@@ -460,7 +460,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;not-loadable\n".
@@ -483,7 +483,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;not-found\n".
@@ -505,7 +505,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;not-found\n".
@@ -536,7 +536,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled\n".
@@ -571,7 +571,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled\n".
@@ -599,7 +599,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled\n"
@@ -627,7 +627,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled\n".
@@ -662,7 +662,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled\n".
@@ -705,7 +705,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled\n".
@@ -732,7 +732,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;not-found\n"
@@ -766,7 +766,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled\n".
@@ -799,7 +799,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/previous;;{$this->tempDir};enabled\n"
             );
@@ -824,7 +824,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled\n"
             );
@@ -847,7 +847,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("package --list --format %name%;%installer%;%install_path%;%state%")
+            ->with("package --list --format \"%name%;%installer%;%install_path%;%state%\"")
             ->willReturn(
                 "vendor/previous;;{$this->tempDir};enabled\n"
             );
