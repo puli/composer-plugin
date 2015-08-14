@@ -186,7 +186,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 $package = $package->getAliasOf();
             }
 
-            $installPath = $installationManager->getInstallPath($package);
+            // We need to normalize the system-dependent paths returned by Composer
+            $installPath = Path::normalize($installationManager->getInstallPath($package));
 
             // Skip meta packages
             if ('' === $installPath) {
