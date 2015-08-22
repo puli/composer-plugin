@@ -23,7 +23,8 @@
     "require-dev": {
         "composer/composer": "^1.0@dev",
         "symfony/filesystem": "^2.3",
-        "phpunit/phpunit": "^4.6"
+        "phpunit/phpunit": "^4.6",
+        "webmozart/glob": "^3.1"
     },
     "autoload": {
         "psr-4": {
@@ -32,8 +33,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Puli\\ComposerPlugin\\Tests\\": "tests/",
-            "Puli\\Repository\\Tests\\": "vendor/puli/repository/tests/"
+            "Puli\\ComposerPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

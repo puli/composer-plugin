@@ -27,8 +27,8 @@ use Puli\ComposerPlugin\PuliPlugin;
 use Puli\ComposerPlugin\PuliRunner;
 use Puli\ComposerPlugin\PuliRunnerException;
 use Puli\ComposerPlugin\Tests\Fixtures\TestLocalRepository;
-use Puli\Repository\Tests\TestUtil;
 use Symfony\Component\Filesystem\Filesystem;
+use Webmozart\Glob\Test\TestUtil;
 use Webmozart\PathUtil\Path;
 
 /**
