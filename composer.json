@@ -17,11 +17,11 @@
         "puli/discovery": "^1.0@dev",
         "puli/url-generator": "^1.0@dev",
         "webmozart/key-value-store": "@dev",
-        "webmozart/path-util": "^2.0",
+        "webmozart/path-util": "^2.2",
         "webmozart/assert": "^1.0"
     },
     "require-dev": {
-        "composer/composer": "^1.0@dev",
+        "composer/composer": "^1.0-alpha10",
         "symfony/filesystem": "^2.3",
         "phpunit/phpunit": "^4.6"
     },
