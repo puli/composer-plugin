@@ -209,10 +209,10 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -291,7 +291,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -326,7 +326,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -351,9 +351,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
+            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
             ->willThrowException(new PuliRunnerException(
-                "/path/to/php /path/to/puli.phar package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
+                "/path/to/php /path/to/puli.phar package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
                 1,
                 'UnsupportedVersionException: Cannot read package file /home/bernhard/Entwicklung/Web/puli/cli/puli.json at version 5.0. The highest readable version is 1.0. Please upgrade Puli.',
                 'Exception trace...'
@@ -391,9 +391,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'")
+            ->with("package --install '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'")
             ->willThrowException(new PuliRunnerException(
-                "/path/to/php /path/to/puli.phar package --add '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'",
+                "/path/to/php /path/to/puli.phar package --install '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'",
                 1,
                 'NameConflictException: A package with the name "vendor/package1" exists already.',
                 'Exception trace...'
@@ -547,7 +547,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --delete 'vendor/package1'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1/sub/path' 'vendor/package1' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package1/sub/path' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -582,7 +582,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --delete 'vendor/package1'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -606,7 +606,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+            ->with("package --install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -673,9 +673,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with("package --delete 'vendor/package1'");
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
+            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
             ->willThrowException(new PuliRunnerException(
-                "package --add '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
+                "package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
                 1,
                 'Exception: The exception',
                 'Exception trace...'

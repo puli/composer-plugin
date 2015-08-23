@@ -491,7 +491,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     private function installPackage($installPath, $packageName)
     {
         $this->puliRunner->run(sprintf(
-            'package --add %s %s --installer %s',
+            'package --install %s %s --installer %s',
             escapeshellarg($installPath),
             escapeshellarg($packageName),
             escapeshellarg(self::INSTALLER_NAME)
