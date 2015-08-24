@@ -41,6 +41,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     const INSTALLER_NAME = 'composer';
 
     /**
+     * @var bool
+     */
+    private $activated = false;
+
+    /**
      * @var PuliRunner
      */
     private $puliRunner;
@@ -83,17 +88,20 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function activate(Composer $composer, IOInterface $io)
     {
-        if (!$this->puliRunner) {
+        if (!$this->activated) {
             try {
                 // Add Composer's bin directory in case the "puli" executable is
                 // installed with Composer
+                $this->activated = true;
                 $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
             } catch (RuntimeException $e) {
                 $io->writeError('<warn>'.$e->getMessage().'</warn>');
-
-                // Don't activate the plugin if Puli cannot be run
-                return;
             }
+        }
+
+        // Do nothing if the "puli" command is not executable
+        if (!$this->puliRunner) {
+            return;
         }
 
         $composer->getEventDispatcher()->addSubscriber($this);
