@@ -1,9 +1,11 @@
 Changelog
 =========
 
-* 1.0.0-beta7 (@release_date@)
+* 1.0.0-beta7 (2015-08-24)
 
+ * adapted to puli/cli 1.0.0-beta7
  * the environment ("dev" or "prod") of Composer packages is now passed to Puli
+ * improved Windows compatibility
 
 * 1.0.0-beta6 (2015-08-12)
 
