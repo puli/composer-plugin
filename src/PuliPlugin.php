@@ -497,7 +497,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             'package --list --format "%name%;%installer%;%install_path%;%state%;%env%"'
         );
 
-        foreach (explode(PHP_EOL, $output) as $packageLine) {
+        // PuliRunner replaces \r\n by \n for those Windows boxes
+        foreach (explode("\n", $output) as $packageLine) {
             if (!$packageLine) {
                 continue;
             }
