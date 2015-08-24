@@ -154,7 +154,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $io->write('<info>Looking for updated Puli packages</info>');
 
+        $rootPackage = $event->getComposer()->getPackage();
         $composerPackages = $this->loadComposerPackages($event->getComposer());
+        $prodPackageNames = $this->filterProdPackageNames($composerPackages, $rootPackage);
+        $env = $event->isDevMode() ? PuliPackage::ENV_DEV : PuliPackage::ENV_PROD;
 
         try {
             $puliPackages = $this->loadPuliPackages();
@@ -164,20 +167,34 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
 
-        $this->removeRemovedPackages($composerPackages, $puliPackages, $io);
-        $this->installNewPackages($composerPackages, $puliPackages, $io, $event->getComposer());
-        $this->checkForLoadErrors($puliPackages, $io);
+        // Don't remove non-existing packages in production environment
+        // Removed packages could be dev dependencies (i.e. "require-dev"
+        // of the root package or "require" of another dev dependency), and
+        // we can't find out whether they are since Composer doesn't load them
+        if (PuliPackage::ENV_PROD !== $env) {
+            $this->removeRemovedPackages($composerPackages, $puliPackages, $io);
+        }
+
+        $this->installNewPackages($composerPackages, $prodPackageNames, $puliPackages, $io, $event->getComposer());
+
+        // Don't print warnings for non-existing packages in production
+        if (PuliPackage::ENV_PROD !== $env) {
+            $this->checkForNotFoundErrors($puliPackages, $io);
+        }
+
+        $this->checkForNotLoadableErrors($puliPackages, $io);
         $this->adoptComposerName($puliPackages, $io, $event->getComposer());
         $this->buildPuli($io);
     }
 
     /**
      * @param PackageInterface[] $composerPackages
+     * @param bool[]             $prodPackageNames
      * @param PuliPackage[]      $puliPackages
      * @param IOInterface        $io
      * @param Composer           $composer
      */
-    private function installNewPackages(array $composerPackages, array &$puliPackages, IOInterface $io, Composer $composer)
+    private function installNewPackages(array $composerPackages, array $prodPackageNames, array &$puliPackages, IOInterface $io, Composer $composer)
     {
         $installationManager = $composer->getInstallationManager();
 
@@ -188,6 +205,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
             // We need to normalize the system-dependent paths returned by Composer
             $installPath = Path::normalize($installationManager->getInstallPath($package));
+            $env = isset($prodPackageNames[$packageName]) ? PuliPackage::ENV_PROD : PuliPackage::ENV_DEV;
 
             // Skip meta packages
             if ('' === $installPath) {
@@ -195,17 +213,20 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             }
 
             if (isset($puliPackages[$packageName])) {
-                // Only proceed if the install path has changed
-                if ($installPath === $puliPackages[$packageName]->getInstallPath()) {
+                $puliPackage = $puliPackages[$packageName];
+
+                // Only proceed if the install path or environment has changed
+                if ($installPath === $puliPackage->getInstallPath() && $env === $puliPackage->getEnvironment()) {
                     continue;
                 }
 
                 // Only remove packages installed by Composer
-                if (self::INSTALLER_NAME === $puliPackages[$packageName]->getInstallerName()) {
+                if (self::INSTALLER_NAME === $puliPackage->getInstallerName()) {
                     $io->write(sprintf(
-                        'Reinstalling <info>%s</info> (<comment>%s</comment>)',
+                        'Reinstalling <info>%s</info> (<comment>%s</comment>) in <comment>%s</comment>',
                         $packageName,
-                        Path::makeRelative($installPath, $this->rootDir)
+                        Path::makeRelative($installPath, $this->rootDir),
+                        $env
                     ));
 
                     try {
@@ -218,14 +239,15 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 }
             } else {
                 $io->write(sprintf(
-                    'Installing <info>%s</info> (<comment>%s</comment>)',
+                    'Installing <info>%s</info> (<comment>%s</comment>) in <comment>%s</comment>',
                     $packageName,
-                    Path::makeRelative($installPath, $this->rootDir)
+                    Path::makeRelative($installPath, $this->rootDir),
+                    $env
                 ));
             }
 
             try {
-                $this->installPackage($installPath, $packageName);
+                $this->installPackage($installPath, $packageName, $env);
             } catch (PuliRunnerException $e) {
                 $this->printPackageWarning($io, 'Could not install package "%s" (at ./%s)', $packageName, $installPath, $e);
 
@@ -236,7 +258,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 $packageName,
                 self::INSTALLER_NAME,
                 $installPath,
-                PuliPackage::STATE_ENABLED
+                PuliPackage::STATE_ENABLED,
+                $env
             );
         }
     }
@@ -278,13 +301,14 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    private function checkForLoadErrors(array $puliPackages, IOInterface $io)
+    private function checkForNotFoundErrors(array $puliPackages, IOInterface $io)
     {
         /** @var PuliPackage[] $notFoundPackages */
-        $notFoundPackages = array_filter($puliPackages, function (PuliPackage $package) {
-            return PuliPackage::STATE_NOT_FOUND === $package->getState()
+        $notFoundPackages = array_filter($puliPackages,
+            function (PuliPackage $package) {
+                return PuliPackage::STATE_NOT_FOUND === $package->getState()
                 && PuliPlugin::INSTALLER_NAME === $package->getInstallerName();
-        });
+            });
 
         foreach ($notFoundPackages as $package) {
             $this->printPackageWarning(
@@ -294,7 +318,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 $package->getInstallPath()
             );
         }
+    }
 
+    private function checkForNotLoadableErrors(array $puliPackages, IOInterface $io)
+    {
         /** @var PuliPackage[] $notLoadablePackages */
         $notLoadablePackages = array_filter($puliPackages, function (PuliPackage $package) {
             return PuliPackage::STATE_NOT_LOADABLE === $package->getState()
@@ -467,7 +494,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $packages = array();
 
         $output = $this->puliRunner->run(
-            'package --list --format "%name%;%installer%;%install_path%;%state%"'
+            'package --list --format "%name%;%installer%;%install_path%;%state%;%env%"'
         );
 
         foreach (explode(PHP_EOL, $output) as $packageLine) {
@@ -481,17 +508,19 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 $packageParts[0],
                 $packageParts[1],
                 $packageParts[2],
-                $packageParts[3]
+                $packageParts[3],
+                $packageParts[4]
             );
         }
 
         return $packages;
     }
 
-    private function installPackage($installPath, $packageName)
+    private function installPackage($installPath, $packageName, $env)
     {
         $this->puliRunner->run(sprintf(
-            'package --install %s %s --installer %s',
+            'package --install%s %s %s --installer %s',
+            PuliPackage::ENV_DEV === $env ? ' --dev' : '',
             escapeshellarg($installPath),
             escapeshellarg($packageName),
             escapeshellarg(self::INSTALLER_NAME)
@@ -546,5 +575,29 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             $packageName,
             Path::makeRelative($installPath, $this->rootDir)
         ), $exception);
+    }
+
+    private function filterProdPackageNames(array $composerPackages, PackageInterface $package, array &$result = array())
+    {
+        // Resolve aliases
+        if ($package instanceof AliasPackage) {
+            $package = $package->getAliasOf();
+        }
+
+        // Package was processed already
+        if (isset($result[$package->getName()])) {
+            return $result;
+        }
+
+        $result[$package->getName()] = true;
+
+        // Recursively filter package names
+        foreach ($package->getRequires() as $packageName => $link) {
+            if (isset($composerPackages[$packageName])) {
+                $this->filterProdPackageNames($composerPackages, $composerPackages[$packageName], $result);
+            }
+        }
+
+        return $result;
     }
 }

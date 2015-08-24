@@ -40,10 +40,25 @@ class PuliPackage
      */
     const STATE_NOT_LOADABLE = 'not-loadable';
 
+    /**
+     * Environment: The production environment.
+     */
+    const ENV_PROD = 'prod';
+
+    /**
+     * Environment: The development environment.
+     */
+    const ENV_DEV = 'dev';
+
     private static $states = array(
         self::STATE_ENABLED,
         self::STATE_NOT_FOUND,
         self::STATE_NOT_LOADABLE,
+    );
+
+    private static $envs = array(
+        self::ENV_PROD,
+        self::ENV_DEV,
     );
 
     /**
@@ -67,24 +82,33 @@ class PuliPackage
     private $state;
 
     /**
+     * @var bool
+     */
+    private $env;
+
+    /**
      * Creates a new package DTO.
      *
      * @param string $name          The package name.
      * @param string $installerName The name of the installer.
      * @param string $installPath   The absolute install path.
      * @param string $state         One of the STATE_* constants in this class.
+     * @param string $env           The environment that the package is
+     *                              installed in.
      */
-    public function __construct($name, $installerName, $installPath, $state)
+    public function __construct($name, $installerName, $installPath, $state, $env)
     {
         Assert::stringNotEmpty($name, 'The package name must be a non-empty string. Got: %s');
         Assert::string($installerName, 'The installer name must be a string. Got: %s');
         Assert::stringNotEmpty($installPath, 'The install path must be a non-empty string. Got: %s');
         Assert::oneOf($state, self::$states, 'The package state must be one of %2$s. Got: %s');
+        Assert::oneOf($env, self::$envs, 'The package environment must be one of %2$s. Got: %s');
 
         $this->name = $name;
         $this->installerName = $installerName;
         $this->installPath = $installPath;
         $this->state = $state;
+        $this->env = $env;
     }
 
     /**
@@ -125,5 +149,15 @@ class PuliPackage
     public function getState()
     {
         return $this->state;
+    }
+
+    /**
+     * Returns the environment that the package is installed in.
+     *
+     * @return string One of the ENV_* constants in this class.
+     */
+    public function getEnvironment()
+    {
+        return $this->env;
     }
 }

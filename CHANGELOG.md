@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* 1.0.0-beta7 (@release_date@)
+
+ * the environment ("dev" or "prod") of Composer packages is now passed to Puli
+
 * 1.0.0-beta6 (2015-08-12)
 
  * added Puli components as dependencies
