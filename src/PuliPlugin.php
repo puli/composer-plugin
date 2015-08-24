@@ -95,7 +95,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
                 $this->activated = true;
                 $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
             } catch (RuntimeException $e) {
-                $io->writeError('<warn>'.$e->getMessage().'</warn>');
+                $io->writeError('<warning>'.$e->getMessage().'</warning>');
             }
         }
 
