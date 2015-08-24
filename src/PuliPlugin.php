@@ -43,7 +43,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     /**
      * @var bool
      */
-    private $activated = false;
+    private $initialized = false;
 
     /**
      * @var PuliRunner
@@ -88,27 +88,15 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function activate(Composer $composer, IOInterface $io)
     {
-        if (!$this->activated) {
-            try {
-                // Add Composer's bin directory in case the "puli" executable is
-                // installed with Composer
-                $this->activated = true;
-                $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
-            } catch (RuntimeException $e) {
-                $io->writeError('<warning>'.$e->getMessage().'</warning>');
-            }
-        }
-
-        // Do nothing if the "puli" command is not executable
-        if (!$this->puliRunner) {
-            return;
-        }
-
         $composer->getEventDispatcher()->addSubscriber($this);
     }
 
     public function postAutoloadDump(Event $event)
     {
+        if (!$this->initialized) {
+            $this->initialize($event->getComposer(), $event->getIO());
+        }
+
         // This method is called twice. Run it only once.
         if (!$this->runPostAutoloadDump) {
             return;
@@ -151,6 +139,10 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function postInstall(CommandEvent $event)
     {
+        if (!$this->initialized) {
+            $this->initialize($event->getComposer(), $event->getIO());
+        }
+
         // This method is called twice. Run it only once.
         if (!$this->runPostInstall) {
             return;
@@ -193,6 +185,38 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->checkForNotLoadableErrors($puliPackages, $io);
         $this->adoptComposerName($puliPackages, $io, $event->getComposer());
         $this->buildPuli($io);
+    }
+
+    /**
+     * @param Composer    $composer
+     * @param IOInterface $io
+     */
+    private function initialize(Composer $composer, IOInterface $io)
+    {
+        // This method must be run after all packages are installed, otherwise
+        // it could be that the puli/cli is not yet installed and hence the
+        // CLI is not available
+
+        // Previously, this was called in activate(), which is called
+        // immediately after installing the plugin, but potentially before
+        // installing the CLI
+
+        $this->initialized = true;
+
+        // Keep the manually set runner
+        if ($this->puliRunner) {
+            return;
+        }
+
+        try {
+            // Add Composer's bin directory in case the "puli" executable is
+            // installed with Composer
+            $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
+        } catch (RuntimeException $e) {
+            $io->writeError('<warning>'.$e->getMessage().'</warning>');
+            $this->runPostAutoloadDump = false;
+            $this->runPostInstall = false;
+        }
     }
 
     /**
