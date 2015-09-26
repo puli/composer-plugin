@@ -503,10 +503,21 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function getConfigKey($key)
     {
-        return trim($this->puliRunner->run(sprintf(
+        $value = trim($this->puliRunner->run(sprintf(
             'config %s --parsed',
             escapeshellarg($key)
         )));
+
+        switch ($value) {
+            case 'null':
+                return null;
+            case 'true':
+                return true;
+            case 'false':
+                return false;
+            default:
+                return $value;
+        }
     }
 
     private function setConfigKey($key, $value)
