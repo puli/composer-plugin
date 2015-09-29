@@ -2,8 +2,8 @@ The Puli Plugin for Composer
 ============================
 
 [![Build Status](https://travis-ci.org/puli/composer-plugin.svg?branch=master)](https://travis-ci.org/puli/composer-plugin)
+[![Build status](https://ci.appveyor.com/api/projects/status/ahk24l3m2tahc9ih/branch/master?svg=true)](https://ci.appveyor.com/project/webmozart/composer-plugin/branch/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/puli/composer-plugin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/puli/composer-plugin/?branch=master)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/2c283cc0-acfd-4761-99d1-6b503f8b152f/mini.png)](https://insight.sensiolabs.com/projects/2c283cc0-acfd-4761-99d1-6b503f8b152f)
 [![Latest Stable Version](https://poser.pugx.org/puli/composer-plugin/v/stable.svg)](https://packagist.org/packages/puli/composer-plugin)
 [![Total Downloads](https://poser.pugx.org/puli/composer-plugin/downloads.svg)](https://packagist.org/packages/puli/composer-plugin)
 [![Dependency Status](https://www.versioneye.com/php/puli:composer-plugin/1.0.0/badge.svg)](https://www.versioneye.com/php/puli:composer-plugin/1.0.0)
