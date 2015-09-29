@@ -24,7 +24,8 @@
         "composer/composer": "^1.0-alpha10",
         "symfony/filesystem": "^2.3",
         "phpunit/phpunit": "^4.6",
-        "webmozart/glob": "^3.1"
+        "webmozart/glob": "^3.1",
+        "sebastian/version": "^1.0.1"
     },
     "autoload": {
         "psr-4": {
