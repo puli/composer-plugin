@@ -503,9 +503,8 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function getConfigKey($key)
     {
-        $value = trim($this->puliRunner->run(sprintf(
-            'config %s --parsed',
-            escapeshellarg($key)
+        $value = trim($this->puliRunner->run('config %key% --parsed', array(
+            'key' => $key,
         )));
 
         switch ($value) {
@@ -522,10 +521,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function setConfigKey($key, $value)
     {
-        $this->puliRunner->run(sprintf(
-            'config %s %s',
-            escapeshellarg($key),
-            escapeshellarg($value)
+        $this->puliRunner->run('config %key% %value%', array(
+            'key' => $key,
+            'value' => $value,
         ));
     }
 
@@ -536,9 +534,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $packages = array();
 
-        $output = $this->puliRunner->run(
-            'package --list --format "%name%;%installer%;%install_path%;%state%;%env%"'
-        );
+        $output = $this->puliRunner->run('package --list --format %format%', array(
+            'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+        ));
 
         // PuliRunner replaces \r\n by \n for those Windows boxes
         foreach (explode("\n", $output) as $packageLine) {
@@ -562,20 +560,19 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function installPackage($installPath, $packageName, $env)
     {
-        $this->puliRunner->run(sprintf(
-            'package --install%s %s %s --installer %s',
-            PuliPackage::ENV_DEV === $env ? ' --dev' : '',
-            escapeshellarg($installPath),
-            escapeshellarg($packageName),
-            escapeshellarg(self::INSTALLER_NAME)
+        $env = PuliPackage::ENV_DEV === $env ? ' --dev' : '';
+
+        $this->puliRunner->run('package --install %path% %package_name% --installer %installer%'.$env, array(
+            'path' => $installPath,
+            'package_name' => $packageName,
+            'installer' => self::INSTALLER_NAME,
         ));
     }
 
     private function removePackage($packageName)
     {
-        $this->puliRunner->run(sprintf(
-            'package --delete %s',
-            escapeshellarg($packageName)
+        $this->puliRunner->run('package --delete %package_name%', array(
+            'package_name' => $packageName,
         ));
     }
 
@@ -588,10 +585,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     private function renamePackage($name, $newName)
     {
-        $this->puliRunner->run(sprintf(
-            'package --rename %s %s',
-            escapeshellarg($name),
-            escapeshellarg($newName)
+        $this->puliRunner->run('package --rename %old_name% %new_name%', array(
+            'old_name' => $name,
+            'new_name' => $newName,
         ));
     }
 

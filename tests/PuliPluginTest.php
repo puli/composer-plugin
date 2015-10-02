@@ -209,16 +209,26 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package2',
+                'package_name' => 'vendor/package2',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -284,22 +294,40 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package2',
+                'package_name' => 'vendor/package2',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
-            ->with("package --install --dev '{$this->tempDir}/package3' 'vendor/package3' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer% --dev', array(
+                'path' => $this->tempDir.'/package3',
+                'package_name' => 'vendor/package3',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(4))
             ->method('run')
-            ->with("package --install --dev '{$this->tempDir}/package4' 'vendor/package4' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer% --dev', array(
+                'path' => $this->tempDir.'/package4',
+                'package_name' => 'vendor/package4',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(5))
             ->method('run')
             ->with('build');
@@ -324,7 +352,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
@@ -355,13 +385,19 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -390,13 +426,19 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -414,14 +456,20 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package2;composer;{$this->tempDir}/package2;enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "/path/to/php /path/to/puli.phar package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
                 1,
@@ -454,14 +502,20 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'")
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package2',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "/path/to/php /path/to/puli.phar package --install '{$this->tempDir}/package2' 'vendor/package1' --installer 'composer'",
                 1,
@@ -487,7 +541,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->once())
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willThrowException(new PuliRunnerException(
                 'package --list --format "%name%;%installer%;%install_path%;%state%;%env%"',
                 1,
@@ -508,7 +564,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;not-loadable;prod\n".
@@ -530,7 +588,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;not-loadable;prod\n".
@@ -553,7 +613,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;not-found;prod\n".
@@ -575,7 +637,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;not-found;prod\n".
@@ -597,7 +661,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;not-found;prod\n".
@@ -628,7 +694,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled;prod\n".
@@ -636,10 +704,16 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package1'");
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package1',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1/sub/path' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1/sub/path',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -663,7 +737,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled;prod\n".
@@ -671,10 +747,16 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package1'");
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package1',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -699,7 +781,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled;prod\n".
@@ -707,10 +791,16 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package1'");
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package1',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --install --dev '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer% --dev', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
@@ -727,14 +817,20 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package2' 'vendor/package2' --installer 'composer'");
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package2',
+                'package_name' => 'vendor/package2',
+                'installer' => 'composer',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -755,7 +851,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled;prod\n".
@@ -763,7 +861,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package1'")
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package1',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "package --delete 'vendor/package1'",
                 1,
@@ -790,7 +890,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1/sub/path;enabled;prod\n".
@@ -798,10 +900,16 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package1'");
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package1',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'")
+            ->with('package --install %path% %package_name% --installer %installer%', array(
+                'path' => $this->tempDir.'/package1',
+                'package_name' => 'vendor/package1',
+                'installer' => 'composer',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "package --install '{$this->tempDir}/package1' 'vendor/package1' --installer 'composer'",
                 1,
@@ -833,7 +941,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled;prod\n".
@@ -841,7 +951,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package2'");
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package2',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -863,7 +975,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled;prod\n".
@@ -887,7 +1001,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;spock;{$this->tempDir}/package1;not-found;prod\n"
@@ -921,7 +1037,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n".
                 "vendor/package1;composer;{$this->tempDir}/package1;enabled;prod\n".
@@ -929,7 +1047,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --delete 'vendor/package2'")
+            ->with('package --delete %package_name%', array(
+                'package_name' => 'vendor/package2',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "package --delete 'vendor/package2'",
                 1,
@@ -954,13 +1074,18 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/previous;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --rename 'vendor/previous' 'vendor/root'");
+            ->with('package --rename %old_name% %new_name%', array(
+                'old_name' => 'vendor/previous',
+                'new_name' => 'vendor/root',
+            ));
         $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('build');
@@ -979,7 +1104,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
@@ -1002,13 +1129,18 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with('package --list --format "%name%;%installer%;%install_path%;%state%;%env%"')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
             ->willReturn(
                 "vendor/previous;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("package --rename 'vendor/previous' 'vendor/root'")
+            ->with('package --rename %old_name% %new_name%', array(
+                'old_name' => 'vendor/previous',
+                'new_name' => 'vendor/root',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "package --rename 'vendor/previous' 'vendor/root'",
                 1,
@@ -1040,11 +1172,15 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("config 'factory.in.class' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.class',
+            ))
             ->willReturn("Puli\\MyFactory\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("config 'factory.in.file' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.file',
+            ))
             ->willReturn("My/Factory.php\n");
 
         $this->plugin->$listener($event);
@@ -1073,7 +1209,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->once())
             ->method('run')
-            ->with("config 'factory.in.class' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.class',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "config 'factory.in.class' --parsed",
                 1,
@@ -1099,11 +1237,15 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("config 'factory.in.class' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.class',
+            ))
             ->willReturn("Puli\\MyFactory\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("config 'factory.in.file' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.file',
+            ))
             ->willThrowException(new PuliRunnerException(
                 "config 'factory.in.file' --parsed",
                 1,
@@ -1153,11 +1295,15 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
-            ->with("config 'factory.in.class' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.class',
+            ))
             ->willReturn("Puli\\MyFactory\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
-            ->with("config 'factory.in.file' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.file',
+            ))
             ->willReturn("My/Factory.php\n");
 
         $this->plugin->$listener($event);
@@ -1206,11 +1352,16 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("config 'bootstrap-file' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'bootstrap-file',
+            ))
             ->willReturn('null');
         $this->puliRunner->expects($this->at(3))
             ->method('run')
-            ->with("config 'bootstrap-file' 'the-vendor/autoload.php'");
+            ->with('config %key% %value%', array(
+                'key' => 'bootstrap-file',
+                'value' => 'the-vendor/autoload.php',
+            ));
 
         $this->plugin->$listener($event);
     }
@@ -1229,7 +1380,9 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->puliRunner->expects($this->at(2))
             ->method('run')
-            ->with("config 'bootstrap-file' --parsed")
+            ->with('config %key% --parsed', array(
+                'key' => 'bootstrap-file',
+            ))
             ->willReturn("my/bootstrap-file.php\n");
         $this->puliRunner->expects($this->exactly(3))
             ->method('run');

@@ -70,15 +70,24 @@ class PuliRunner
     /**
      * Runs a Puli command.
      *
-     * @param string $command The Puli command to run.
+     * @param string   $command The Puli command to run.
+     * @param string[] $args    Arguments to quote and insert into the command.
+     *                          For each key "key" in this array, the placeholder
+     *                          "%key%" should be present in the command string.
      *
      * @return string The lines of the output.
      */
-    public function run($command)
+    public function run($command, array $args = array())
     {
+        $replacements = array();
+
+        foreach ($args as $key => $arg) {
+            $replacements['%'.$key.'%'] = escapeshellarg($arg);
+        }
+
         // Disable colorization so that we can process the output
         // Enable exception traces by using the "-vv" switch
-        $fullCommand = sprintf('%s %s --no-ansi -vv', $this->puli, $command);
+        $fullCommand = sprintf('%s %s --no-ansi -vv', $this->puli, strtr($command, $replacements));
 
         $process = new Process($fullCommand);
         $process->run();
