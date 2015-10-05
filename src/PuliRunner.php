@@ -15,6 +15,7 @@ use RuntimeException;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Process\ProcessUtils;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -82,7 +83,7 @@ class PuliRunner
         $replacements = array();
 
         foreach ($args as $key => $arg) {
-            $replacements['%'.$key.'%'] = escapeshellarg($arg);
+            $replacements['%'.$key.'%'] = ProcessUtils::escapeArgument($arg);
         }
 
         // Disable colorization so that we can process the output
