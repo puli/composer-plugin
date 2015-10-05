@@ -12,13 +12,13 @@ Latest release: [1.0.0-beta7](https://packagist.org/packages/puli/composer-plugi
 
 PHP >= 5.3.9
 
-This plugin integrates [Composer] with the [Puli Repository Manager]. Whenever
-you install or update your Composer dependencies, a [Puli resource repository] 
-and [discovery] are built from the puli.json files of all installed packages:
+This plugin integrates [Composer] with the [Puli Manager]. Whenever you install 
+or update your Composer dependencies, a [Puli resource repository] and 
+[discovery] are built from the puli.json files of all installed packages:
 
 ```json
 {
-    "resources": {
+    "path-mappings": {
         "/acme/blog": "resources"
     }
 }
@@ -38,7 +38,7 @@ echo $repo->get('/acme/blog/config/config.yml')->getBody();
 // Find resources by binding type
 $discovery = $factory->createFactory($repo);
 
-foreach ($discovery->find('doctrine/xml-mapping') as $binding) {
+foreach ($discovery->findBindings('doctrine/xml-mapping') as $binding) {
     foreach ($binding->getResources() as $resource) {
         // do something...
     }
@@ -84,7 +84,7 @@ All contents of this package are licensed under the [MIT license].
 
 [Bernhard Schussek]: http://webmozarts.com
 [The Community Contributors]: https://github.com/puli/composer-plugin/graphs/contributors
-[Puli Repository Manager]: https://github.com/puli/repository-manager
+[Puli Manager]: https://github.com/puli/manager
 [Puli resource repository]: https://github.com/puli/repository
 [discovery]: https://github.com/puli/discovery
 [Composer]: https://getcomposer.org
