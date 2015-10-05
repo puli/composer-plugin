@@ -1,9 +1,10 @@
 Changelog
 =========
 
-* 1.0.0-next (@release_date@)
+* 1.0.0-beta8 (2015-10-05)
 
  * fixed setting of the "bootstrap-file" key
+ * fixed escaping of arguments when calling shell commands on Windows
 
 * 1.0.0-beta7 (2015-08-24)
 
