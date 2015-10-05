@@ -62,9 +62,9 @@ class PuliRunner
         }
 
         if (Path::hasExtension($puli, '.bat', true)) {
-            $this->puli = $puli;
+            $this->puli = escapeshellcmd($puli);
         } else {
-            $this->puli = $php.' '.$puli;
+            $this->puli = escapeshellcmd($php).' '.ProcessUtils::escapeArgument($puli);
         }
     }
 
