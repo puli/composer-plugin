@@ -82,7 +82,7 @@ class PuliPackage
     private $state;
 
     /**
-     * @var bool
+     * @var string
      */
     private $env;
 
