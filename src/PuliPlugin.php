@@ -93,6 +93,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
     public function postAutoloadDump(Event $event)
     {
+        // Plugin has been uninstalled
+        if (!file_exists(__FILE__)) {
+            return;
+        }
+
         if (!$this->initialized) {
             $this->initialize($event->getComposer(), $event->getIO());
         }
@@ -139,6 +144,11 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function postInstall(CommandEvent $event)
     {
+        // Plugin has been uninstalled
+        if (!file_exists(__FILE__)) {
+            return;
+        }
+
         if (!$this->initialized) {
             $this->initialize($event->getComposer(), $event->getIO());
         }

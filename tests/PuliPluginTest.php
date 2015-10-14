@@ -36,6 +36,8 @@ use Webmozart\PathUtil\Path;
  * @since  1.0
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @runTestsInSeparateProcesses
  */
 class PuliPluginTest extends PHPUnit_Framework_TestCase
 {
@@ -86,6 +88,8 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
     private $tempDir;
 
+    private $pluginClassFile;
+
     private $previousWd;
 
     private $installPaths;
@@ -102,6 +106,15 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->tempDir = TestUtil::makeTempDir('puli-composer-plugin', __CLASS__);
+        $this->pluginClassFile = $this->tempDir.'/PuliPlugin.php';
+
+        // Put PuliPlugin.php to a location where we can safely delete it
+        copy(__DIR__.'/../src/PuliPlugin.php', $this->pluginClassFile);
+
+        // Use custom file so that we can safely delete it
+        // This is needed in tests that check that the plugin does not create
+        // errors after uninstall
+        require $this->pluginClassFile;
 
         $filesystem = new Filesystem();
         $filesystem->mirror(__DIR__.'/Fixtures/root', $this->tempDir);
@@ -251,6 +264,25 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $listener = $listeners[$eventName];
 
         $this->plugin->$listener($event);
+    }
+
+    public function testDoNotInstallNewPuliPackagesAfterUninstall()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->io->expects($this->never())
+            ->method('write');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->never())
+            ->method('run');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginClassFile);
+
+        $this->plugin->postInstall($event);
     }
 
     public function testInstallNewPuliPackagesInDifferentEnvironments()
@@ -1196,11 +1228,6 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
     public function testWarnIfFactoryClassCannotBeRead()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->once())
@@ -1219,16 +1246,11 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'Exception trace...'
             ));
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
     }
 
     public function testWarnIfFactoryFileCannotBeRead()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->once())
@@ -1253,7 +1275,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'Exception trace...'
             ));
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
     }
 
     /**
@@ -1262,11 +1284,6 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
      */
     public function testFailIfClassMapFileNotFound()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->never())
@@ -1274,16 +1291,11 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         unlink($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
     }
 
     public function testInsertFactoryConstantIntoAutoload()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->at(0))
@@ -1306,7 +1318,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ))
             ->willReturn("My/Factory.php\n");
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
 
         $this->assertFileExists($this->tempDir.'/the-vendor/autoload.php');
 
@@ -1322,11 +1334,6 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
      */
     public function testFailIfAutoloadFileNotFound()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->never())
@@ -1334,16 +1341,11 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         unlink($this->tempDir.'/the-vendor/autoload.php');
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
     }
 
     public function testSetBootstrapFileToAutoloadFile()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->at(2))
@@ -1363,16 +1365,11 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'value' => 'the-vendor/autoload.php',
             ));
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
     }
 
     public function testDoNotSetBootstrapFileIfAlreadySet()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->exactly(2))
@@ -1387,22 +1384,30 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->exactly(3))
             ->method('run');
 
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
     }
 
     public function testRunPostAutoloadDumpOnlyOnce()
     {
-        $listeners = $this->plugin->getSubscribedEvents();
-
-        $this->assertArrayHasKey(ScriptEvents::POST_AUTOLOAD_DUMP, $listeners);
-
-        $listener = $listeners[ScriptEvents::POST_AUTOLOAD_DUMP];
         $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
 
         $this->io->expects($this->exactly(3))
             ->method('write');
 
-        $this->plugin->$listener($event);
-        $this->plugin->$listener($event);
+        $this->plugin->postAutoloadDump($event);
+        $this->plugin->postAutoloadDump($event);
+    }
+
+    public function testDontRunPostAutoloadDumpAfterUninstall()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->io->expects($this->never())
+            ->method('write');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginClassFile);
+
+        $this->plugin->postAutoloadDump($event);
     }
 }
