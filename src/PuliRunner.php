@@ -61,10 +61,12 @@ class PuliRunner
             }
         }
 
-        if (Path::hasExtension($puli, '.bat', true)) {
-            $this->puli = escapeshellcmd($puli);
-        } else {
+        $content = file_get_contents($puli, null, null, -1, 18);
+
+        if ($content === '#!/usr/bin/env php' || 0 === strpos($content, '<?php')) {
             $this->puli = escapeshellcmd($php).' '.ProcessUtils::escapeArgument($puli);
+        } else {
+            $this->puli = escapeshellcmd($puli);
         }
     }
 
