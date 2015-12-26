@@ -28,7 +28,7 @@ class PuliRunnerTest extends PHPUnit_Framework_TestCase
         $fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts/bash');
         $runner = new PuliRunner($fixturesDir);
 
-        $this->assertEquals($fixturesDir.'/puli', $this->extractScriptPathFromRunner($runner));
+        $this->assertRunnerUseScript($fixturesDir, $runner, false);
     }
 
     public function testRunnerPhpClassical()
@@ -36,7 +36,7 @@ class PuliRunnerTest extends PHPUnit_Framework_TestCase
         $fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts/php_classical');
         $runner = new PuliRunner($fixturesDir);
 
-        $this->assertContains(' \''.$fixturesDir.'/puli\'', $this->extractScriptPathFromRunner($runner));
+        $this->assertRunnerUseScript($fixturesDir, $runner, true);
     }
 
     public function testRunnerPhpHashbang()
@@ -44,21 +44,34 @@ class PuliRunnerTest extends PHPUnit_Framework_TestCase
         $fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts/php_hashbang');
         $runner = new PuliRunner($fixturesDir);
 
-        $this->assertContains(' \''.$fixturesDir.'/puli\'', $this->extractScriptPathFromRunner($runner));
+        $this->assertRunnerUseScript($fixturesDir, $runner, true);
     }
 
-    /**
-     * @param PuliRunner $runner
-     *
-     * @return string
-     */
-    private function extractScriptPathFromRunner(PuliRunner $runner)
+    private function assertRunnerUseScript($fixturesDir, PuliRunner $runner, $throughPhp = false)
     {
         $reflection = new ReflectionObject($runner);
 
         $property = $reflection->getProperty('puli');
         $property->setAccessible(true);
 
-        return Path::normalize($property->getValue($runner));
+        $runnerScript = Path::normalize($property->getValue($runner));
+
+        if (!$throughPhp) {
+            if ('\\' === DIRECTORY_SEPARATOR) {
+                // Windows
+                $this->assertSame(Path::normalize(escapeshellcmd($fixturesDir.'\puli.BAT')), $runnerScript);
+            } else {
+                $this->assertSame($fixturesDir.'/puli', $runnerScript);
+            }
+        } else {
+            if ('\\' === DIRECTORY_SEPARATOR) {
+                // Windows
+                $this->assertContains('php.exe', $runnerScript);
+                $this->assertContains(' "'.$fixturesDir.'/puli.BAT"', $runnerScript);
+            } else {
+                $this->assertContains('php', $runnerScript);
+                $this->assertContains(' \''.$fixturesDir.'/puli\'', $runnerScript);
+            }
+        }
     }
 }
