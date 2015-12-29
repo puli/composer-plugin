@@ -49,7 +49,7 @@ class PuliRunnerException extends RuntimeException
 
         if (preg_match('~^fatal: (.+)$~', $shortError, $matches)) {
             $shortError = trim($matches[1]);
-        } elseif (preg_match('~^\s+\[([\w\\\\]+\\\\)?(\w+)\]\s+(.+)\n\n\S~s', $shortError, $matches)) {
+        } elseif (preg_match('~^\s+\[([\w\\\\]+\\\\)?(\w+)\]\s+(.+)\r?\n\r?\n\S~s', $shortError, $matches)) {
             $shortError = trim($matches[2]).': '.trim($matches[3]);
         }
 
