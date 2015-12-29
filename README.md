@@ -45,8 +45,6 @@ foreach ($discovery->findBindings('doctrine/xml-mapping') as $binding) {
 }
 ```
 
-Read [Puli at a Glance] to learn more about Puli.
-
 Authors
 -------
 
@@ -56,12 +54,12 @@ Authors
 Installation
 ------------
 
-Follow the [Getting Started] guide to install Puli in your project.
+Follow the [Installation guide] to install Puli in your project.
 
 Documentation
 -------------
 
-Read the [Puli Documentation] to learn more about Puli.
+Read [the Puli Documentation] to learn more about Puli.
 
 Contribute
 ----------
@@ -88,9 +86,8 @@ All contents of this package are licensed under the [MIT license].
 [Puli resource repository]: https://github.com/puli/repository
 [discovery]: https://github.com/puli/discovery
 [Composer]: https://getcomposer.org
-[Getting Started]: http://docs.puli.io/en/latest/getting-started.html
-[Puli Documentation]: http://docs.puli.io/en/latest/index.html
-[Puli at a Glance]: http://docs.puli.io/en/latest/at-a-glance.html
+[Installation guide]: http://docs.puli.io/en/latest/installation.html
+[the Puli Documentation]: http://docs.puli.io/en/latest/index.html
 [issue tracker]: https://github.com/puli/issues/issues
 [Git repository]: https://github.com/puli/composer-plugin
 [@webmozart]: https://twitter.com/webmozart
