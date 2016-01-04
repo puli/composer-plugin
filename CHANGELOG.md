@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* 1.0.0-beta9 (@release_date@)
+
+ * checking the version of puli/cli now to find out whether the plugin is compatible
+
 * 1.0.0-beta8 (2015-10-05)
 
  * fixed setting of the "bootstrap-file" key

@@ -36,6 +36,16 @@ use Webmozart\PathUtil\Path;
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
 {
     /**
+     * The minimum version of the Puli CLI.
+     */
+    const MIN_CLI_VERSION = '1.0.0-beta9';
+
+    /**
+     * The maximum version of the Puli CLI.
+     */
+    const MAX_CLI_VERSION = '1.999.99999';
+
+    /**
      * The name of the installer.
      */
     const INSTALLER_NAME = 'composer';
@@ -88,6 +98,49 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function activate(Composer $composer, IOInterface $io)
     {
+        // Verify if Puli has the right version
+        try {
+            $versionString = $this->puliRunner->run('-V');
+        } catch (PuliRunnerException $e) {
+            $this->printWarning($io, 'Could not determine Puli version', $e);
+
+            return;
+        }
+
+        if (!preg_match('~\d+\.\d+\.\d+(-\w+)?~', $versionString, $matches)) {
+            $this->printWarning($io, sprintf(
+                'Could not determine Puli version. "puli -V" returned: %s',
+                $versionString
+            ));
+
+            return;
+        }
+
+        if (version_compare($matches[0], self::MIN_CLI_VERSION, '<')) {
+            $this->printWarning($io, sprintf(
+                'Found an unsupported version of the Puli CLI: %s. Please '.
+                'upgrade to version %s or higher. You can also install the '.
+                'puli/cli dependency at version %s in your project.',
+                $matches[0],
+                self::MIN_CLI_VERSION,
+                self::MIN_CLI_VERSION
+            ));
+
+            return;
+        }
+
+        if (version_compare($matches[0], self::MAX_CLI_VERSION, '>')) {
+            $this->printWarning($io, sprintf(
+                'Found an unsupported version of the Puli CLI: %s. Please '.
+                'downgrade to a lower version. You can also install the '.
+                'puli/cli dependency at a lower version than %s in your project.',
+                $matches[0],
+                self::MAX_CLI_VERSION
+            ));
+
+            return;
+        }
+
         $composer->getEventDispatcher()->addSubscriber($this);
     }
 

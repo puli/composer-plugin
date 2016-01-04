@@ -184,6 +184,49 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
 
         $this->composer->setEventDispatcher($dispatcher);
 
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+
+        $this->plugin->activate($this->composer, $this->io);
+    }
+
+    public function testActivateDoesNothingIfVersionTooLow()
+    {
+        $dispatcher = $this->getMockBuilder('Composer\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher->expects($this->never())
+            ->method('addSubscriber');
+
+        $this->composer->setEventDispatcher($dispatcher);
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version 1.0.0-beta8');
+
+        $this->plugin->activate($this->composer, $this->io);
+    }
+
+    public function testActivateDoesNothingIfVersionTooHigh()
+    {
+        $dispatcher = $this->getMockBuilder('Composer\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher->expects($this->never())
+            ->method('addSubscriber');
+
+        $this->composer->setEventDispatcher($dispatcher);
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version 2.0.0-alpha1');
+
         $this->plugin->activate($this->composer, $this->io);
     }
 
