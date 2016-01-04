@@ -13,65 +13,92 @@ namespace Puli\ComposerPlugin\Tests;
 
 use PHPUnit_Framework_TestCase;
 use Puli\ComposerPlugin\PuliRunner;
-use ReflectionObject;
+use Symfony\Component\Process\PhpExecutableFinder;
+use Symfony\Component\Process\ProcessUtils;
 use Webmozart\PathUtil\Path;
 
 /**
  * @since  1.0
  *
  * @author Titouan Galopin <galopintitouan@gmail.com>
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class PuliRunnerTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @var string
+     */
+    private $fixturesDir;
+
+    /**
+     * @var string
+     */
+    private $previousWd;
+
+    /**
+     * @var string
+     */
+    private $php;
+
+    protected function setUp()
+    {
+        $phpFinder = new PhpExecutableFinder();
+
+        $this->fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts');
+        $this->previousWd = getcwd();
+        $this->php = strtr($phpFinder->find(), '\\', '/');
+    }
+
+    protected function tearDown()
+    {
+        chdir($this->previousWd);
+    }
+
     public function testRunnerBash()
     {
-        $fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts/bash');
-        $runner = new PuliRunner($fixturesDir);
+        chdir($this->fixturesDir.'/bash');
 
-        $this->assertRunnerUseScript($fixturesDir, $runner, false);
+        $runner = new PuliRunner();
+
+        $expected = ProcessUtils::escapeArgument($this->fixturesDir.'/bash/puli');
+
+        $this->assertSame($expected, $runner->getPuliCommand());
+    }
+
+    public function testRunnerBat()
+    {
+        if ('\\' !== DIRECTORY_SEPARATOR) {
+            $this->markTestSkipped('Requires Windows to run');
+        }
+
+        chdir($this->fixturesDir.'/bat');
+
+        $runner = new PuliRunner();
+
+        $expected = ProcessUtils::escapeArgument($this->fixturesDir.'/bat/puli.bat');
+
+        $this->assertSame($expected, $runner->getPuliCommand());
     }
 
     public function testRunnerPhpClassical()
     {
-        $fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts/php_classical');
-        $runner = new PuliRunner($fixturesDir);
+        chdir($this->fixturesDir.'/php_classical');
 
-        $this->assertRunnerUseScript($fixturesDir, $runner, true);
+        $runner = new PuliRunner();
+
+        $expected = ProcessUtils::escapeArgument($this->php).' '.ProcessUtils::escapeArgument($this->fixturesDir.'/php_classical/puli');
+
+        $this->assertSame($expected, $runner->getPuliCommand());
     }
 
     public function testRunnerPhpHashbang()
     {
-        $fixturesDir = Path::normalize(__DIR__.'/Fixtures/scripts/php_hashbang');
-        $runner = new PuliRunner($fixturesDir);
+        chdir($this->fixturesDir.'/php_hashbang');
 
-        $this->assertRunnerUseScript($fixturesDir, $runner, true);
-    }
+        $runner = new PuliRunner();
 
-    private function assertRunnerUseScript($fixturesDir, PuliRunner $runner, $throughPhp = false)
-    {
-        $reflection = new ReflectionObject($runner);
+        $expected = ProcessUtils::escapeArgument($this->php).' '.ProcessUtils::escapeArgument($this->fixturesDir.'/php_hashbang/puli');
 
-        $property = $reflection->getProperty('puli');
-        $property->setAccessible(true);
-
-        $runnerScript = Path::normalize($property->getValue($runner));
-
-        if (!$throughPhp) {
-            if ('\\' === DIRECTORY_SEPARATOR) {
-                // Windows
-                $this->assertSame(Path::normalize(escapeshellcmd($fixturesDir.'\puli.BAT')), $runnerScript);
-            } else {
-                $this->assertSame($fixturesDir.'/puli', $runnerScript);
-            }
-        } else {
-            if ('\\' === DIRECTORY_SEPARATOR) {
-                // Windows
-                $this->assertContains('php.exe', $runnerScript);
-                $this->assertContains(' "'.$fixturesDir.'/puli.BAT"', $runnerScript);
-            } else {
-                $this->assertContains('php', $runnerScript);
-                $this->assertContains(' \''.$fixturesDir.'/puli\'', $runnerScript);
-            }
-        }
+        $this->assertSame($expected, $runner->getPuliCommand());
     }
 }
