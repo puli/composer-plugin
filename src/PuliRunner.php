@@ -16,7 +16,6 @@ use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessUtils;
-use Webmozart\PathUtil\Path;
 
 /**
  * Executes the "puli" command.
@@ -45,7 +44,7 @@ class PuliRunner
             throw new RuntimeException('The "php" command could not be found.');
         }
 
-        $puliFinder = new ExecutableFinder();
+        $finder = new ExecutableFinder();
 
         // Search:
         // 1. in the current working directory
@@ -54,20 +53,34 @@ class PuliRunner
         $searchPath = array_merge(array(getcwd()), (array) $binDir);
 
         // Search "puli.phar" in the PATH and the current directory
-        if (!($puli = $puliFinder->find('puli.phar', null, $searchPath))) {
+        if (!($puli = $this->find('puli.phar', $searchPath, $finder))) {
             // Search "puli" in the PATH and Composer's "bin-dir"
-            if (!($puli = $puliFinder->find('puli', null, $searchPath))) {
+            if (!($puli = $this->find('puli', $searchPath, $finder))) {
                 throw new RuntimeException('The "puli"/"puli.phar" command could not be found.');
             }
         }
 
+        // Fix slashes
+        $php = strtr($php, '\\', '/');
+        $puli = strtr($puli, '\\', '/');
+
         $content = file_get_contents($puli, null, null, -1, 18);
 
         if ($content === '#!/usr/bin/env php' || 0 === strpos($content, '<?php')) {
-            $this->puli = escapeshellcmd($php).' '.ProcessUtils::escapeArgument($puli);
+            $this->puli = ProcessUtils::escapeArgument($php).' '.ProcessUtils::escapeArgument($puli);
         } else {
-            $this->puli = escapeshellcmd($puli);
+            $this->puli = ProcessUtils::escapeArgument($puli);
         }
+    }
+
+    /**
+     * Returns the command used to execute Puli.
+     *
+     * @return string The "puli" command.
+     */
+    public function getPuliCommand()
+    {
+        return $this->puli;
     }
 
     /**
@@ -101,5 +114,28 @@ class PuliRunner
 
         // Normalize line endings across systems
         return str_replace("\r\n", "\n", $process->getOutput());
+    }
+
+    private function find($name, array $dirs, ExecutableFinder $finder)
+    {
+        $suffixes = array('');
+
+        if ('\\' === DIRECTORY_SEPARATOR) {
+            $suffixes[] = '.bat';
+        }
+
+        // The finder first looks in the system directories and then in the
+        // user-defined ones. We want to check the user-defined ones first.
+        foreach ($dirs as $dir) {
+            foreach ($suffixes as $suffix) {
+                $file = $dir.DIRECTORY_SEPARATOR.$name.$suffix;
+
+                if (is_file($file) && ('\\' === DIRECTORY_SEPARATOR || is_executable($file))) {
+                    return $file;
+                }
+            }
+        }
+
+        return $finder->find($name);
     }
 }
