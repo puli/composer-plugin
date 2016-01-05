@@ -223,7 +223,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -300,7 +300,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->once())
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version 1.0.0-beta8');
+            ->willReturn("Puli version 1.0.0-beta8\n");
 
         $this->plugin->postInstall($event);
     }
@@ -316,7 +316,37 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->once())
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version 2.0.0-alpha1');
+            ->willReturn("Puli version 2.0.0-alpha1\n");
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testContinueIfDevelopmentVersion()
+    {
+        if ('@package_'.'version@' !== PuliPlugin::VERSION) {
+            $this->markTestSkipped('Only run for development version of Puli');
+        }
+
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version @package_'."version@\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled;prod\n"
+            );
+
+        $this->puliRunner->expects($this->atLeast(3))
+            ->method('run');
 
         $this->plugin->postInstall($event);
     }
@@ -363,7 +393,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -425,7 +455,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -462,7 +492,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -507,7 +537,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -541,7 +571,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -591,7 +621,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -634,7 +664,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -661,7 +691,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -689,7 +719,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -718,7 +748,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -746,7 +776,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -774,7 +804,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -811,7 +841,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -858,7 +888,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -906,7 +936,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -946,7 +976,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -984,7 +1014,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1027,7 +1057,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1082,7 +1112,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1120,7 +1150,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1150,7 +1180,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1190,7 +1220,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1231,7 +1261,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1265,7 +1295,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1294,7 +1324,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('package --list --format %format%', array(
@@ -1341,7 +1371,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('config %key% --parsed', array(
@@ -1377,7 +1407,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('config %key% --parsed', array(
@@ -1404,7 +1434,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('config %key% --parsed', array(
@@ -1442,7 +1472,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
 
         $this->plugin->postAutoloadDump($event);
     }
@@ -1461,7 +1491,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(1))
             ->method('run')
             ->with('config %key% --parsed', array(
@@ -1501,7 +1531,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
 
         $this->plugin->postAutoloadDump($event);
     }
@@ -1517,7 +1547,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('config %key% --parsed', array(
@@ -1544,7 +1574,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
         $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('config %key% --parsed', array(
@@ -1567,7 +1597,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
-            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION);
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
 
         $this->plugin->postAutoloadDump($event);
         $this->plugin->postAutoloadDump($event);
