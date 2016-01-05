@@ -20,6 +20,7 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\CommandEvent;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Exception;
 use RuntimeException;
 use Webmozart\PathUtil\Path;
 
@@ -98,49 +99,6 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
      */
     public function activate(Composer $composer, IOInterface $io)
     {
-        // Verify if Puli has the right version
-        try {
-            $versionString = $this->puliRunner->run('-V');
-        } catch (PuliRunnerException $e) {
-            $this->printWarning($io, 'Could not determine Puli version', $e);
-
-            return;
-        }
-
-        if (!preg_match('~\d+\.\d+\.\d+(-\w+)?~', $versionString, $matches)) {
-            $this->printWarning($io, sprintf(
-                'Could not determine Puli version. "puli -V" returned: %s',
-                $versionString
-            ));
-
-            return;
-        }
-
-        if (version_compare($matches[0], self::MIN_CLI_VERSION, '<')) {
-            $this->printWarning($io, sprintf(
-                'Found an unsupported version of the Puli CLI: %s. Please '.
-                'upgrade to version %s or higher. You can also install the '.
-                'puli/cli dependency at version %s in your project.',
-                $matches[0],
-                self::MIN_CLI_VERSION,
-                self::MIN_CLI_VERSION
-            ));
-
-            return;
-        }
-
-        if (version_compare($matches[0], self::MAX_CLI_VERSION, '>')) {
-            $this->printWarning($io, sprintf(
-                'Found an unsupported version of the Puli CLI: %s. Please '.
-                'downgrade to a lower version. You can also install the '.
-                'puli/cli dependency at a lower version than %s in your project.',
-                $matches[0],
-                self::MAX_CLI_VERSION
-            ));
-
-            return;
-        }
-
         $composer->getEventDispatcher()->addSubscriber($this);
     }
 
@@ -267,16 +225,23 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->initialized = true;
 
         // Keep the manually set runner
-        if ($this->puliRunner) {
-            return;
+        if (!$this->puliRunner) {
+            try {
+                // Add Composer's bin directory in case the "puli" executable is
+                // installed with Composer
+                $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
+            } catch (RuntimeException $e) {
+                $this->printWarning($io, 'Plugin initialization failed', $e);
+                $this->runPostAutoloadDump = false;
+                $this->runPostInstall = false;
+            }
         }
 
+        // Use the runner to verify if Puli has the right version
         try {
-            // Add Composer's bin directory in case the "puli" executable is
-            // installed with Composer
-            $this->puliRunner = new PuliRunner($composer->getConfig()->get('bin-dir'));
+            $this->verifyPuliVersion();
         } catch (RuntimeException $e) {
-            $io->writeError('<warning>'.$e->getMessage().'</warning>');
+            $this->printWarning($io, 'Version check failed', $e);
             $this->runPostAutoloadDump = false;
             $this->runPostInstall = false;
         }
@@ -654,14 +619,23 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         ));
     }
 
-    private function printWarning(IOInterface $io, $message, PuliRunnerException $exception = null)
+    /**
+     * @param IOInterface    $io
+     * @param                $message
+     * @param Exception|null $exception
+     */
+    private function printWarning(IOInterface $io, $message, Exception $exception = null)
     {
         if (!$exception) {
             $reasonPhrase = '';
         } elseif ($io->isVerbose()) {
-            $reasonPhrase = $exception->getFullError();
+            $reasonPhrase = $exception instanceof PuliRunnerException
+                ? $exception->getFullError()
+                : $exception->getMessage()."\n\n".$exception->getTraceAsString();
         } else {
-            $reasonPhrase = $exception->getShortError();
+            $reasonPhrase = $exception instanceof PuliRunnerException
+                ? $exception->getShortError()
+                : $exception->getMessage();
         }
 
         $io->writeError(sprintf(
@@ -702,5 +676,38 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         return $result;
+    }
+
+    private function verifyPuliVersion()
+    {
+        $versionString = $this->puliRunner->run('-V');
+
+        if (!preg_match('~\d+\.\d+\.\d+(-\w+)?~', $versionString, $matches)) {
+            throw new RuntimeException(sprintf(
+                'Could not determine Puli version. "puli -V" returned: %s',
+                $versionString
+            ));
+        }
+
+        if (version_compare($matches[0], self::MIN_CLI_VERSION, '<')) {
+            throw new RuntimeException(sprintf(
+                'Found an unsupported version of the Puli CLI: %s. Please '.
+                'upgrade to version %s or higher. You can also install the '.
+                'puli/cli dependency at version %s in your project.',
+                $matches[0],
+                self::MIN_CLI_VERSION,
+                self::MIN_CLI_VERSION
+            ));
+        }
+
+        if (version_compare($matches[0], self::MAX_CLI_VERSION, '>')) {
+            throw new RuntimeException(sprintf(
+                'Found an unsupported version of the Puli CLI: %s. Please '.
+                'downgrade to a lower version than %s. You can also install '.
+                'the puli/cli dependency in your project.',
+                $matches[0],
+                self::MAX_CLI_VERSION
+            ));
+        }
     }
 }
