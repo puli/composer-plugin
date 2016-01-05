@@ -37,6 +37,11 @@ use Webmozart\PathUtil\Path;
 class PuliPlugin implements PluginInterface, EventSubscriberInterface
 {
     /**
+     * The version of the Puli plugin.
+     */
+    const VERSION = '@package_version@';
+
+    /**
      * The minimum version of the Puli CLI.
      */
     const MIN_CLI_VERSION = '1.0.0-beta9';
@@ -682,30 +687,37 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     {
         $versionString = $this->puliRunner->run('-V');
 
-        if (!preg_match('~\d+\.\d+\.\d+(-\w+)?~', $versionString, $matches)) {
+        if (!preg_match('~^Puli version (\S+)$~', $versionString, $matches)) {
             throw new RuntimeException(sprintf(
                 'Could not determine Puli version. "puli -V" returned: %s',
                 $versionString
             ));
         }
 
-        if (version_compare($matches[0], self::MIN_CLI_VERSION, '<')) {
+        // the development build of the plugin is always considered compatible
+        // with the development build of the CLI
+        // Split strings to prevent replacement during release
+        if ('@package_'.'version@' === self::VERSION && '@package_'.'version@' === $matches[1]) {
+            return;
+        }
+
+        if (version_compare($matches[1], self::MIN_CLI_VERSION, '<')) {
             throw new RuntimeException(sprintf(
                 'Found an unsupported version of the Puli CLI: %s. Please '.
                 'upgrade to version %s or higher. You can also install the '.
                 'puli/cli dependency at version %s in your project.',
-                $matches[0],
+                $matches[1],
                 self::MIN_CLI_VERSION,
                 self::MIN_CLI_VERSION
             ));
         }
 
-        if (version_compare($matches[0], self::MAX_CLI_VERSION, '>')) {
+        if (version_compare($matches[1], self::MAX_CLI_VERSION, '>')) {
             throw new RuntimeException(sprintf(
                 'Found an unsupported version of the Puli CLI: %s. Please '.
                 'downgrade to a lower version than %s. You can also install '.
                 'the puli/cli dependency in your project.',
-                $matches[0],
+                $matches[1],
                 self::MAX_CLI_VERSION
             ));
         }
