@@ -22,6 +22,7 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Exception;
 use RuntimeException;
+use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -210,6 +211,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
 
         $this->checkForNotLoadableErrors($puliPackages, $io);
         $this->adoptComposerName($puliPackages, $io, $event->getComposer());
+        $this->removePuliDir($io);
         $this->buildPuli($io);
     }
 
@@ -607,6 +609,24 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         $this->puliRunner->run('package --delete %package_name%', array(
             'package_name' => $packageName,
         ));
+    }
+
+    private function removePuliDir(IOInterface $io)
+    {
+        $relativePuliDir = rtrim($this->getConfigKey('puli-dir'), '/');
+
+        $puliDir = Path::makeAbsolute($relativePuliDir, $this->rootDir);
+
+        // Only remove existing sub-directories of the root directory
+        if (!file_exists($puliDir) || 0 !== strpos($puliDir, $this->rootDir.'/')) {
+            return;
+        }
+
+        $io->write(sprintf('<info>Deleting ./%s/</info>', $relativePuliDir));
+
+        // Remove the .puli directory to prevent upgrade problems
+        $filesystem = new Filesystem();
+        $filesystem->remove($puliDir);
     }
 
     private function buildPuli(IOInterface $io)

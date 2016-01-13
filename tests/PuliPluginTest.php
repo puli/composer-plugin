@@ -22,6 +22,7 @@ use Composer\Package\RootPackage;
 use Composer\Repository\RepositoryManager;
 use Composer\Script\CommandEvent;
 use Composer\Script\ScriptEvents;
+use PHPUnit_Framework_Assert;
 use PHPUnit_Framework_MockObject_MockObject;
 use PHPUnit_Framework_TestCase;
 use Puli\ComposerPlugin\PuliPlugin;
@@ -248,6 +249,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(4))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(5))
+            ->method('run')
             ->with('build');
 
         $this->plugin->$listener($event);
@@ -432,6 +439,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(6))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(7))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -465,6 +478,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
 
@@ -509,6 +528,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'installer' => 'composer',
             ));
         $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
             ->method('run')
             ->with('build');
 
@@ -555,6 +580,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -595,6 +626,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'Exception trace...'
             ));
         $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
             ->method('run')
             ->with('build');
 
@@ -645,6 +682,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'Exception trace...'
             ));
         $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
             ->method('run')
             ->with('build');
 
@@ -704,6 +747,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(2))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -731,6 +780,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 "vendor/package2;composer;{$this->tempDir}/package2;enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
 
@@ -761,6 +816,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(2))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -789,6 +850,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(2))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -816,6 +883,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 "vendor/package2;composer;{$this->tempDir}/package2;enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
 
@@ -866,6 +939,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(4))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(5))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -912,6 +991,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'installer' => 'composer',
             ));
         $this->puliRunner->expects($this->at(4))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(5))
             ->method('run')
             ->with('build');
 
@@ -961,6 +1046,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(4))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(5))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -994,6 +1085,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'installer' => 'composer',
             ));
         $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
             ->method('run')
             ->with('build');
 
@@ -1037,6 +1134,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'Exception trace...'
             ));
         $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
             ->method('run')
             ->with('build');
 
@@ -1088,6 +1191,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(4))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(5))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -1130,6 +1239,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -1163,6 +1278,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             );
         $this->puliRunner->expects($this->at(2))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -1191,6 +1312,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 "vendor/package1;spock;{$this->tempDir}/package1;not-found;prod\n"
             );
         $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
 
@@ -1244,6 +1371,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -1278,6 +1411,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ));
         $this->puliRunner->expects($this->at(3))
             ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(4))
+            ->method('run')
             ->with('build');
 
         $this->plugin->postInstall($event);
@@ -1305,6 +1444,12 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 "vendor/root;;{$this->tempDir};enabled;prod\n"
             );
         $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('build');
 
@@ -1345,6 +1490,197 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
                 'Exception: Some exception.',
                 'Exception trace...'
             ));
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testRemovePuliDirBeforeBuildingIfExists()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $rootDir = $this->tempDir;
+        $puliDir = $this->tempDir.'/.puli';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($puliDir);
+
+        $this->localRepository->setPackages(array());
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Deleting ./.puli/</info>');
+        $this->io->expects($this->at(2))
+            ->method('write')
+            ->with('<info>Running "puli build"</info>');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled;prod\n"
+            );
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('build')
+            ->willReturnCallback(function () use ($rootDir, $puliDir) {
+                PHPUnit_Framework_Assert::assertFileExists($rootDir);
+                PHPUnit_Framework_Assert::assertFileNotExists($puliDir);
+            });
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDontRemovePuliDirBeforeBuildingIfNoneExists()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $rootDir = $this->tempDir;
+
+        $this->localRepository->setPackages(array());
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Running "puli build"</info>');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled;prod\n"
+            );
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.puli');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('build')
+            ->willReturnCallback(function () use ($rootDir) {
+                PHPUnit_Framework_Assert::assertFileExists($rootDir);
+            });
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDontRemovePuliDirIfEqualToRootDirectory()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $rootDir = $this->tempDir;
+
+        $this->localRepository->setPackages(array());
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Running "puli build"</info>');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled;prod\n"
+            );
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('.');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('build')
+            ->willReturnCallback(function () use ($rootDir) {
+                PHPUnit_Framework_Assert::assertFileExists($rootDir);
+            });
+
+        $this->plugin->postInstall($event);
+    }
+
+    public function testDontRemovePuliDirIfParentOfRootDirectory()
+    {
+        $event = new CommandEvent(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $rootDir = $this->tempDir;
+
+        $this->localRepository->setPackages(array());
+
+        $this->io->expects($this->at(0))
+            ->method('write')
+            ->with('<info>Looking for updated Puli packages</info>');
+        $this->io->expects($this->at(1))
+            ->method('write')
+            ->with('<info>Running "puli build"</info>');
+
+        $this->io->expects($this->never())
+            ->method('writeError');
+
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPlugin::MIN_CLI_VERSION."\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with('package --list --format %format%', array(
+                'format' => '%name%;%installer%;%install_path%;%state%;%env%',
+            ))
+            ->willReturn(
+                "vendor/root;;{$this->tempDir};enabled;prod\n"
+            );
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'puli-dir',
+            ))
+            ->willReturn('../..');
+        $this->puliRunner->expects($this->at(3))
+            ->method('run')
+            ->with('build')
+            ->willReturnCallback(function () use ($rootDir) {
+                PHPUnit_Framework_Assert::assertFileExists($rootDir);
+            });
 
         $this->plugin->postInstall($event);
     }
