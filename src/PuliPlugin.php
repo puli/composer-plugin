@@ -622,7 +622,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
 
-        $io->write(sprintf('<info>Deleting ./%s/</info>', $relativePuliDir));
+        $io->write(sprintf('<info>Deleting the "%s" directory</info>', $relativePuliDir));
 
         // Remove the .puli directory to prevent upgrade problems
         $filesystem = new Filesystem();

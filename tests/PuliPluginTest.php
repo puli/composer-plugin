@@ -1510,7 +1510,7 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->with('<info>Looking for updated Puli packages</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Deleting ./.puli/</info>');
+            ->with('<info>Deleting the ".puli" directory</info>');
         $this->io->expects($this->at(2))
             ->method('write')
             ->with('<info>Running "puli build"</info>');
