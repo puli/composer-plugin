@@ -61,10 +61,27 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
      */
     private $pluginClassFile;
 
+    /**
+     * @var string
+     */
+    private $pluginImplClassFile;
+
     protected function setUp()
     {
         $this->tempDir = TestUtil::makeTempDir('puli-composer-plugin', __CLASS__);
         $this->pluginClassFile = $this->tempDir.'/PuliPlugin.php';
+        $this->pluginImplClassFile = $this->tempDir.'/PuliPluginImpl.php';
+
+        // Copy to a location where we can safely delete it
+        copy(__DIR__.'/../src/PuliPlugin.php', $this->pluginClassFile);
+        copy(__DIR__.'/../src/PuliPluginImpl.php', $this->pluginImplClassFile);
+
+        // Use custom file so that we can safely delete it
+        // This is needed in tests that check that the plugin does not create
+        // errors after uninstall
+        require $this->pluginClassFile;
+        require $this->pluginImplClassFile;
+
         $this->composer = $this->getMockBuilder('Composer\Composer')
             ->disableOriginalConstructor()
             ->getMock();
@@ -72,15 +89,6 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->impl = $this->getMockBuilder('Puli\ComposerPlugin\PuliPluginImpl')
             ->disableOriginalConstructor()
             ->getMock();
-
-        // Put PuliPlugin.php to a location where we can safely delete it
-        copy(__DIR__.'/../src/PuliPlugin.php', $this->pluginClassFile);
-
-        // Use custom file so that we can safely delete it
-        // This is needed in tests that check that the plugin does not create
-        // errors after uninstall
-        require $this->pluginClassFile;
-
         $this->plugin = new PuliPlugin();
         $this->plugin->setPluginImpl($this->impl);
     }
@@ -131,6 +139,19 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->plugin->listen($event);
     }
 
+    public function testDoNotRunPostInstallAfterRemovingImplementation()
+    {
+        $event = new Event(ScriptEvents::POST_INSTALL_CMD, $this->composer, $this->io);
+
+        $this->impl->expects($this->never())
+            ->method('postInstall');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginImplClassFile);
+
+        $this->plugin->listen($event);
+    }
+
     public function testRunPostUpdate()
     {
         $event = new Event(ScriptEvents::POST_UPDATE_CMD, $this->composer, $this->io);
@@ -154,6 +175,19 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->plugin->listen($event);
     }
 
+    public function testDoNotRunPostUpdateAfterRemovingImplementation()
+    {
+        $event = new Event(ScriptEvents::POST_UPDATE_CMD, $this->composer, $this->io);
+
+        $this->impl->expects($this->never())
+            ->method('postInstall');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginImplClassFile);
+
+        $this->plugin->listen($event);
+    }
+
     public function testRunPostAutoloadDump()
     {
         $event = new Event(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
@@ -172,7 +206,20 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
             ->method('postAutoloadDump');
 
         $filesystem = new Filesystem();
-        $filesystem->remove($this->pluginClassFile);
+        $filesystem->remove($this->pluginImplClassFile);
+
+        $this->plugin->listen($event);
+    }
+
+    public function testDoNotRunPostAutoloadDumpAfterRemovingImplementation()
+    {
+        $event = new Event(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->impl->expects($this->never())
+            ->method('postAutoloadDump');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginImplClassFile);
 
         $this->plugin->listen($event);
     }

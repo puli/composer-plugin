@@ -67,7 +67,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
     public function listen(Event $event)
     {
         // Plugin has been uninstalled
-        if (!file_exists(__FILE__)) {
+        if (!file_exists(__FILE__) || !file_exists(__DIR__.'/PuliPluginImpl.php')) {
             return;
         }
 
