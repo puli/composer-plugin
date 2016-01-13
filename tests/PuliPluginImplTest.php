@@ -1717,10 +1717,10 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
     {
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
+            ->with('<info>Generating the "PULI_FACTORY_CLASS" constant</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
+            ->with('<info>Registering "Puli\\MyFactory" with the class-map autoloader</info>');
 
         $this->io->expects($this->never())
             ->method('writeError');
@@ -1832,10 +1832,10 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
     {
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Generating PULI_FACTORY_CLASS constant</info>');
+            ->with('<info>Generating the "PULI_FACTORY_CLASS" constant</info>');
         $this->io->expects($this->at(1))
             ->method('write')
-            ->with('<info>Registering Puli\\MyFactory with the class-map autoloader</info>');
+            ->with('<info>Registering "Puli\\MyFactory" with the class-map autoloader</info>');
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')

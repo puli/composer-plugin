@@ -421,7 +421,7 @@ class PuliPluginImpl
             ));
         }
 
-        $this->io->write('<info>Generating PULI_FACTORY_CLASS constant</info>');
+        $this->io->write('<info>Generating the "PULI_FACTORY_CLASS" constant</info>');
 
         $contents = file_get_contents($autoloadFile);
         $escFactoryClass = var_export($factoryClass, true);
@@ -448,7 +448,7 @@ class PuliPluginImpl
             ));
         }
 
-        $this->io->write(sprintf('<info>Registering %s with the class-map autoloader</info>', $factoryClass));
+        $this->io->write(sprintf('<info>Registering "%s" with the class-map autoloader</info>', $factoryClass));
 
         $relFactoryFile = Path::makeRelative($factoryFile, $vendorDir);
         $escFactoryClass = var_export($factoryClass, true);
