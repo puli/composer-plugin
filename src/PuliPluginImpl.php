@@ -162,7 +162,7 @@ class PuliPluginImpl
 
         $this->runPostInstall = false;
 
-        $this->io->write('<info>Looking for updated Puli packages</info>');
+        $this->io->write('<info>Synchronizing Puli with Composer</info>');
 
         $rootPackage = $this->composer->getPackage();
         $composerPackages = $this->loadComposerPackages();
