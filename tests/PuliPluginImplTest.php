@@ -170,7 +170,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->with('<info>Synchronizing Puli with Composer</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>) in <comment>prod</comment>');
@@ -332,7 +332,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->with('<info>Synchronizing Puli with Composer</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('Installing <info>vendor/package1</info> (<comment>package1</comment>) in <comment>prod</comment>');
@@ -1549,7 +1549,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->with('<info>Synchronizing Puli with Composer</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<info>Deleting the ".puli" directory</info>');
@@ -1595,7 +1595,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->with('<info>Synchronizing Puli with Composer</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<info>Running "puli build"</info>');
@@ -1637,7 +1637,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->with('<info>Synchronizing Puli with Composer</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<info>Running "puli build"</info>');
@@ -1679,7 +1679,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
         $this->io->expects($this->at(0))
             ->method('write')
-            ->with('<info>Looking for updated Puli packages</info>');
+            ->with('<info>Synchronizing Puli with Composer</info>');
         $this->io->expects($this->at(1))
             ->method('write')
             ->with('<info>Running "puli build"</info>');
