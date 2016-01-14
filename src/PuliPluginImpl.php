@@ -41,7 +41,7 @@ class PuliPluginImpl
     /**
      * The minimum version of the Puli CLI.
      */
-    const MIN_CLI_VERSION = '1.0.0-beta9';
+    const MIN_CLI_VERSION = '1.0.0-beta10';
 
     /**
      * The maximum version of the Puli CLI.

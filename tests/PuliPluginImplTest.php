@@ -254,7 +254,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
     {
         $this->io->expects($this->once())
             ->method('writeError')
-            ->with('<warning>Warning: Version check failed: Found an unsupported version of the Puli CLI: 1.0.0-beta8. Please upgrade to version 1.0.0-beta9 or higher. You can also install the puli/cli dependency at version 1.0.0-beta9 in your project.</warning>');
+            ->with('<warning>Warning: Version check failed: Found an unsupported version of the Puli CLI: 1.0.0-beta8. Please upgrade to version 1.0.0-beta10 or higher. You can also install the puli/cli dependency at version 1.0.0-beta10 in your project.</warning>');
 
         $this->puliRunner->expects($this->once())
             ->method('run')
