@@ -1,9 +1,13 @@
 Changelog
 =========
 
-* 1.0.0-beta9 (@release_date@)
+* 1.0.0-beta9 (2016-01-14)
 
  * checking the version of puli/cli now to find out whether the plugin is compatible
+ * fixed plugin to disable itself after uninstall
+ * the .puli directory is now removed on "composer install" and "composer update"
+   to fix updates to incompatible generated files
+ * made compatible with Symfony 3.0
 
 * 1.0.0-beta8 (2015-10-05)
 
