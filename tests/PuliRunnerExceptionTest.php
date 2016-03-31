@@ -59,7 +59,7 @@ class PuliRunnerExceptionTest extends PHPUnit_Framework_TestCase
             ->willReturn(1);
         $process->expects($this->any())
             ->method('getErrorOutput')
-            ->willReturn($output = <<<EOF
+            ->willReturn($output = <<<'EOF'
 
 
 
@@ -95,7 +95,7 @@ EOF
             ->willReturn(1);
         $process->expects($this->any())
             ->method('getErrorOutput')
-            ->willReturn($output = <<<EOF
+            ->willReturn($output = <<<'EOF'
 
 
 
