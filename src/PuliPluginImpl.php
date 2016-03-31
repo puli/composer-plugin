@@ -36,7 +36,7 @@ class PuliPluginImpl
     /**
      * The version of the Puli plugin.
      */
-    const VERSION = '@package_version@';
+    const VERSION = '1.0.0-beta10';
 
     /**
      * The minimum version of the Puli CLI.
