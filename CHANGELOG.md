@@ -1,6 +1,10 @@
 Changelog
 =========
 
+* 1.0.0-beta10 (2016-03-31)
+
+ * fixed: added symfony/filesystem dependency in non-dev environments
+
 * 1.0.0-beta9 (2016-01-14)
 
  * checking the version of puli/cli now to find out whether the plugin is compatible
