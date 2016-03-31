@@ -13,7 +13,7 @@
     "require": {
         "php": "^5.3.9|^7.0",
         "composer-plugin-api": "^1.0",
-        "symfony/filesystem": "^2.3",
+        "symfony/filesystem": "^2.3|^3.0",
         "symfony/process": "^2.3|^3.0",
         "puli/repository": "^1.0-beta9",
         "puli/discovery": "^1.0-beta9",
