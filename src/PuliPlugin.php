@@ -43,6 +43,7 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         return array(
             ScriptEvents::POST_INSTALL_CMD => 'listen',
             ScriptEvents::POST_UPDATE_CMD => 'listen',
+            ScriptEvents::PRE_AUTOLOAD_DUMP => 'listen',
             ScriptEvents::POST_AUTOLOAD_DUMP => 'listen',
         );
     }
@@ -78,6 +79,9 @@ class PuliPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         switch ($event->getName()) {
+            case ScriptEvents::PRE_AUTOLOAD_DUMP:
+                $this->impl->preAutoloadDump();
+                break;
             case ScriptEvents::POST_AUTOLOAD_DUMP:
                 $this->impl->postAutoloadDump();
                 break;
