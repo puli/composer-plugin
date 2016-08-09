@@ -1717,36 +1717,27 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
     public function testInsertFactoryClassIntoClassMap()
     {
-        $this->puliRunner->expects($this->at(0))
-            ->method('run')
-            ->with('-V')
-            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-
         $this->rootPackage->setAutoload(array('classmap' => array('src')));
 
         $this->plugin->preAutoloadDump();
 
-        $this->assertSame(array('classmap' => array('src', $this->tempDir)), $this->rootPackage->getAutoload());
+        $this->assertSame(array('classmap' => array('src', $this->tempDir.'/.puli/GeneratedPuliFactory.php')), $this->rootPackage->getAutoload());
     }
 
     public function testCreatesStubFactoryClassWithNamespaceIfDoesNotExist()
     {
-        $this->puliRunner->expects($this->at(0))
-            ->method('run')
-            ->with('-V')
-            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-        $this->puliRunner->expects($this->at(1))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.class',
-            ))
-            ->willReturn("Puli\\MyFactory\n");
-        $this->puliRunner->expects($this->at(2))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.file',
-            ))
-            ->willReturn(".puli/factory.class\n");
+        $jsonConfig = array(
+            'version' => '1.0',
+            'config' => array(
+                'factory' => array(
+                    'in' => array(
+                        'class' => 'Puli\\MyFactory',
+                        'file' => '.puli/factory.class',
+                    ),
+                ),
+            ),
+        );
+        file_put_contents($this->tempDir.'/puli.json', json_encode($jsonConfig));
 
         $this->plugin->preAutoloadDump();
 
@@ -1755,22 +1746,18 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
     public function testCreatesStubFactoryClassWithoutNamespaceIfDoesNotExist()
     {
-        $this->puliRunner->expects($this->at(0))
-            ->method('run')
-            ->with('-V')
-            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-        $this->puliRunner->expects($this->at(1))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.class',
-            ))
-            ->willReturn("MyFactory\n");
-        $this->puliRunner->expects($this->at(2))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.file',
-            ))
-            ->willReturn(".puli/factory.class\n");
+        $jsonConfig = array(
+            'version' => '1.0',
+            'config' => array(
+                'factory' => array(
+                    'in' => array(
+                        'class' => 'MyFactory',
+                        'file' => '.puli/factory.class',
+                    ),
+                ),
+            ),
+        );
+        file_put_contents($this->tempDir.'/puli.json', json_encode($jsonConfig));
 
         $this->plugin->preAutoloadDump();
 

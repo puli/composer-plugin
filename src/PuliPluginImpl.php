@@ -14,9 +14,11 @@ namespace Puli\ComposerPlugin;
 use Composer\Composer;
 use Composer\Config;
 use Composer\IO\IOInterface;
+use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
 use Composer\Script\Event;
+use Composer\Util\RemoteFilesystem;
 use Exception;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -103,11 +105,6 @@ class PuliPluginImpl
      */
     private $initialized = false;
 
-    /**
-     * @var string
-     */
-    private $autoloadFile;
-
     public function __construct(Event $event, PuliRunner $puliRunner = null)
     {
         $this->composer = $event->getComposer();
@@ -116,38 +113,19 @@ class PuliPluginImpl
         $this->isDev = $event->isDevMode();
         $this->puliRunner = $puliRunner;
         $this->rootDir = Path::normalize(getcwd());
-
-        $vendorDir = $this->config->get('vendor-dir');
-
-        // On TravisCI, $vendorDir is a relative path. Probably an old Composer
-        // build or something. Usually, $vendorDir should be absolute already.
-        $vendorDir = Path::makeAbsolute($vendorDir, $this->rootDir);
-
-        $this->autoloadFile = $vendorDir.'/autoload.php';
     }
 
     public function preAutoloadDump()
     {
-        if (!$this->initialized) {
-            $this->initialize();
-        }
-
-        // This method is called twice. Run it only once.
+        // This method is called multiple times. Run it only once.
         if (!$this->runPreAutoloadDump) {
             return;
         }
 
         $this->runPreAutoloadDump = false;
 
-        try {
-            $factoryClass = $this->getConfigKey('factory.in.class');
-            $factoryFile = $this->getConfigKey('factory.in.file');
-        } catch (PuliRunnerException $e) {
-            $this->printWarning('Could not load Puli configuration', $e);
-
-            return;
-        }
-
+        $factoryClass = $this->getConfigKeyFromJsonFile('factory.in.class');
+        $factoryFile = $this->getConfigKeyFromJsonFile('factory.in.file');
         $factoryFile = Path::makeAbsolute($factoryFile, $this->rootDir);
 
         $autoload = $this->composer->getPackage()->getAutoload();
@@ -178,7 +156,7 @@ class PuliPluginImpl
             $this->initialize();
         }
 
-        // This method is called twice. Run it only once.
+        // This method is called multiple times. Run it only once.
         if (!$this->runPostAutoloadDump) {
             return;
         }
@@ -193,8 +171,15 @@ class PuliPluginImpl
             return;
         }
 
-        $this->insertFactoryClassConstant($this->autoloadFile, $factoryClass);
-        $this->setBootstrapFile($this->autoloadFile);
+        $vendorDir = $this->config->get('vendor-dir');
+
+        // On TravisCI, $vendorDir is a relative path. Probably an old Composer
+        // build or something. Usually, $vendorDir should be absolute already.
+        $vendorDir = Path::makeAbsolute($vendorDir, $this->rootDir);
+
+        $autoloadFile = $vendorDir.'/autoload.php';
+        $this->insertFactoryClassConstant($autoloadFile, $factoryClass);
+        $this->setBootstrapFile($autoloadFile);
     }
 
     /**
@@ -206,7 +191,7 @@ class PuliPluginImpl
             $this->initialize();
         }
 
-        // This method is called twice. Run it only once.
+        // This method is called multiple times. Run it only once.
         if (!$this->runPostInstall) {
             return;
         }
@@ -251,13 +236,6 @@ class PuliPluginImpl
 
     private function initialize()
     {
-        if (!file_exists($this->autoloadFile)) {
-            $filesystem = new Filesystem();
-            // Avoid problems if using the runner before autoload.php has been
-            // generated
-            $filesystem->dumpFile($this->autoloadFile, '');
-        }
-
         $this->initialized = true;
 
         // Keep the manually set runner
@@ -518,7 +496,7 @@ class PuliPluginImpl
     /**
      * Loads Composer's currently installed packages.
      *
-     * @return PackageInterface[] The installed packages indexed by their names.
+     * @return PackageInterface[] The installed packages indexed by their names
      */
     private function loadComposerPackages()
     {
@@ -531,6 +509,39 @@ class PuliPluginImpl
         }
 
         return $packages;
+    }
+
+    private function getConfigKeyFromJsonFile($key)
+    {
+        $value = null;
+        $jsonPath = realpath(substr($this->config->get('vendor-dir'), 0, -strlen($this->config->get('vendor-dir', Config::RELATIVE_PATHS)))).DIRECTORY_SEPARATOR.'puli.json';
+        if (file_exists($jsonPath)) {
+            $jsonFile = new JsonFile($jsonPath, new RemoteFilesystem($this->io));
+            $config = $jsonFile->read();
+            if (empty($config['version']) || '1.0' !== $config['version']) {
+                throw new \RuntimeException('Invalid configuration version schema of puli.json file!');
+            }
+        }
+        switch ($key) {
+            case 'factory.in.file':
+                if (empty($config) || empty($config['config']['factory']['in']['file'])) {
+                    $value = '.puli/GeneratedPuliFactory.php';
+                } else {
+                    $value = $config['config']['factory']['in']['file'];
+                }
+                break;
+            case 'factory.in.class':
+                if (empty($config) || empty($config['config']['factory']['in']['class'])) {
+                    $value = 'Puli\\GeneratedPuliFactory';
+                } else {
+                    $value = $config['config']['factory']['in']['class'];
+                }
+                break;
+            default:
+                throw new \RuntimeException(sprintf('Cannot extract key "%s" from config!', $key));
+        }
+
+        return $value;
     }
 
     private function getConfigKey($key)
