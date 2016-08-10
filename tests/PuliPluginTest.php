@@ -188,6 +188,42 @@ class PuliPluginTest extends PHPUnit_Framework_TestCase
         $this->plugin->listen($event);
     }
 
+    public function testRunPreAutoloadDump()
+    {
+        $event = new Event(ScriptEvents::PRE_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->impl->expects($this->once())
+            ->method('preAutoloadDump');
+
+        $this->plugin->listen($event);
+    }
+
+    public function testDoNotRunPreAutoloadDumpAfterUninstall()
+    {
+        $event = new Event(ScriptEvents::PRE_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->impl->expects($this->never())
+            ->method('preAutoloadDump');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginImplClassFile);
+
+        $this->plugin->listen($event);
+    }
+
+    public function testDoNotRunPreAutoloadDumpAfterRemovingImplementation()
+    {
+        $event = new Event(ScriptEvents::PRE_AUTOLOAD_DUMP, $this->composer, $this->io);
+
+        $this->impl->expects($this->never())
+            ->method('preAutoloadDump');
+
+        $filesystem = new Filesystem();
+        $filesystem->remove($this->pluginImplClassFile);
+
+        $this->plugin->listen($event);
+    }
+
     public function testRunPostAutoloadDump()
     {
         $event = new Event(ScriptEvents::POST_AUTOLOAD_DUMP, $this->composer, $this->io);

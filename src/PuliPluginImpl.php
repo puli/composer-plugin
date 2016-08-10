@@ -86,6 +86,11 @@ class PuliPluginImpl
     /**
      * @var bool
      */
+    private $runPreAutoloadDump = true;
+
+    /**
+     * @var bool
+     */
     private $runPostAutoloadDump = true;
 
     /**
@@ -98,6 +103,11 @@ class PuliPluginImpl
      */
     private $initialized = false;
 
+    /**
+     * @var string
+     */
+    private $autoloadFile;
+
     public function __construct(Event $event, PuliRunner $puliRunner = null)
     {
         $this->composer = $event->getComposer();
@@ -106,6 +116,60 @@ class PuliPluginImpl
         $this->isDev = $event->isDevMode();
         $this->puliRunner = $puliRunner;
         $this->rootDir = Path::normalize(getcwd());
+
+        $vendorDir = $this->config->get('vendor-dir');
+
+        // On TravisCI, $vendorDir is a relative path. Probably an old Composer
+        // build or something. Usually, $vendorDir should be absolute already.
+        $vendorDir = Path::makeAbsolute($vendorDir, $this->rootDir);
+
+        $this->autoloadFile = $vendorDir.'/autoload.php';
+    }
+
+    public function preAutoloadDump()
+    {
+        if (!$this->initialized) {
+            $this->initialize();
+        }
+
+        // This method is called twice. Run it only once.
+        if (!$this->runPreAutoloadDump) {
+            return;
+        }
+
+        $this->runPreAutoloadDump = false;
+
+        try {
+            $factoryClass = $this->getConfigKey('factory.in.class');
+            $factoryFile = $this->getConfigKey('factory.in.file');
+        } catch (PuliRunnerException $e) {
+            $this->printWarning('Could not load Puli configuration', $e);
+
+            return;
+        }
+
+        $factoryFile = Path::makeAbsolute($factoryFile, $this->rootDir);
+
+        $autoload = $this->composer->getPackage()->getAutoload();
+        $autoload['classmap'][] = $factoryFile;
+
+        $this->composer->getPackage()->setAutoload($autoload);
+
+        if (!file_exists($factoryFile)) {
+            $filesystem = new Filesystem();
+            // Let Composer find the factory class with a temporary stub
+
+            $namespace = explode('\\', ltrim($factoryClass, '\\'));
+            $className = array_pop($namespace);
+
+            if (count($namespace)) {
+                $stub = '<?php namespace '.implode('\\', $namespace).'; class '.$className.' {}';
+            } else {
+                $stub = '<?php class '.$className.' {}';
+            }
+
+            $filesystem->dumpFile($factoryFile, $stub);
+        }
     }
 
     public function postAutoloadDump()
@@ -121,29 +185,16 @@ class PuliPluginImpl
 
         $this->runPostAutoloadDump = false;
 
-        $vendorDir = $this->config->get('vendor-dir');
-
-        // On TravisCI, $vendorDir is a relative path. Probably an old Composer
-        // build or something. Usually, $vendorDir should be absolute already.
-        $vendorDir = Path::makeAbsolute($vendorDir, $this->rootDir);
-
-        $autoloadFile = $vendorDir.'/autoload.php';
-        $classMapFile = $vendorDir.'/composer/autoload_classmap.php';
-
         try {
             $factoryClass = $this->getConfigKey('factory.in.class');
-            $factoryFile = $this->getConfigKey('factory.in.file');
         } catch (PuliRunnerException $e) {
             $this->printWarning('Could not load Puli configuration', $e);
 
             return;
         }
 
-        $factoryFile = Path::makeAbsolute($factoryFile, $this->rootDir);
-
-        $this->insertFactoryClassConstant($autoloadFile, $factoryClass);
-        $this->insertFactoryClassMap($classMapFile, $vendorDir, $factoryClass, $factoryFile);
-        $this->setBootstrapFile($autoloadFile);
+        $this->insertFactoryClassConstant($this->autoloadFile, $factoryClass);
+        $this->setBootstrapFile($this->autoloadFile);
     }
 
     /**
@@ -200,6 +251,13 @@ class PuliPluginImpl
 
     private function initialize()
     {
+        if (!file_exists($this->autoloadFile)) {
+            $filesystem = new Filesystem();
+            // Avoid problems if using the runner before autoload.php has been
+            // generated
+            $filesystem->dumpFile($this->autoloadFile, '');
+        }
+
         $this->initialized = true;
 
         // Keep the manually set runner
@@ -210,6 +268,7 @@ class PuliPluginImpl
                 $this->puliRunner = new PuliRunner($this->config->get('bin-dir'));
             } catch (RuntimeException $e) {
                 $this->printWarning('Plugin initialization failed', $e);
+                $this->runPreAutoloadDump = false;
                 $this->runPostAutoloadDump = false;
                 $this->runPostInstall = false;
             }
@@ -220,6 +279,7 @@ class PuliPluginImpl
             $this->verifyPuliVersion();
         } catch (RuntimeException $e) {
             $this->printWarning('Version check failed', $e);
+            $this->runPreAutoloadDump = false;
             $this->runPostAutoloadDump = false;
             $this->runPostInstall = false;
         }
@@ -437,33 +497,6 @@ class PuliPluginImpl
             $contents);
 
         file_put_contents($autoloadFile, $contents);
-    }
-
-    private function insertFactoryClassMap($classMapFile, $vendorDir, $factoryClass, $factoryFile)
-    {
-        if (!file_exists($classMapFile)) {
-            throw new PuliPluginException(sprintf(
-                'Could not adjust autoloader: The file %s was not found.',
-                $classMapFile
-            ));
-        }
-
-        $this->io->write(sprintf('<info>Registering "%s" with the class-map autoloader</info>', $factoryClass));
-
-        $relFactoryFile = Path::makeRelative($factoryFile, $vendorDir);
-        $escFactoryClass = var_export($factoryClass, true);
-        $escFactoryFile = var_export('/'.$relFactoryFile, true);
-        $classMap = sprintf("\n    %s => \$vendorDir . %s,", $escFactoryClass, $escFactoryFile);
-
-        $contents = file_get_contents($classMapFile);
-
-        // Regex modifiers:
-        // "m": \s matches newlines
-        // "D": $ matches at EOF only
-        // Translation: insert before the last ");" in the file
-        $contents = preg_replace('/\n(?=\);\s*$)/mD', "\n".$classMap, $contents);
-
-        file_put_contents($classMapFile, $contents);
     }
 
     private function setBootstrapFile($autoloadFile)

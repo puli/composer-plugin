@@ -1717,16 +1717,20 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
     public function testInsertFactoryClassIntoClassMap()
     {
-        $this->io->expects($this->at(0))
-            ->method('write')
-            ->with('<info>Generating the "PULI_FACTORY_CLASS" constant</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<info>Registering "Puli\\MyFactory" with the class-map autoloader</info>');
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
 
-        $this->io->expects($this->never())
-            ->method('writeError');
+        $this->rootPackage->setAutoload(array('classmap' => array('src')));
 
+        $this->plugin->preAutoloadDump();
+
+        $this->assertSame(array('classmap' => array('src', $this->tempDir)), $this->rootPackage->getAutoload());
+    }
+
+    public function testCreatesStubFactoryClassWithNamespaceIfDoesNotExist()
+    {
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
@@ -1742,17 +1746,35 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
             ->with('config %key% --parsed', array(
                 'key' => 'factory.in.file',
             ))
-            ->willReturn("My/Factory.php\n");
+            ->willReturn(".puli/factory.class\n");
 
-        $this->plugin->postAutoloadDump();
+        $this->plugin->preAutoloadDump();
 
-        $this->assertFileExists($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
+        $this->assertStringEqualsFile($this->tempDir.'/.puli/factory.class', '<?php namespace Puli; class MyFactory {}');
+    }
 
-        $classMap = require $this->tempDir.'/the-vendor/composer/autoload_classmap.php';
+    public function testCreatesStubFactoryClassWithoutNamespaceIfDoesNotExist()
+    {
+        $this->puliRunner->expects($this->at(0))
+            ->method('run')
+            ->with('-V')
+            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
+        $this->puliRunner->expects($this->at(1))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.class',
+            ))
+            ->willReturn("MyFactory\n");
+        $this->puliRunner->expects($this->at(2))
+            ->method('run')
+            ->with('config %key% --parsed', array(
+                'key' => 'factory.in.file',
+            ))
+            ->willReturn(".puli/factory.class\n");
 
-        $this->assertInternalType('array', $classMap);
-        $this->assertArrayHasKey('Puli\\MyFactory', $classMap);
-        $this->assertSame($this->tempDir.'/My/Factory.php', Path::canonicalize($classMap['Puli\\MyFactory']));
+        $this->plugin->preAutoloadDump();
+
+        $this->assertStringEqualsFile($this->tempDir.'/.puli/factory.class', '<?php class MyFactory {}');
     }
 
     public function testWarnIfFactoryClassCannotBeRead()
@@ -1780,64 +1802,11 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
         $this->plugin->postAutoloadDump();
     }
 
-    public function testWarnIfFactoryFileCannotBeRead()
-    {
-        $this->io->expects($this->once())
-            ->method('writeError')
-            ->with('<warning>Warning: Could not load Puli configuration: Exception: Some exception.</warning>');
-
-        $this->puliRunner->expects($this->at(0))
-            ->method('run')
-            ->with('-V')
-            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-        $this->puliRunner->expects($this->at(1))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.class',
-            ))
-            ->willReturn("Puli\\MyFactory\n");
-        $this->puliRunner->expects($this->at(2))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.file',
-            ))
-            ->willThrowException(new PuliRunnerException(
-                "config 'factory.in.file' --parsed",
-                1,
-                'Exception: Some exception.',
-                'Exception trace...'
-            ));
-
-        $this->plugin->postAutoloadDump();
-    }
-
-    /**
-     * @expectedException \Puli\ComposerPlugin\PuliPluginException
-     * @expectedExceptionMessage autoload_classmap.php
-     */
-    public function testFailIfClassMapFileNotFound()
-    {
-        $this->io->expects($this->never())
-            ->method('writeError');
-
-        unlink($this->tempDir.'/the-vendor/composer/autoload_classmap.php');
-
-        $this->puliRunner->expects($this->at(0))
-            ->method('run')
-            ->with('-V')
-            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-
-        $this->plugin->postAutoloadDump();
-    }
-
     public function testInsertFactoryConstantIntoAutoload()
     {
         $this->io->expects($this->at(0))
             ->method('write')
             ->with('<info>Generating the "PULI_FACTORY_CLASS" constant</info>');
-        $this->io->expects($this->at(1))
-            ->method('write')
-            ->with('<info>Registering "Puli\\MyFactory" with the class-map autoloader</info>');
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
@@ -1849,12 +1818,6 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
                 'key' => 'factory.in.class',
             ))
             ->willReturn("Puli\\MyFactory\n");
-        $this->puliRunner->expects($this->at(2))
-            ->method('run')
-            ->with('config %key% --parsed', array(
-                'key' => 'factory.in.file',
-            ))
-            ->willReturn("My/Factory.php\n");
 
         $this->plugin->postAutoloadDump();
 
@@ -1866,28 +1829,9 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
         $this->assertSame('Puli\\MyFactory', PULI_FACTORY_CLASS);
     }
 
-    /**
-     * @expectedException \Puli\ComposerPlugin\PuliPluginException
-     * @expectedExceptionMessage autoload.php
-     */
-    public function testFailIfAutoloadFileNotFound()
-    {
-        $this->io->expects($this->never())
-            ->method('write');
-
-        unlink($this->tempDir.'/the-vendor/autoload.php');
-
-        $this->puliRunner->expects($this->at(0))
-            ->method('run')
-            ->with('-V')
-            ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-
-        $this->plugin->postAutoloadDump();
-    }
-
     public function testSetBootstrapFileToAutoloadFile()
     {
-        $this->io->expects($this->at(2))
+        $this->io->expects($this->at(1))
             ->method('write')
             ->with('<info>Setting "bootstrap-file" to "the-vendor/autoload.php"</info>');
 
@@ -1895,13 +1839,13 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
             ->method('run')
             ->with('-V')
             ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-        $this->puliRunner->expects($this->at(3))
+        $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('config %key% --parsed', array(
                 'key' => 'bootstrap-file',
             ))
             ->willReturn('null');
-        $this->puliRunner->expects($this->at(4))
+        $this->puliRunner->expects($this->at(3))
             ->method('run')
             ->with('config %key% %value%', array(
                 'key' => 'bootstrap-file',
@@ -1913,20 +1857,20 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
     public function testDoNotSetBootstrapFileIfAlreadySet()
     {
-        $this->io->expects($this->exactly(2))
+        $this->io->expects($this->exactly(1))
             ->method('write');
 
         $this->puliRunner->expects($this->at(0))
             ->method('run')
             ->with('-V')
             ->willReturn('Puli version '.PuliPluginImpl::MIN_CLI_VERSION."\n");
-        $this->puliRunner->expects($this->at(3))
+        $this->puliRunner->expects($this->at(2))
             ->method('run')
             ->with('config %key% --parsed', array(
                 'key' => 'bootstrap-file',
             ))
             ->willReturn("my/bootstrap-file.php\n");
-        $this->puliRunner->expects($this->exactly(4))
+        $this->puliRunner->expects($this->exactly(3))
             ->method('run');
 
         $this->plugin->postAutoloadDump();
@@ -1934,7 +1878,7 @@ class PuliPluginImplTest extends PHPUnit_Framework_TestCase
 
     public function testRunPostAutoloadDumpOnlyOnce()
     {
-        $this->io->expects($this->exactly(3))
+        $this->io->expects($this->exactly(2))
             ->method('write');
 
         $this->puliRunner->expects($this->at(0))
