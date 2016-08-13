@@ -21,7 +21,7 @@
     "require-dev": {
         "composer/composer": "^1.0-alpha10",
         "phpunit/phpunit": "^4.6",
-        "webmozart/glob": "^4.0",
+        "webmozart/glob": "^4.1",
         "sebastian/version": "^1.0.1",
         "puli/repository": "^1.0-beta9"
     },
