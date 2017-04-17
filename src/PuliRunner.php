@@ -106,6 +106,7 @@ class PuliRunner
         $fullCommand = sprintf('%s %s --no-ansi -vv', $this->puli, strtr($command, $replacements));
 
         $process = new Process($fullCommand);
+        $process->setTimeout( 180 );
         $process->run();
 
         if (!$process->isSuccessful()) {
